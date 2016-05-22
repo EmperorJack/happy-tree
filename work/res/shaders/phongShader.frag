@@ -15,7 +15,7 @@ bool withinSpotlight(int, vec3, float);
 void main() {
 	vec3 finalColor = vec3(0, 0, 0);
 
-  int spotlightIndex = 3;
+  int spotlightIndex = -1;
 
   // Compute the illumination of each light
   for (int lightIndex = 0; lightIndex < gl_MaxLights; lightIndex++) {

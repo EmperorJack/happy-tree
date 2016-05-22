@@ -40,6 +40,8 @@ GLuint g_shader = 0;
 // Geometry draw lists
 Geometry* g_model;
 
+int frameCount = 0;
+
 // Mouse Position callback
 void cursorPosCallback(GLFWwindow* win, double xpos, double ypos) {
 	// cout << "Mouse Movement Callback :: xpos=" << xpos << "ypos=" << ypos << endl;
@@ -81,7 +83,7 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	g_model = new Geometry("./work/res/assets/dragon.obj");
+	g_model = new Geometry("./work/res/assets/teapot.obj");
 	g_model->setPosition(vec3(0, 0, 0));
 }
 
@@ -90,7 +92,7 @@ void initMaterials() {
 	vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4 grey = vec4(0.2, 0.2, 0.2, 1.0);
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
-	g_model->setMaterial(grey, vec4(0.95, 0.33, 0.28, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 80.0f, black);
+	g_model->setMaterial(grey, vec4(0.75, 0.75, 0.75, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 }
 
 // Loads in a texture from the given location
@@ -117,19 +119,18 @@ GLuint initTexture(string path) {
 }
 
 // Sets up the lights and their individual properties
-//
 void initLight() {
 	vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
 
-	// Directional light
+	// Point light
 	glLightfv(GL_LIGHT0, GL_AMBIENT, black.dataPointer());
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(0.2, 0.2, 0.2, 1.0).dataPointer());
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(0.75, 0.75, 1.0, 1.0).dataPointer());
 	glLightfv(GL_LIGHT0, GL_SPECULAR, white.dataPointer());
 
 	// Point light
 	glLightfv(GL_LIGHT1, GL_AMBIENT, black.dataPointer());
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(0.65, 0.65, 0.65, 1.0).dataPointer());
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(1.0, 0.75, 0.75, 1.0).dataPointer());
 	glLightfv(GL_LIGHT1, GL_SPECULAR, white.dataPointer());
 }
 
@@ -154,15 +155,64 @@ void setupCamera(int width, int height) {
 	glRotatef(g_yaw, 0, 1, 0);
 }
 
+float randomNorm() {
+	return (rand() % 100) / 100.0f;
+}
+
 // Sets up the lighting of the scene
 void setupLight() {
 	// Set the light positions and directions
-	glLightfv(GL_LIGHT0, GL_POSITION, vec4(1.0, 1.0, 1.0, 0.0).dataPointer());
-	glLightfv(GL_LIGHT1, GL_POSITION, vec4(0.0, 3.0, 3.0, 1.0).dataPointer());
+	glLightfv(GL_LIGHT0, GL_POSITION, vec4(5.0, 5.0, 5.0, 1.0).dataPointer());
+	glLightfv(GL_LIGHT1, GL_POSITION, vec4(-5.0, 5.0, -5.0, 1.0).dataPointer());
+}
 
-	// Enable the lights
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
+void renderGlobalAxes() {
+	glDisable(GL_LIGHTING);
+	glLineWidth(2);
+
+	// X axis
+	glColor3f(1.0f, 0.5f, 0.5f);
+	glBegin(GL_LINES);
+	glVertex3f(-100, 0, 0);
+	glVertex3f(100, 0, 0);
+	glEnd();
+
+	// Y axis
+	glColor3f(0.5f, 1.0f, 0.5f);
+	glBegin(GL_LINES);
+	glVertex3f(0, -100, 0);
+	glVertex3f(0, 100, 0);
+	glEnd();
+
+	// Z axis
+	glColor3f(0.5f, 0.5f, 1.0f);
+	glBegin(GL_LINES);
+	glVertex3f(0, 0, -100);
+	glVertex3f(0, 0, 100);
+	glEnd();
+
+	glEnable(GL_LIGHTING);
+}
+
+void renderPlane(float length) {
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(0.75f, 0.75f, 0.75f, 1.0f).dataPointer());
+	glMaterialfv(GL_FRONT, GL_SPECULAR, vec4(0.5f, 0.5f, 0.5f, 1.0f).dataPointer());
+	float shininess = 128.0f;
+	glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
+
+	float l = length / 2.0f;
+
+	glBegin(GL_QUADS);
+		glNormal3f(0, 1, 0);
+		glTexCoord2f(-1, -1);
+		glVertex3f(-l, 0, -l);
+		glTexCoord2f(-1, 1);
+		glVertex3f(-l, 0, l);
+		glTexCoord2f(1, 1);
+		glVertex3f(l, 0, l);
+		glTexCoord2f(1, -1);
+		glVertex3f(l, 0, -l);
+	glEnd();
 }
 
 // Draw the scene
@@ -170,7 +220,7 @@ void render(int width, int height) {
 	glViewport(0, 0, width, height);
 
 	// Clear the background
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
@@ -179,11 +229,17 @@ void render(int width, int height) {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
 
+	// Render global axes
+	renderGlobalAxes();
+
 	// Setup the lighting, camera and shader
 	setupLight();
 	setupCamera(width, height);
 	glUseProgram(g_shader);
 	glUniform1i(glGetUniformLocation(g_shader, "texture0"), 0);
+
+	// Render plane
+	renderPlane(20);
 
 	// Render geometry
 	g_model->renderGeometry();
@@ -268,6 +324,8 @@ int main(int argc, char **argv) {
 
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
+
+		frameCount++;
 	}
 
 	glfwTerminate();
