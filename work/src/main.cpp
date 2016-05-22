@@ -41,6 +41,10 @@ GLuint g_shader = 0;
 // Geometry draw lists
 Geometry* g_model;
 
+// Testing inside mesh point fields
+vec3 testPoint = vec3(0, 0, 0);
+float testPointShiftAmount = 0.1f;
+
 // Toggle fields
 bool drawAxes = true;
 bool partyMode = false;
@@ -96,6 +100,42 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	if (key == 'W' && action == 1) {
 		g_model->toggleWireframe();
 	}
+
+	// 'space' key pressed
+	if (key == 32 && action == 1) {
+		string s = g_model->pointInsideMesh(testPoint) ? " is inside mesh" : " is outside mesh";
+		cout << testPoint << s << endl;
+	}
+
+	// 'up' key pressed
+	if (key == 265 && (action == 1 || action == 2)) {
+		testPoint.z += testPointShiftAmount;
+	}
+
+	// 'left' key pressed
+	if (key == 263 && (action == 1 || action == 2)) {
+		testPoint.x += testPointShiftAmount;
+	}
+
+	// 'right' key pressed
+	if (key == 262 && (action == 1 || action == 2)) {
+		testPoint.x -= testPointShiftAmount;
+	}
+
+	// 'down' key pressed
+	if (key == 264 && (action == 1 || action == 2)) {
+		testPoint.z -= testPointShiftAmount;
+	}
+
+	// 'e' key pressed
+	if (key == 'E' && (action == 1 || action == 2)) {
+		testPoint.y -= testPointShiftAmount;
+	}
+
+	// 'r' key pressed
+	if (key == 'R' && (action == 1 || action == 2)) {
+		testPoint.y += testPointShiftAmount;
+	}
 }
 
 // Character callback
@@ -106,7 +146,7 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	g_model = new Geometry("./work/res/assets/teapot.obj");
+	g_model = new Geometry("./work/res/assets/bunny.obj");
 	g_model->setPosition(vec3(0, 0, 0));
 }
 
@@ -259,6 +299,18 @@ void renderScene() {
 	g_model->renderGeometry();
 }
 
+void drawTestPoint() {
+	glDisable(GL_LIGHTING);
+
+	glColor3f(1, 0, 0);
+	glPointSize(8);
+	glBegin(GL_POINTS);
+	glVertex3f(testPoint.x, testPoint.y, testPoint.z);
+	glEnd();
+
+	glEnable(GL_LIGHTING);
+}
+
 // Draw the scene
 void render(int width, int height) {
 	glViewport(0, 0, width, height);
@@ -276,6 +328,8 @@ void render(int width, int height) {
 
 	// Render global axes
 	if (drawAxes) renderGlobalAxes();
+
+	drawTestPoint();
 
 	// Setup the lighting, camera and shader
 	setupLight();

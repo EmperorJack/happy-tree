@@ -232,6 +232,62 @@ void Geometry::setMaterial(vec4 ambient, vec4 diffuse, vec4 specular, float shin
 	m_material.emission = emission;
 }
 
+bool Geometry::rayIntersectsTriangle(vec3 p, vec3 d,
+			vec3 v0, vec3 v1, vec3 v2) {
+
+	vec3 e1, e2, h, s, q; //float e1[3],e2[3],h[3],s[3],q[3];
+	float a,f,u,v;
+	e1 = v1 - v0; //vector(e1,v1,v0);
+	e2 = v2 - v0; //vector(e2,v2,v0);
+
+	h = cross(d, e2); //crossProduct(h,d,e2);
+	a = dot(e1, h);
+
+	if (a > -0.00001 && a < 0.00001)
+		return(false);
+
+	f = 1/a;
+	s = p - v0; //vector(s,p,v0);
+	u = f * (dot(s,h));
+
+	if (u < 0.0 || u > 1.0)
+		return(false);
+
+	q = cross(s, e1); //crossProduct(q,s,e1);
+	v = f * dot(d,q);
+
+	if (v < 0.0 || u + v > 1.0)
+		return(false);
+
+	// at this stage we can compute t to find out where
+	// the intersection point is on the line
+	float t = f * dot(e2,q);
+
+	if (t > 0.00001) // ray intersection
+		return(true);
+
+	else // this means that there is a line intersection
+		 // but not a ray intersection
+		 return (false);
+}
+
+bool Geometry::pointInsideMesh(vec3 point) {
+	int intersectionCount = 0;
+
+	vec3 direction = vec3(0, 0, 1);
+
+	for (int i = 0; i < m_triangles.size(); i++) {
+		if (rayIntersectsTriangle(point, direction,
+					m_points[m_triangles[i].v[0].p],
+					m_points[m_triangles[i].v[1].p],
+					m_points[m_triangles[i].v[2].p])) {
+			intersectionCount++;
+		}
+	}
+
+	return intersectionCount % 2;
+}
+
 void Geometry::renderGeometry() {
 	glPushMatrix();
 
