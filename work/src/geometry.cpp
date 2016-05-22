@@ -32,6 +32,7 @@ Geometry::Geometry(string filename) {
 	readOBJ(filename);
 	if (m_triangles.size() > 0) {
 		createDisplayListPoly();
+		createDisplayListWire();
 	}
 
 	// Default material setting
@@ -183,10 +184,24 @@ void Geometry::createDisplayListPoly() {
 	glNewList(m_displayListPoly, GL_COMPILE);
 
 	displayTriangles();
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glEndList();
 	cout << "Finished creating Poly Geometry" << endl;
+}
+
+void Geometry::createDisplayListWire() {
+	// Delete old list if there is one
+	if (m_displayListWire) glDeleteLists(m_displayListWire, 1);
+
+	// Create a new list
+	cout << "Creating Wire Geometry" << endl;
+	m_displayListWire = glGenLists(1);
+	glNewList(m_displayListWire, GL_COMPILE);
+
+	displayTriangles();
+
+	glEndList();
+	cout << "Finished creating Wire Geometry" << endl;
 }
 
 void Geometry::displayTriangles() {
@@ -230,7 +245,18 @@ void Geometry::renderGeometry() {
 	glMaterialfv(GL_FRONT, GL_EMISSION, m_material.emission.dataPointer());
 
 	glShadeModel(GL_SMOOTH);
-	glCallList(m_displayListPoly);
+
+	if (wireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glCallList(m_displayListWire);
+	} else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glCallList(m_displayListPoly);
+	}
 
 	glPopMatrix();
+}
+
+void Geometry::toggleWireframe() {
+	wireframe = !wireframe;
 }

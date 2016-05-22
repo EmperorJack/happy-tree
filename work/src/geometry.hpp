@@ -48,24 +48,28 @@ class Geometry {
 		void setPosition(cgra::vec3);
 		void setMaterial(cgra::vec4, cgra::vec4, cgra::vec4, float, cgra::vec4);
 		void renderGeometry();
+		void toggleWireframe();
 
-private:
-	std::string m_filename;
+	private:
+		std::string m_filename;
 
-	// Fields for storing raw obj information
-	std::vector<cgra::vec3> m_points;
-	std::vector<cgra::vec2> m_uvs;
-	std::vector<cgra::vec3> m_normals;
-	std::vector<triangle> m_triangles;
+		// Fields for storing raw obj information
+		std::vector<cgra::vec3> m_points;
+		std::vector<cgra::vec2> m_uvs;
+		std::vector<cgra::vec3> m_normals;
+		std::vector<triangle> m_triangles;
 
-	cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
-	material m_material;
+		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
+		material m_material;
+		bool wireframe = false;
 
-	// IDs for the display list to render
-	GLuint m_displayListPoly = 0; // DisplayList for Polygon
+		// IDs for the display list to render
+		GLuint m_displayListPoly = 0;
+		GLuint m_displayListWire = 0;
 
-	void readOBJ(std::string);
-	void createNormals();
-	void createDisplayListPoly();
-	void displayTriangles();
+		void readOBJ(std::string);
+		void createNormals();
+		void createDisplayListPoly();
+		void createDisplayListWire();
+		void displayTriangles();
 };

@@ -80,16 +80,21 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	// 	<< "action=" << action << "mods=" << mods << endl;
 
 	// 'a' key pressed
-	if (key == 65 && action == 1) {
+	if (key == 'A' && action == 1) {
 		drawAxes = !drawAxes;
 	}
 
 	// 'p' key pressed
-	if (key == 80 && action == 1) {
+	if (key == 'P' && action == 1) {
 		partyMode = !partyMode;
 
 		// Reset the light properties
 		initLight();
+	}
+
+	// 'w' key pressed
+	if (key == 'W' && action == 1) {
+		g_model->toggleWireframe();
 	}
 }
 
@@ -228,6 +233,8 @@ void renderPlane(float length) {
 
 	float l = length / 2.0f;
 
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 	glBegin(GL_QUADS);
 		glNormal3f(0, 1, 0);
 		glTexCoord2f(-1, -1);
@@ -258,6 +265,7 @@ void render(int width, int height) {
 
 	// Clear the background
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	if (partyMode) glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
