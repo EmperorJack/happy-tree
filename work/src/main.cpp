@@ -159,7 +159,7 @@ void initMaterials() {
 	vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4 grey = vec4(0.2, 0.2, 0.2, 1.0);
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
-	g_model->setMaterial(grey, vec4(0.75, 0.75, 0.75, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
+	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 }
 
 // Loads in a texture from the given location

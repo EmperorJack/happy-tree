@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 // Particle Representation of a 3D Object
-// 
+//
 // By Jack Purvis
 //
 // Referenced paper:
@@ -41,9 +41,14 @@ class FuzzyObject {
 
 		// Particle fields
 		std::vector<particle> particles;
-		int maxParticles = 200;
-		float pRadius = 0.4f;
+		int maxParticles = 2000;
+		float pRadius = 0.2f;
 		float pMass = 1.0f;
+
+		// Material properties
+		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
+		cgra::vec4 specular = cgra::vec4(0.8, 0.8, 0.8, 1.0);
+		float shininess = 128.0f;
 
 		void buildSystem();
 };

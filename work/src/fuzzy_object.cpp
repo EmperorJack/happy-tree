@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 // Particle Representation of a 3D Object
-// 
+//
 // By Jack Purvis
 //
 // Referenced paper:
@@ -35,15 +35,14 @@ void FuzzyObject::buildSystem() {
 	for (int i = 0; i < maxParticles; i++) {
 		particle p;
 	  p.pos = vec3(rand() % 30 - 15, rand() % 30 - 15, rand() % 30 - 15);
-	  //p.vel = vec3((rand() % 100 / 100.0f - 0.5f) / 5.0f, (rand() % 100 / 100.0f - 0.5f) / 5.0f, (rand() % 100 / 100.0f - 0.5f) / 5.0f);
-		particles.push_back(p);
+	  particles.push_back(p);
 	}
 }
 
 void FuzzyObject::updateSystem() {
 	for (int i = 0; i < particles.size(); i++) {
-		particles[i].acc = vec3(rand() % 30 - 15, rand() % 30 - 15, rand() % 30 - 15) - particles[i].pos;
-		particles[i].acc = clamp(normalize(particles[i].acc), -0.01f, 0.01f);
+		particles[i].acc = vec3(rand() % 60 - 30, rand() % 60 - 30, rand() % 60 - 30) - particles[i].pos;
+		particles[i].acc = clamp(normalize(particles[i].acc), -0.005f, 0.005f);
 
 		particles[i].vel += particles[i].acc;
 		particles[i].pos += particles[i].vel;
@@ -51,13 +50,21 @@ void FuzzyObject::updateSystem() {
 }
 
 void FuzzyObject::renderSystem() {
+	// Set material properties
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, diffuse.dataPointer());
+	glMaterialfv(GL_FRONT, GL_SPECULAR, specular.dataPointer());
+	glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
+
+	// Set drawing properties
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 	for (int i = 0; i < particles.size(); i++) {
 		particle p = particles[i];
 
 		glPushMatrix();
 
 		glTranslatef(p.pos.x, p.pos.y, p.pos.z);
-		cgraSphere(pRadius, 8, 8);
+		cgraSphere(pRadius, 4, 4);
 
 		glPopMatrix();
 	}
