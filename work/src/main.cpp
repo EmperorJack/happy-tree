@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 // COMP308 Final Project
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #include <cmath>
 #include <cstdlib>
@@ -14,6 +14,7 @@
 #include "simple_shader.hpp"
 #include "opengl.hpp"
 #include "geometry.hpp"
+#include "fuzzy_object.hpp"
 
 using namespace std;
 using namespace cgra;
@@ -40,6 +41,9 @@ GLuint g_shader = 0;
 
 // Geometry draw lists
 Geometry* g_model;
+
+// Particle system fields
+FuzzyObject* g_fuzzy_system;
 
 // Testing inside mesh point fields
 vec3 testPoint = vec3(0, 0, 0);
@@ -297,6 +301,12 @@ void renderScene() {
 
 	// Render geometry
 	g_model->renderGeometry();
+
+	// Update particle system
+	g_fuzzy_system->updateSystem();
+
+	// Render particle system
+	g_fuzzy_system->renderSystem();
 }
 
 void drawTestPoint() {
@@ -407,6 +417,7 @@ int main(int argc, char **argv) {
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
+	g_fuzzy_system = new FuzzyObject(g_model);
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(g_window)) {
