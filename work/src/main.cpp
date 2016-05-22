@@ -20,6 +20,7 @@ using namespace cgra;
 
 // Window
 GLFWwindow* g_window;
+int frameCount = 0;
 
 // Projection values
 float g_fovy = 20.0;
@@ -40,7 +41,9 @@ GLuint g_shader = 0;
 // Geometry draw lists
 Geometry* g_model;
 
-int frameCount = 0;
+// Toggle fields
+bool drawAxes = true;
+bool partyMode = false;
 
 // Mouse Position callback
 void cursorPosCallback(GLFWwindow* win, double xpos, double ypos) {
@@ -69,10 +72,25 @@ void scrollCallback(GLFWwindow *win, double xoffset, double yoffset) {
 	g_zoom -= yoffset * g_zoom * 0.2;
 }
 
+void initLight();
+
 // Keyboard callback
 void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	// cout << "Key Callback :: key=" << key << "scancode=" << scancode
 	// 	<< "action=" << action << "mods=" << mods << endl;
+
+	// 'a' key pressed
+	if (key == 65 && action == 1) {
+		drawAxes = !drawAxes;
+	}
+
+	// 'p' key pressed
+	if (key == 80 && action == 1) {
+		partyMode = !partyMode;
+
+		// Reset the light properties
+		initLight();
+	}
 }
 
 // Character callback
@@ -155,6 +173,7 @@ void setupCamera(int width, int height) {
 	glRotatef(g_yaw, 0, 1, 0);
 }
 
+// Returns a random number between 0 and 1
 float randomNorm() {
 	return (rand() % 100) / 100.0f;
 }
@@ -164,8 +183,14 @@ void setupLight() {
 	// Set the light positions and directions
 	glLightfv(GL_LIGHT0, GL_POSITION, vec4(5.0, 5.0, 5.0, 1.0).dataPointer());
 	glLightfv(GL_LIGHT1, GL_POSITION, vec4(-5.0, 5.0, -5.0, 1.0).dataPointer());
+
+	if (frameCount % 20 == 0 && partyMode) {
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(randomNorm(),randomNorm(), randomNorm(), 1.0).dataPointer());
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(randomNorm(),randomNorm(), randomNorm(), 1.0).dataPointer());
+	}
 }
 
+// Render the global axes for reference
 void renderGlobalAxes() {
 	glDisable(GL_LIGHTING);
 	glLineWidth(2);
@@ -194,6 +219,7 @@ void renderGlobalAxes() {
 	glEnable(GL_LIGHTING);
 }
 
+// Render a square plane with the given length
 void renderPlane(float length) {
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(0.75f, 0.75f, 0.75f, 1.0f).dataPointer());
 	glMaterialfv(GL_FRONT, GL_SPECULAR, vec4(0.5f, 0.5f, 0.5f, 1.0f).dataPointer());
@@ -215,6 +241,17 @@ void renderPlane(float length) {
 	glEnd();
 }
 
+// Render the geometry of the scene
+void renderScene() {
+	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
+
+	// Render plane
+	renderPlane(20);
+
+	// Render geometry
+	g_model->renderGeometry();
+}
+
 // Draw the scene
 void render(int width, int height) {
 	glViewport(0, 0, width, height);
@@ -230,7 +267,7 @@ void render(int width, int height) {
 	glEnable(GL_NORMALIZE);
 
 	// Render global axes
-	renderGlobalAxes();
+	if (drawAxes) renderGlobalAxes();
 
 	// Setup the lighting, camera and shader
 	setupLight();
@@ -238,18 +275,13 @@ void render(int width, int height) {
 	glUseProgram(g_shader);
 	glUniform1i(glGetUniformLocation(g_shader, "texture0"), 0);
 
-	// Render plane
-	renderPlane(20);
-
-	// Render geometry
-	g_model->renderGeometry();
-
-	glUseProgram(0);
+	renderScene();
 
 	// Disable flags for cleanup
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
 	glDisable(GL_NORMALIZE);
+	glUseProgram(0);
 }
 
 void APIENTRY debugCallbackARB(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);
