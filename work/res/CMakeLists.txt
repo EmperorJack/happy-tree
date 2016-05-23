@@ -2,8 +2,6 @@
 
 # TODO List your shader source files here
 SET(SHADERS
-	"shaders/gouraudShader.vert"
-	"shaders/gouraudShader.frag"
 	"shaders/phongShader.vert"
 	"shaders/phongShader.frag"
 )
