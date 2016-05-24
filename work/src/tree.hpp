@@ -26,7 +26,7 @@ struct branch{
 
 class Tree{
 	public:
-		branch *root;
+		branch *root = nullptr;
 
 		Tree();
 

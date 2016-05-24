@@ -17,16 +17,16 @@ Tree::Tree(){
 }
 
 branch* Tree::makeDummyTree(int numBranches){
-	branch b;
-	b.direction = vec3(0,1,0);
-	b.length = 2.0f;
-	b.widthBase = 0.5f * numBranches;
-	b.widthTop = (0.5f * (numBranches - 1)) + 0.01f;
-	b.basisRot = vec3(0,0,0);
+	branch* b = new branch();
+	b->direction = vec3(0,1,0);
+	b->length = 2.0f;
+	b->widthBase = 0.5f * numBranches;
+	b->widthTop = (0.5f * (numBranches - 1)) + 0.01f;
+	b->basisRot = vec3(0,0,0);
 	if(numBranches > 1){
-		b.children.push_back(makeDummyTree(numBranches - 1));
+		b->children.push_back(makeDummyTree(numBranches - 1));
 	}
-	return &b;
+	return b;
 }
 
 void Tree::renderTree() {
@@ -46,6 +46,7 @@ void Tree::renderBranch(branch *b) {
 	if(b == NULL){
 		return;
 	}
+
 	glPushMatrix();
 
 		//only draw branch info if it has a length
