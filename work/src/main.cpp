@@ -14,6 +14,7 @@
 #include "simple_shader.hpp"
 #include "opengl.hpp"
 #include "geometry.hpp"
+#include "tree.hpp"
 
 using namespace std;
 using namespace cgra;
@@ -39,7 +40,11 @@ float g_zoom = 1.0;
 GLuint g_shader = 0;
 
 // Geometry draw lists
-Geometry* g_model;
+Geometry* g_model = nullptr;
+
+
+// Tree to animate
+Tree* g_tree = nullptr;
 
 // Toggle fields
 bool drawAxes = true;
@@ -108,6 +113,9 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 void initGeometry() {
 	g_model = new Geometry("./work/res/assets/teapot.obj");
 	g_model->setPosition(vec3(0, 0, 0));
+
+	g_tree = new Tree();
+	g_tree->setPosition(vec3(0, 0, 0));
 }
 
 // Setup the materials per geometric object
@@ -257,6 +265,9 @@ void renderScene() {
 
 	// Render geometry
 	g_model->renderGeometry();
+
+	//Render Tree
+	//g_tree->renderTree();
 }
 
 // Draw the scene
