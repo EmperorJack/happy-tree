@@ -11,6 +11,7 @@ SET(headers
 	"simple_shader.hpp"
 	"simple_image.hpp"
 	"geometry.hpp"
+	"tree.hpp"
 )
 
 
@@ -18,6 +19,7 @@ SET(headers
 SET(sources
 	"main.cpp"
 	"geometry.cpp"
+	"tree.cpp"
 )
 
 # Add executable target and link libraries
