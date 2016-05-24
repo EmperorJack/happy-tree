@@ -14,6 +14,7 @@
 #include "simple_shader.hpp"
 #include "opengl.hpp"
 #include "geometry.hpp"
+#include "tree.hpp"
 
 using namespace std;
 using namespace cgra;
@@ -40,6 +41,8 @@ GLuint g_shader = 0;
 
 // Geometry draw lists
 Geometry* g_model;
+
+Tree* g_tree;
 
 // Toggle fields
 bool drawAxes = true;
@@ -256,7 +259,8 @@ void renderScene() {
 	renderPlane(20);
 
 	// Render geometry
-	g_model->renderGeometry();
+	//g_model->renderGeometry();
+	g_tree->drawEnvelope();
 }
 
 // Draw the scene
@@ -353,6 +357,7 @@ int main(int argc, char **argv) {
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
+	g_tree = new Tree();
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(g_window)) {

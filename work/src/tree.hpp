@@ -23,7 +23,13 @@ struct branch{
 class Tree{
 	public:
 		Tree();
+		void drawEnvelope();
 
-		branch *root;
+		branch* root;
 	private:
+		std::vector<cgra::vec3> envelope;
+
+		branch* makeDummyTree(int num);
+		void generateEnvelope(float height, int steps);
+		float envelopeFunction(float u,float theta);
 };
