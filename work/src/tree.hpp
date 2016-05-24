@@ -26,4 +26,5 @@ class Tree{
 
 		branch *root;
 	private:
+		branch* makeDummyTree(int);
 };
