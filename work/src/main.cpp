@@ -48,6 +48,7 @@ Tree* g_tree = nullptr;
 
 // Toggle fields
 bool drawAxes = true;
+bool treeMode = false;
 bool partyMode = false;
 
 // Mouse Position callback
@@ -87,6 +88,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	// 'a' key pressed
 	if (key == 'A' && action == 1) {
 		drawAxes = !drawAxes;
+	}
+
+	if (key == 'T' && action == 1) {
+		treeMode = !treeMode;
 	}
 
 	// 'p' key pressed
@@ -263,11 +268,15 @@ void renderScene() {
 	// Render plane
 	renderPlane(20);
 
-	// Render geometry
-	g_model->renderGeometry();
+	if (treeMode){
+		//Render Tree
+		g_tree->renderTree();
+	} else {
+		// Render geometry
+		g_model->renderGeometry();
 
-	//Render Tree
-	//g_tree->renderTree();
+	}
+
 }
 
 // Draw the scene
