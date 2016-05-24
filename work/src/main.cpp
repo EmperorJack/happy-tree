@@ -14,6 +14,7 @@
 #include "simple_shader.hpp"
 #include "opengl.hpp"
 #include "geometry.hpp"
+#include "tree.hpp"
 
 using namespace std;
 using namespace cgra;
@@ -39,10 +40,15 @@ float g_zoom = 1.0;
 GLuint g_shader = 0;
 
 // Geometry draw lists
-Geometry* g_model;
+Geometry* g_model = nullptr;
+
+
+// Tree to animate
+Tree* g_tree = nullptr;
 
 // Toggle fields
-bool drawAxes = true;
+bool drawAxes = false;
+bool treeMode = false;
 bool partyMode = false;
 
 // Mouse Position callback
@@ -84,6 +90,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 		drawAxes = !drawAxes;
 	}
 
+	if (key == 'T' && action == 1) {
+		treeMode = !treeMode;
+	}
+
 	// 'p' key pressed
 	if (key == 'P' && action == 1) {
 		partyMode = !partyMode;
@@ -108,6 +118,9 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 void initGeometry() {
 	g_model = new Geometry("./work/res/assets/teapot.obj");
 	g_model->setPosition(vec3(0, 0, 0));
+
+	g_tree = new Tree();
+	g_tree->setPosition(vec3(0, 0, 0));
 }
 
 // Setup the materials per geometric object
@@ -255,8 +268,17 @@ void renderScene() {
 	// Render plane
 	renderPlane(20);
 
-	// Render geometry
-	g_model->renderGeometry();
+	if (treeMode){
+		//Render Tree
+		glDisable(GL_LIGHTING);
+		g_tree->renderTree();
+		glEnable(GL_LIGHTING);
+	} else {
+		// Render geometry
+		g_model->renderGeometry();
+
+	}
+
 }
 
 // Draw the scene
