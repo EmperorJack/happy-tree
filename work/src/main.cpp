@@ -47,7 +47,7 @@ Geometry* g_model = nullptr;
 Tree* g_tree = nullptr;
 
 // Toggle fields
-bool drawAxes = true;
+bool drawAxes = false;
 bool treeMode = false;
 bool partyMode = false;
 
@@ -270,7 +270,9 @@ void renderScene() {
 
 	if (treeMode){
 		//Render Tree
+		glDisable(GL_LIGHTING);
 		g_tree->renderTree();
+		glEnable(GL_LIGHTING);
 	} else {
 		// Render geometry
 		g_model->renderGeometry();

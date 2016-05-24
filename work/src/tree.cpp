@@ -19,12 +19,37 @@ Tree::Tree(){
 branch* Tree::makeDummyTree(int numBranches){
 	branch* b = new branch();
 	b->direction = vec3(0,1,0);
-	b->length = 2.0f;
-	b->widthBase = 0.5f * numBranches;
-	b->widthTop = (0.5f * (numBranches - 1)) + 0.01f;
+	b->length = length;
+	b->widthBase = width * numBranches;
+	b->widthTop = (width * (numBranches - 1)) + 0.01f;
 	b->basisRot = vec3(0,0,0);
 	if(numBranches > 1){
+
+		for (int i = 0; i < 4; i++){
+			branch* c = new branch();
+
+			if(i == 0){
+				c->direction = vec3(1,0,0);
+			}else if(i == 1){
+				c->direction = vec3(-1,0,0);
+			}else if(i == 2){
+				c->direction = vec3(0,0,1);
+			}else if(i == 3){
+				c->direction = vec3(0,0,-1);
+			}
+
+			c->length = length;
+			c->widthBase = width * (numBranches-1);
+			c->widthTop = 0.01f;
+			c->basisRot = vec3(0,0,0);
+
+
+			b->children.push_back(c);
+		}
+
 		b->children.push_back(makeDummyTree(numBranches - 1));
+
+		
 	}
 	return b;
 }
@@ -65,11 +90,15 @@ void Tree::renderBranch(branch *b) {
 			glRotatef(-rot.y, 0, 1, 0);
 			glRotatef(-rot.z, 0, 0, 1);
 
+			//glDisable(GL_LIGHTING);
 			//draw the axes of this branch
-			drawAxis(b);
+			//drawAxis(b);
 
 			//draw the joint of this branch
-			drawJoint();
+			//drawJoint();
+
+			//glEnable(GL_LIGHTING);
+
 			//draw the branch itself
 			drawBranch(b);
 
@@ -89,7 +118,7 @@ void Tree::drawJoint(){
 	glPushMatrix();
 		//colour cyan
 		glColor3f(0,1,1);
-		cgraSphere(1.2*rad);
+		cgraSphere(1.2*width);
 	glPopMatrix();
 }
 
@@ -105,7 +134,7 @@ void Tree::drawBranch(branch* b){
 	//colour grey
 		glColor3f(1,1,1);
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
-		cgraCylinder(rad, rad/3, b->length);
+		cgraCylinder(b->widthBase, b->widthTop, b->length);
 	glPopMatrix();
 }
 
@@ -114,26 +143,26 @@ void Tree::drawAxis(branch* b){
 	glPushMatrix();
 		glColor3f(1,0,0);
 		glRotatef(90,0, 1,0);
-		cgraCylinder(0.3*rad, 0.3*rad, 4.0*rad);
-		glTranslatef(0, 0, 4.0*rad);
-		cgraCone(1.2*rad, 1.2*rad);
+		cgraCylinder(0.3*width, 0.3*width, 4.0*width);
+		glTranslatef(0, 0, 4.0*width);
+		cgraCone(1.2*width, 1.2*width);
 	glPopMatrix();
 
 	//Y-axes
 	glPushMatrix();
 		glColor3f(0,1,0);
 		glRotatef(-90,1,0,0);
-		cgraCylinder(0.3*rad, 0.3*rad, 4.0*rad);
-		glTranslatef(0,0, 4.0*rad);
-		cgraCone(1.2*rad, 1.2*rad);
+		cgraCylinder(0.3*width, 0.3*width, 4.0*width);
+		glTranslatef(0,0, 4.0*width);
+		cgraCone(1.2*width, 1.2*width);
 	glPopMatrix();
 
 	//Z-axes
 	glPushMatrix();
 		glColor3f(0,0,1);
-		cgraCylinder(0.3*rad, 0.3*rad, 4.0*rad);		
-		glTranslatef(0,0,4.0*rad);
-		cgraCone(1.2*rad, 1.2*rad);	
+		cgraCylinder(0.3*width, 0.3*width, 4.0*width);		
+		glTranslatef(0,0,4.0*width);
+		cgraCone(1.2*width, 1.2*width);	
 	glPopMatrix();
 }
 

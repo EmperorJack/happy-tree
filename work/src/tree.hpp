@@ -35,10 +35,10 @@ class Tree{
 
 	private:		
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
-		float rad = 0.015;
+		float width = 0.3f;
+		float length = 5.0f;
 
 		branch* makeDummyTree(int);
-
 
 		void renderBranch(branch *b);
 
