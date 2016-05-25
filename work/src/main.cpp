@@ -312,15 +312,12 @@ void renderScene() {
 		// Render geometry
 		g_model->renderGeometry();
 	}
-<<<<<<< HEAD
 
 	// Update particle system
 	g_fuzzy_system->buildIncremental();
 
 	// Render particle system
 	g_fuzzy_system->renderSystem();
-=======
->>>>>>> master
 }
 
 // Draw the scene

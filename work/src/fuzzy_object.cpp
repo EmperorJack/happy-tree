@@ -27,6 +27,8 @@ FuzzyObject::FuzzyObject(Geometry *g) {
 
 	// Build the particle system
 	//buildSystem();
+
+	cout << effectRange << endl;
 }
 
 FuzzyObject::~FuzzyObject() { }
@@ -67,7 +69,7 @@ void FuzzyObject::addParticle() {
 	p.acc = vec3(0.0f, 0.0f, 0.0f);
 
 	// Random velocity generation
-	p.vel = vec3(randomNorm() * p_velRange, randomNorm() * p_velRange, randomNorm() * p_velRange);
+	p.vel = vec3(math::random(-1.0f, 1.0f) * p_velRange, math::random(-1.0f, 1.0f) * p_velRange, math::random(-1.0f, 1.0f) * p_velRange);
 
 	particles.push_back(p);
 }
@@ -76,6 +78,15 @@ void FuzzyObject::updateSystem() {
 	for (int i = 0; i < particles.size(); i++) {
 		//particles[i].acc = vec3(rand() % 60 - 30, rand() % 60 - 30, rand() % 60 - 30) - particles[i].pos;
 		//particles[i].acc = clamp(normalize(particles[i].acc), -0.005f, 0.005f);
+
+		for (int j = i + 1; j < particles.size(); j++) {
+			float dist = distance(particles[i].pos, particles[j].pos);
+			if (dist < effectRange) {
+				//
+			} else {
+				particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
+			}
+		}
 
 		particles[i].vel += particles[i].acc;
 		particles[i].pos += particles[i].vel;
@@ -116,7 +127,7 @@ void FuzzyObject::renderSystem() {
 		glPushMatrix();
 
 		glTranslatef(p.pos.x, p.pos.y, p.pos.z);
-		cgraSphere(p_radius, 4, 4);
+		cgraSphere(p_radius, 3, 3);
 
 		glPopMatrix();
 	}

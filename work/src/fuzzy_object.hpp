@@ -48,8 +48,13 @@ class FuzzyObject {
 
 		// Particle attributes
 		float p_velRange = 0.01f;
-		float p_radius = 0.2f;
+		float p_radius = 0.1f;
 		float p_mass = 1.0f;
+
+		// LJ potential energy fields
+		float strength = 1.0f;
+		float lengthScale = 1.0f;
+		float effectRange = pow(2.0f, 1.0f / 6.0f) * lengthScale;
 
 		// Material properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
