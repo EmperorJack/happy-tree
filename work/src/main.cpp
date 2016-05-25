@@ -263,9 +263,14 @@ void renderScene() {
 	// Render plane
 	renderPlane(20);
 
-
-	// Render geometry
-	g_tree->drawEnvelope();
+	if (treeMode){
+		//Render Tree
+		g_tree->drawEnvelope();
+		g_tree->renderAttractionPoints();
+	} else {
+		// Render geometry
+		// g_model->renderGeometry();
+	}
 }
 
 // Draw the scene

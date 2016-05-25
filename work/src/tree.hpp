@@ -29,22 +29,27 @@ class Tree{
 		branch *root;
 
 		Tree();
-		void drawEnvelope();
 
+		void drawEnvelope();
 		void renderTree();
+		void renderAttractionPoints();
+		
 		void setPosition(cgra::vec3);
 
-	private:		
+	private:
+		float treeHeight;
+		float yStep;
+		
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 		float width = 0.3f;
 		float length = 5.0f;
 
 		std::vector<std::vector<cgra::vec3>> envelope;
+		std::vector<cgra::vec3> attractionPoints;
 
+		void generateAttractionPoints(int num);
 		void generateEnvelope(int steps);
 		float envelopeFunction(float u,float theta, float range);
-
-		branch* makeDummyTree(int);
 
 		void renderBranch(branch *b);
 
@@ -52,4 +57,6 @@ class Tree{
 		void drawBranch(branch*);
 		void drawJoint();
 		void drawAxis(branch*);
+
+		branch* makeDummyTree(int);
 };

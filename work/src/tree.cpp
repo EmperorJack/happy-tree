@@ -12,12 +12,32 @@
 using namespace std;
 using namespace cgra;
 
-float treeHeight;
-float yStep;
 
 Tree::Tree(){
 	treeHeight = 8.0f;
 	generateEnvelope(20);
+	generateAttractionPoints(800);
+}
+
+void Tree::generateAttractionPoints(int numPoints){
+	if(numPoints == 0) return;
+
+	vector<vec3> points;
+	while(points.size() < numPoints){
+		//Calculate random height/rotation
+		float y = math::random(0.0f,treeHeight);
+		float theta = math::random(0.0f,360.0f);
+
+		// Calculate max distance
+		float d = envelopeFunction(y,theta,treeHeight);
+
+		// Calculate distance away from central axis
+		float r = math::random(0.0f,d);
+
+		// Convert from rotation/distance to x,z
+		points.push_back(vec3(r * sin(radians(theta)), y, r * cos(radians(theta))));
+	}
+	attractionPoints = points;
 }
 
 void Tree::generateEnvelope(int steps){
@@ -38,25 +58,11 @@ void Tree::generateEnvelope(int steps){
 		}
 		env.push_back(layer);
 	}
-
 	envelope = env;
 }
 
 float Tree::envelopeFunction(float u, float theta, float range){
 	return u < (range * 1.0f/3.0f) ? 1 : 3;
-}
-
-void Tree::drawEnvelope(){
-	for(int i=0; i<envelope.size(); i++){
-		vector<vec3> layer = envelope[i];
-
-		glBegin(GL_LINE_STRIP);
-		for(int j=0; j<layer.size(); j++){
-			vec3 p = layer[j];
-			glVertex3f(p.x, p.y, p.z);
-		}
-		glEnd();
-	}
 }
 
 // UNNECESSARY METHOD
@@ -97,6 +103,29 @@ branch* Tree::makeDummyTree(int numBranches){
 		
 	}
 	return b;
+}
+
+void Tree::drawEnvelope(){
+	for(int i=0; i<envelope.size(); i++){
+		vector<vec3> layer = envelope[i];
+
+		glBegin(GL_LINE_STRIP);
+		for(int j=0; j<layer.size(); j++){
+			vec3 p = layer[j];
+			glVertex3f(p.x, p.y, p.z);
+		}
+		glEnd();
+	}
+}
+
+void Tree::renderAttractionPoints(){
+	for(int i=0; i< attractionPoints.size(); i++){
+		glPushMatrix();
+		vec3 p = attractionPoints[i];
+		glTranslatef(p.x,p.y,p.z);
+		cgraSphere(0.1);
+		glPopMatrix();
+	}
 }
 
 void Tree::renderTree() {
