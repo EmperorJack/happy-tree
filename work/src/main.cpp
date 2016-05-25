@@ -40,12 +40,17 @@ float g_zoom = 1.0;
 GLuint g_shader = 0;
 
 // Geometry draw lists
-Geometry* g_model;
+Geometry* g_model = nullptr;
+
+
+// Tree to animate
+Tree* g_tree = nullptr;
 
 Tree* g_tree;
 
 // Toggle fields
-bool drawAxes = true;
+bool drawAxes = false;
+bool treeMode = false;
 bool partyMode = false;
 
 // Mouse Position callback
@@ -87,6 +92,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 		drawAxes = !drawAxes;
 	}
 
+	if (key == 'T' && action == 1) {
+		treeMode = !treeMode;
+	}
+
 	// 'p' key pressed
 	if (key == 'P' && action == 1) {
 		partyMode = !partyMode;
@@ -111,6 +120,9 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 void initGeometry() {
 	g_model = new Geometry("./work/res/assets/teapot.obj");
 	g_model->setPosition(vec3(0, 0, 0));
+
+	g_tree = new Tree();
+	g_tree->setPosition(vec3(0, 0, 0));
 }
 
 // Setup the materials per geometric object
@@ -181,11 +193,6 @@ void setupCamera(int width, int height) {
 	glRotatef(g_yaw, 0, 1, 0);
 }
 
-// Returns a random number between 0 and 1
-float randomNorm() {
-	return (rand() % 100) / 100.0f;
-}
-
 // Sets up the lighting of the scene
 void setupLight() {
 	// Set the light positions and directions
@@ -193,8 +200,8 @@ void setupLight() {
 	glLightfv(GL_LIGHT1, GL_POSITION, vec4(-5.0, 5.0, -5.0, 1.0).dataPointer());
 
 	if (frameCount % 20 == 0 && partyMode) {
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(randomNorm(),randomNorm(), randomNorm(), 1.0).dataPointer());
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(randomNorm(),randomNorm(), randomNorm(), 1.0).dataPointer());
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
 	}
 }
 
@@ -258,9 +265,18 @@ void renderScene() {
 	// Render plane
 	renderPlane(20);
 
+
 	// Render geometry
-	//g_model->renderGeometry();
 	g_tree->drawEnvelope();
+	if (treeMode){
+		//Render Tree
+		glDisable(GL_LIGHTING);
+		g_tree->renderTree();
+		glEnable(GL_LIGHTING);
+	} else {
+		// Render geometry
+		// g_model->renderGeometry();
+	}
 }
 
 // Draw the scene
