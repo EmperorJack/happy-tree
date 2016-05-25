@@ -191,11 +191,6 @@ void setupCamera(int width, int height) {
 	glRotatef(g_yaw, 0, 1, 0);
 }
 
-// Returns a random number between 0 and 1
-float randomNorm() {
-	return (rand() % 100) / 100.0f;
-}
-
 // Sets up the lighting of the scene
 void setupLight() {
 	// Set the light positions and directions
@@ -203,8 +198,8 @@ void setupLight() {
 	glLightfv(GL_LIGHT1, GL_POSITION, vec4(-5.0, 5.0, -5.0, 1.0).dataPointer());
 
 	if (frameCount % 20 == 0 && partyMode) {
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(randomNorm(),randomNorm(), randomNorm(), 1.0).dataPointer());
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(randomNorm(),randomNorm(), randomNorm(), 1.0).dataPointer());
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
 	}
 }
 
@@ -276,9 +271,7 @@ void renderScene() {
 	} else {
 		// Render geometry
 		g_model->renderGeometry();
-
 	}
-
 }
 
 // Draw the scene
