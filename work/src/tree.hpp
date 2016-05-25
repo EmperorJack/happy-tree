@@ -27,9 +27,9 @@ class Tree{
 
 		branch* root;
 	private:
-		std::vector<cgra::vec3> envelope;
+		std::vector<std::vector<cgra::vec3>> envelope;
 
 		branch* makeDummyTree(int num);
-		void generateEnvelope(float height, int steps);
-		float envelopeFunction(float u,float theta);
+		void generateEnvelope(int steps);
+		float envelopeFunction(float u,float theta, float range);
 };

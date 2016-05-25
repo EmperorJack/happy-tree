@@ -12,11 +12,55 @@
 using namespace std;
 using namespace cgra;
 
+float treeHeight;
+float yStep;
+
 Tree::Tree(){
-	//root = makeDummyTree(4);
-	generateEnvelope(5.0, 20);
+	treeHeight = 8.0f;
+	generateEnvelope(20);
 }
 
+void Tree::generateEnvelope(int steps){
+	vector<vector<vec3>> env;
+	// vector base;
+	// base.push_back(vec3(0,0,0));
+	// env.push_back(base);
+
+	yStep = treeHeight/steps;
+	float y;
+
+	for(int i = 0; i <= steps; i++){
+		vector<vec3> layer;
+		y = i * yStep;
+		for(float theta = 0; theta <= 360.0f; theta += 15.0f){
+			float d = envelopeFunction(y,theta,treeHeight);
+			layer.push_back(vec3(d * sin(radians(theta)), y, d * cos(radians(theta))));
+		}
+		env.push_back(layer);
+	}
+
+	envelope = env;
+}
+
+float Tree::envelopeFunction(float u, float theta, float range){
+	return u < (range * 1.0f/3.0f) ? 1 : 3;
+}
+
+void Tree::drawEnvelope(){
+	for(int i=0; i<envelope.size(); i++){
+		vector<vec3> layer = envelope[i];
+
+		glBegin(GL_LINE_STRIP);
+		for(int j=0; j<layer.size(); j++){
+			vec3 p = layer[j];
+			glVertex3f(p.x, p.y, p.z);
+		}
+		glEnd();
+	}
+}
+
+// UNNECESSARY METHOD
+// Only used so that there is a model to work with
 branch* Tree::makeDummyTree(int numBranches){
 	branch b;
 	b.direction = vec3(0,1,0);
@@ -27,34 +71,4 @@ branch* Tree::makeDummyTree(int numBranches){
 		b.children.push_back(makeDummyTree(numBranches - 1));
 	}
 	return &b;
-}
-
-void Tree::generateEnvelope(float height, int steps){
-	//vector<vec3> envelope;
-	envelope.push_back(vec3(0,0,0));
-	float step = height/steps;
-	float y;
-	for(int i = 1; i < steps; i++){
-		y = i * step;
-		for(float theta = 0; theta <= 360.0f; theta += 15.0f){
-			float d = envelopeFunction(y,theta);
-			envelope.push_back(vec3(d * sin(radians(theta)), y, d * cos(radians(theta))));
-		}
-	}
-	envelope.push_back(vec3(0,height,0));
-
-	
-}
-
-float Tree::envelopeFunction(float u, float theta){
-	return ((u - 5) * u)/4;
-}
-
-void Tree::drawEnvelope(){
-	glBegin(GL_LINE_STRIP);
-	for(int i=0; i<envelope.size(); i++){
-		vec3 p = envelope[i];
-		glVertex3f(p.x, p.y, p.z);
-	}
-	glEnd();
 }
