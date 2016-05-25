@@ -46,8 +46,6 @@ Geometry* g_model = nullptr;
 // Tree to animate
 Tree* g_tree = nullptr;
 
-Tree* g_tree;
-
 // Toggle fields
 bool drawAxes = false;
 bool treeMode = false;
@@ -268,15 +266,6 @@ void renderScene() {
 
 	// Render geometry
 	g_tree->drawEnvelope();
-	if (treeMode){
-		//Render Tree
-		glDisable(GL_LIGHTING);
-		g_tree->renderTree();
-		glEnable(GL_LIGHTING);
-	} else {
-		// Render geometry
-		// g_model->renderGeometry();
-	}
 }
 
 // Draw the scene

@@ -26,13 +26,11 @@ struct branch{
 
 class Tree{
 	public:
-		branch *root = nullptr;
+		branch *root;
 
 		Tree();
 		void drawEnvelope();
 
-
-		branch* root;
 		void renderTree();
 		void setPosition(cgra::vec3);
 
@@ -40,6 +38,8 @@ class Tree{
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 		float width = 0.3f;
 		float length = 5.0f;
+
+		std::vector<std::vector<cgra::vec3>> envelope;
 
 		void generateEnvelope(int steps);
 		float envelopeFunction(float u,float theta, float range);
