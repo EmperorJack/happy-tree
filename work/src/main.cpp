@@ -12,6 +12,7 @@
 #include "cgra_math.hpp"
 #include "simple_image.hpp"
 #include "simple_shader.hpp"
+#include "simple_gui.hpp"
 #include "opengl.hpp"
 #include "geometry.hpp"
 #include "tree.hpp"
@@ -21,7 +22,10 @@ using namespace cgra;
 
 // Window
 GLFWwindow* g_window;
+
+// Frame related values
 int frameCount = 0;
+double frameRate = 0.0;
 
 // Projection values
 float g_fovy = 20.0;
@@ -41,7 +45,6 @@ GLuint g_shader = 0;
 
 // Geometry draw lists
 Geometry* g_model = nullptr;
-
 
 // Tree to animate
 Tree* g_tree = nullptr;
@@ -307,6 +310,32 @@ void render(int width, int height) {
 	glUseProgram(0);
 }
 
+void renderGUIOverlay(int x, int y, string s) {
+	ImGui::SetNextWindowPos(ImVec2(x, y));
+	ImGui::Begin("Fixed overlay", nullptr, ImVec2(0, 0), 0.3f,
+			   ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|
+			   ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
+	ostringstream ss;
+	ss << s;
+	ImGui::Text(ss.str().c_str());
+	ImGui::End();
+}
+
+// Render the IMGUI overlay
+void renderGUI() {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	// Start registering GUI components
+	SimpleGUI::newFrame();
+
+	char output[128];
+	sprintf(output, "FPS: %.2f", 1 / frameRate);
+	renderGUIOverlay(10, 10, string(output) + "     ");
+
+	// Flush components and render
+	SimpleGUI::render();
+}
+
 void APIENTRY debugCallbackARB(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);
 
 // Main program
@@ -363,23 +392,46 @@ int main(int argc, char **argv) {
 		cout << "GL_ARB_debug_output not available. No worries." << endl;
 	}
 
+	// Initialize IMGUI
+	if (!SimpleGUI::init(g_window, false)) {
+		cerr << "Error: Could not initialize IMGUI" << endl;
+		abort();
+	}
+
 	// Initialize geometry, materials, lighting and shaders
 	initGeometry();
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 
+	double lastTime = glfwGetTime();
+	int framesThisSecond = 0;
+
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(g_window)) {
+
+		// FPS update
+		double currentTime = glfwGetTime();
+		framesThisSecond++;
+		if (currentTime - lastTime >= 1.0) {
+    	frameRate = 1.0 / double(framesThisSecond);
+    	framesThisSecond = 0;
+    	lastTime += 1.0;
+    }
+
 		int width, height;
 		glfwGetFramebufferSize(g_window, &width, &height);
 
 		// Main render
 		render(width, height);
 
+		// Render GUI on top
+		renderGUI();
+
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
 
+		// Update total frame count
 		frameCount++;
 	}
 
