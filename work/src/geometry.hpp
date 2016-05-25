@@ -62,7 +62,7 @@ class Geometry {
 
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 		material m_material;
-		bool wireframe = false;
+		bool wireframe = true;
 
 		// IDs for the display list to render
 		GLuint m_displayListPoly = 0;

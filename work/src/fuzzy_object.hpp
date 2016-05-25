@@ -27,28 +27,37 @@ struct particle {
 class FuzzyObject {
 
 	public:
+		// Particle spawn position
+		cgra::vec3 spawnPoint = cgra::vec3(0, 0, 0);
 
 		// Constructors
 		FuzzyObject(Geometry*);
 		~FuzzyObject();
 
-		void updateSystem();
+		void buildSystem();
+		void buildIncremental();
 		void renderSystem();
 
 	private:
 		// The 3D object the particle system represents
 		Geometry* geometry;
 
-		// Particle fields
+		// Particle system fields
 		std::vector<particle> particles;
-		int maxParticles = 2000;
-		float pRadius = 0.2f;
-		float pMass = 1.0f;
+		int particleLimit = 5000;
+
+		// Particle attributes
+		float p_velRange = 0.01f;
+		float p_radius = 0.2f;
+		float p_mass = 1.0f;
 
 		// Material properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
 		cgra::vec4 specular = cgra::vec4(0.8, 0.8, 0.8, 1.0);
 		float shininess = 128.0f;
 
-		void buildSystem();
+		void addParticle();
+		void updateSystem();
+		bool stoppingCriteria();
+		bool systemAtRest();
 };

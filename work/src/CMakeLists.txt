@@ -11,6 +11,7 @@ SET(headers
 	"simple_shader.hpp"
 	"simple_image.hpp"
 	"geometry.hpp"
+	"tree.hpp"
 	"fuzzy_object.hpp"
 )
 
@@ -19,6 +20,7 @@ SET(headers
 SET(sources
 	"main.cpp"
 	"geometry.cpp"
+	"tree.cpp"
 	"fuzzy_object.cpp"
 )
 
