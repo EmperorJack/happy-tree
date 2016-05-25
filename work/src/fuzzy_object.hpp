@@ -47,6 +47,7 @@ class FuzzyObject {
 		int particleLimit = 5000;
 
 		// Particle attributes
+		GLuint p_displayList = 0;
 		float p_velRange = 0.01f;
 		float p_radius = 0.1f;
 		float p_mass = 1.0f;
@@ -61,6 +62,7 @@ class FuzzyObject {
 		cgra::vec4 specular = cgra::vec4(0.8, 0.8, 0.8, 1.0);
 		float shininess = 128.0f;
 
+		void setupDisplayList();
 		void addParticle();
 		void updateSystem();
 		bool stoppingCriteria();

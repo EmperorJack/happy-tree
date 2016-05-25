@@ -25,21 +25,29 @@ using namespace cgra;
 FuzzyObject::FuzzyObject(Geometry *g) {
 	geometry = g;
 
-	// Build the particle system
-	//buildSystem();
+	setupDisplayList();
 
 	cout << effectRange << endl;
 }
 
-FuzzyObject::~FuzzyObject() { }
+FuzzyObject::~FuzzyObject() {}
 
-void FuzzyObject::buildSystem() {
-	// for (int i = 0; i < particleLimit; i++) {
-	// 	particle p;
-	//   p.pos = vec3(rand() % 30 - 15, rand() % 30 - 15, rand() % 30 - 15);
-	//   particles.push_back(p);
-	// }
+// Setup the particle instance geometry
+void FuzzyObject::setupDisplayList() {
+	// Delete the old list if there is one
+	if (p_displayList) glDeleteLists(p_displayList, 1);
+
+	// Setup the new display list
+	p_displayList = glGenLists(1);
+	glNewList(p_displayList, GL_COMPILE);
+
+	// Draw the geometry
+	cgraSphere(p_radius, 3, 3);
+
+	glEndList();
 }
+
+void FuzzyObject::buildSystem() {}
 
 void FuzzyObject::buildIncremental() {
 	// First pass
@@ -75,11 +83,12 @@ void FuzzyObject::addParticle() {
 }
 
 void FuzzyObject::updateSystem() {
+	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
-		//particles[i].acc = vec3(rand() % 60 - 30, rand() % 60 - 30, rand() % 60 - 30) - particles[i].pos;
-		//particles[i].acc = clamp(normalize(particles[i].acc), -0.005f, 0.005f);
 
+		// For each other particle
 		for (int j = i + 1; j < particles.size(); j++) {
+
 			float dist = distance(particles[i].pos, particles[j].pos);
 			if (dist < effectRange) {
 				//
@@ -127,7 +136,7 @@ void FuzzyObject::renderSystem() {
 		glPushMatrix();
 
 		glTranslatef(p.pos.x, p.pos.y, p.pos.z);
-		cgraSphere(p_radius, 3, 3);
+		glCallList(p_displayList);
 
 		glPopMatrix();
 	}
