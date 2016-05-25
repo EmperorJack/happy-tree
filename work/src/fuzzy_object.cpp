@@ -141,3 +141,7 @@ void FuzzyObject::renderSystem() {
 		glPopMatrix();
 	}
 }
+
+int FuzzyObject::getParticleCount() {
+	return particles.size();
+}

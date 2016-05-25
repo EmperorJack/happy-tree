@@ -357,17 +357,6 @@ void render(int width, int height) {
 	glUseProgram(0);
 }
 
-void renderGUIOverlay(int x, int y, string s) {
-	ImGui::SetNextWindowPos(ImVec2(x, y));
-	ImGui::Begin("Fixed overlay", nullptr, ImVec2(0, 0), 0.3f,
-			   ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|
-			   ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
-	ostringstream ss;
-	ss << s;
-	ImGui::Text(ss.str().c_str());
-	ImGui::End();
-}
-
 // Render the IMGUI overlay
 void renderGUI() {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -375,9 +364,16 @@ void renderGUI() {
 	// Start registering GUI components
 	SimpleGUI::newFrame();
 
-	char output[128];
-	sprintf(output, "FPS: %.2f", 1 / frameRate);
-	renderGUIOverlay(10, 10, string(output) + "     ");
+	// FPS counter
+	char fpsString[128];
+	sprintf(fpsString, "FPS: %.2f", 1 / frameRate);
+
+	ImGui::SetNextWindowPos(ImVec2(10, 10));
+
+	ImGui::Begin("");
+	ImGui::Text(string(fpsString).c_str());
+	ImGui::Text(("Particle Count: " + to_string(g_fuzzy_system->getParticleCount())).c_str());
+	ImGui::End();
 
 	// Flush components and render
 	SimpleGUI::render();

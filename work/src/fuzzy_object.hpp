@@ -38,6 +38,8 @@ class FuzzyObject {
 		void buildIncremental();
 		void renderSystem();
 
+		int getParticleCount();
+
 	private:
 		// The 3D object the particle system represents
 		Geometry* geometry;
