@@ -10,6 +10,7 @@ SET(headers
 	"opengl.hpp"
 	"simple_shader.hpp"
 	"simple_image.hpp"
+	"simple_gui.hpp"
 	"geometry.hpp"
 	"tree.hpp"
 	"fuzzy_object.hpp"
@@ -19,6 +20,7 @@ SET(headers
 # TODO list your source files (.cpp) here
 SET(sources
 	"main.cpp"
+	"simple_gui.cpp"
 	"geometry.cpp"
 	"tree.cpp"
 	"fuzzy_object.cpp"
@@ -29,3 +31,4 @@ SET(sources
 add_executable(${CGRA_PROJECT} ${headers} ${sources})
 target_link_libraries(${CGRA_PROJECT} PRIVATE glew glfw ${GLFW_LIBRARIES})
 target_link_libraries(${CGRA_PROJECT} PRIVATE stb)
+target_link_libraries(${CGRA_PROJECT} PRIVATE imgui)

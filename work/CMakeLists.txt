@@ -46,6 +46,11 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/ext/glew-1.10.0")
 add_subdirectory("${PROJECT_SOURCE_DIR}/ext/stb")
 
 #########################################################
+# Include IMGUI Subproject
+#########################################################
+add_subdirectory("${PROJECT_SOURCE_DIR}/ext/imgui")
+
+#########################################################
 # Set Compiler Flags
 #########################################################
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
