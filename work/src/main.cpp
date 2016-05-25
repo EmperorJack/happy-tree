@@ -369,10 +369,12 @@ void renderGUI() {
 	sprintf(fpsString, "FPS: %.2f", 1 / frameRate);
 
 	ImGui::SetNextWindowPos(ImVec2(10, 10));
+	ImGui::Begin("", nullptr, ImVec2(0, 0), 0.3f,
+				 ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 
-	ImGui::Begin("");
 	ImGui::Text(string(fpsString).c_str());
 	ImGui::Text(("Particle Count: " + to_string(g_fuzzy_system->getParticleCount())).c_str());
+
 	ImGui::End();
 
 	// Flush components and render
