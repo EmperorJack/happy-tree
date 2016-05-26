@@ -38,7 +38,14 @@ class Tree{
 
 	private:
 		float treeHeight;
+		float trunkHeight;
+		float maxX = 3.0f;
+		float maxZ = 3.0f;
+		float minX = -3.0f;
+		float minZ = -3.0f;
+
 		float yStep;
+		float thetaStep = 15.0f;
 		
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 		float width = 0.3f;
@@ -48,12 +55,14 @@ class Tree{
 		std::vector<cgra::vec3> attractionPoints;
 
 		void generateAttractionPoints(int num);
+		void generateAttractionPointsVolumetric(int num);
 		void generateEnvelope(int steps);
-		float envelopeFunction(float u,float theta, float range);
+		float envelopeFunction(float u,float theta);
 
-		void renderBranch(branch *b);
+		bool inEnvelope(cgra::vec3);
 
 		//drawing
+		void renderBranch(branch *b);
 		void drawBranch(branch*);
 		void drawJoint();
 		void drawAxis(branch*);

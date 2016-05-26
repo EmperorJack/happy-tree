@@ -14,9 +14,11 @@ using namespace cgra;
 
 
 Tree::Tree(){
-	treeHeight = 8.0f;
+	treeHeight = 15.0f;
+	trunkHeight = 5.0f;
 	generateEnvelope(20);
-	generateAttractionPoints(800);
+	generateAttractionPointsVolumetric(1000);
+	//cout << inEnvelope(vec3(2.4,7.5f,2.4)) << endl;
 }
 
 void Tree::generateAttractionPoints(int numPoints){
@@ -25,11 +27,11 @@ void Tree::generateAttractionPoints(int numPoints){
 	vector<vec3> points;
 	while(points.size() < numPoints){
 		//Calculate random height/rotation
-		float y = math::random(0.0f,treeHeight);
+		float y = math::random(trunkHeight,treeHeight);
 		float theta = math::random(0.0f,360.0f);
 
 		// Calculate max distance
-		float d = envelopeFunction(y,theta,treeHeight);
+		float d = envelopeFunction(y,theta);
 
 		// Calculate distance away from central axis
 		float r = math::random(0.0f,d);
@@ -40,70 +42,110 @@ void Tree::generateAttractionPoints(int numPoints){
 	attractionPoints = points;
 }
 
+void Tree::generateAttractionPointsVolumetric(int numPoints){
+	if(numPoints == 0) return;
+
+	vector<vec3> points;
+	while(points.size() < numPoints){
+		float x = math::random(minX,maxX);
+		float y = math::random(trunkHeight,treeHeight);
+		float z = math::random(minZ,maxZ);
+
+		vec3 point = vec3(x,y,z);
+
+		if(inEnvelope(point)){
+			points.push_back(point);
+		}
+	}
+	attractionPoints = points;
+}
+
+
+
+
+
+
+//------------------------------------------------//
+//   Envelope Functions                           //
+//------------------------------------------------//
 void Tree::generateEnvelope(int steps){
 	vector<vector<vec3>> env;
-	// vector base;
-	// base.push_back(vec3(0,0,0));
-	// env.push_back(base);
 
-	yStep = treeHeight/steps;
+	yStep = (treeHeight - trunkHeight)/steps;
 	float y;
 
 	for(int i = 0; i <= steps; i++){
 		vector<vec3> layer;
-		y = i * yStep;
+		y = (i * yStep) + trunkHeight;
 		for(float theta = 0; theta <= 360.0f; theta += 15.0f){
-			float d = envelopeFunction(y,theta,treeHeight);
-			layer.push_back(vec3(d * sin(radians(theta)), y, d * cos(radians(theta))));
+			float d = envelopeFunction(y,theta);
+
+			float x = d * sin(radians(theta));
+			float z = d * cos(radians(theta));
+			
+			//Assign bounding values for volumetric filling
+			minZ = z < minZ ? z : minZ;
+			maxZ = z > maxZ ? z : maxZ;
+			minX = z < minX ? z : minX;
+			maxX = z > maxX ? z : maxX;
+
+			layer.push_back(vec3(x, y, z));
 		}
 		env.push_back(layer);
 	}
 	envelope = env;
 }
 
-float Tree::envelopeFunction(float u, float theta, float range){
-	return u < (range * 1.0f/3.0f) ? 1 : 3;
-}
-
-// UNNECESSARY METHOD
-// Only used so that there is a model to work with
-branch* Tree::makeDummyTree(int numBranches){
-	branch* b = new branch();
-	b->direction = vec3(0,1,0);
-	b->length = length;
-	b->widthBase = width * numBranches;
-	b->widthTop = (width * (numBranches - 1)) + 0.01f;
-	b->basisRot = vec3(0,0,0);
-	if(numBranches > 1){
-
-		for (int i = 0; i < 4; i++){
-			branch* c = new branch();
-
-			if(i == 0){
-				c->direction = vec3(1,0,0);
-			}else if(i == 1){
-				c->direction = vec3(-1,0,0);
-			}else if(i == 2){
-				c->direction = vec3(0,0,1);
-			}else if(i == 3){
-				c->direction = vec3(0,0,-1);
-			}
-
-			c->length = length;
-			c->widthBase = width * (numBranches-1);
-			c->widthTop = 0.01f;
-			c->basisRot = vec3(0,0,0);
-
-
-			b->children.push_back(c);
-		}
-
-		b->children.push_back(makeDummyTree(numBranches - 1));
-
-		
+bool Tree::inEnvelope(vec3 point){
+	float x = point.x;
+	float y = point.y;
+	float z = point.z;
+	//Make sure is within y bounds of envelope
+	if(y < trunkHeight || y > treeHeight){
+		return false;
 	}
-	return b;
+	//Calculate the level of the point;
+	int yInd1 = int((y - trunkHeight)/yStep);
+	int yInd2 = yInd1 + 1;
+	// Ratio between y of points at yInd1/2
+	float deltaY = (y - ((yInd1 * yStep) + trunkHeight))/yStep;
+
+	vector<vec3> layer1 = envelope[yInd1];
+	vector<vec3> layer2 = envelope[yInd2];
+
+	float radius = distance(vec3(0,y,0), point);
+	float theta = degrees(asin(x/radius));
+	theta = theta < 0.0f ? 360.0f + theta : theta;
+
+	// Calculate indicies based off rotation
+	int xzInd1 = int(theta/thetaStep);
+	int xzInd2 = xzInd1 + 1;
+	// Ratio between the rotations of points at xzInd1/2
+	float deltaT = (theta - (xzInd1 * thetaStep))/thetaStep;
+
+	// Calculate the points between the two points with the y ratio
+	vec3 xzP1 = layer1[xzInd1] + (deltaY * (layer2[xzInd1] - layer1[xzInd1]));
+	vec3 xzP2 = layer1[xzInd2] + (deltaY * (layer2[xzInd2] - layer1[xzInd2]));
+
+	// Calculate the point between the two points with the rotation ratio
+	vec3 maxP = xzP1 + (deltaT * (xzP2 - xzP1));
+	float maxRadius = distance(vec3(0,y,0), maxP);
+
+	return radius <= maxRadius;
 }
+
+float Tree::envelopeFunction(float u, float theta){
+	return 3;
+}
+
+
+
+
+
+
+//------------------------------------------------//
+//   Rendering Functions                          //
+//------------------------------------------------//
 
 void Tree::drawEnvelope(){
 	for(int i=0; i<envelope.size(); i++){
@@ -240,6 +282,54 @@ void Tree::drawAxis(branch* b){
 	glPopMatrix();
 }
 
+
+
+
+
+
+//------------------------------------------------//
+//   Miscellaneous Functions                      //
+//------------------------------------------------//
 void Tree::setPosition(vec3 position) {
 	m_position = position;
+}
+
+// UNNECESSARY METHOD
+// Only used so that there is a model to work with
+branch* Tree::makeDummyTree(int numBranches){
+	branch* b = new branch();
+	b->direction = vec3(0,1,0);
+	b->length = length;
+	b->widthBase = width * numBranches;
+	b->widthTop = (width * (numBranches - 1)) + 0.01f;
+	b->basisRot = vec3(0,0,0);
+	if(numBranches > 1){
+
+		for (int i = 0; i < 4; i++){
+			branch* c = new branch();
+
+			if(i == 0){
+				c->direction = vec3(1,0,0);
+			}else if(i == 1){
+				c->direction = vec3(-1,0,0);
+			}else if(i == 2){
+				c->direction = vec3(0,0,1);
+			}else if(i == 3){
+				c->direction = vec3(0,0,-1);
+			}
+
+			c->length = length;
+			c->widthBase = width * (numBranches-1);
+			c->widthTop = 0.01f;
+			c->basisRot = vec3(0,0,0);
+
+
+			b->children.push_back(c);
+		}
+
+		b->children.push_back(makeDummyTree(numBranches - 1));
+
+		
+	}
+	return b;
 }
