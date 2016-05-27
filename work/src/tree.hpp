@@ -68,6 +68,7 @@ class Tree{
 
 		treeNode* generateTree();
 		std::vector<std::vector<cgra::vec3>> getAssociatedPoints();
+		void cullAttractionPoints();
 		void generateAttractionPoints(int num);
 		void generateAttractionPointsVolumetric(int num);
 		void generateEnvelope(int steps);

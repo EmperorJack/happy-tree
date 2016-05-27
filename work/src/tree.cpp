@@ -43,17 +43,39 @@ treeNode* Tree::generateTree(){
 		parent = curNode;
 	}
 	//Generate branches from attraction points
-	int prevSize = attractionPoints.size() + 1;
+	// int prevSize = attractionPoints.size() + 1;
 	while(attractionPoints.size() > 0){
 		vector<vector<vec3>> closestSet = getAssociatedPoints();
 		//Loop for all treeNodes
 		for(int i=0; i<treeNodes.size(); i++){
+			cout <<"B1"<<endl;
 			//Check if we want to branch
 			if(closestSet[i].size() > 0){
+				// vector<vec3> activeNodes = closestSet[i];
+				vec3 v = treeNodes[i]->position + (treeNodes[i]->direction * treeNodes[i]->length);
+				vec3 newDir = vec3(0,0,0);
+				cout <<"C3"<<endl;
+				for(int j=0; j<closestSet[i].size(); j++){
+					newDir += normalize((closestSet[i]).at(j) - v);
+				}
+				newDir = normalize(newDir);
+
+				cout <<"C4"<<endl;
+				treeNode newNode = treeNode();
+				cout <<"C5"<<endl;
+				newNode.position = v;
+				cout <<"C5a"<<endl;
+				newNode.direction = newDir;
+				cout <<"C5b"<<endl;
+				newNode.length = d;
+				cout <<"C6"<<endl;
 				
+				treeNodes.push_back(&newNode);
+				cout <<"C7"<<endl;
 			}
 		}
-		prevSize = attractionPoints.size();
+		cullAttractionPoints();
+		//prevSize = attractionPoints.size();
 	}
 
 	return &parent;
@@ -89,6 +111,31 @@ vector<vector<vec3>> Tree::getAssociatedPoints(){
 		}
 	}
 	return closestNodes;
+}
+
+void Tree::cullAttractionPoints(){
+	int countRemoved = 0;
+
+	for(int i=0; i<attractionPoints.size();){
+		vec3 aPoint = attractionPoints[i];
+		bool toRemove = false;
+		for(int j=0; j<treeNodes.size(); j++){
+			treeNode* t = treeNodes[j];
+			vec3 p = t->position + (t->direction * t->length);
+			if(distance(aPoint,p) < param_killDistance){
+				toRemove = true;
+				break;
+			}
+		}
+		if(toRemove){
+			vec3 temp = attractionPoints[i];
+			attractionPoints[i] = attractionPoints[attractionPoints.size() - (1+countRemoved)];
+		}else{
+			i++;
+		}
+	}
+	cout << "removed " << countRemoved << " points" << endl;
+	attractionPoints.erase(attractionPoints.end() - countRemoved,attractionPoints.end());
 }
 
 void Tree::generateAttractionPoints(int numPoints){
