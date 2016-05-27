@@ -118,7 +118,8 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	// 'space' key pressed
 	if (key == 32 && action == 1) {
 		string s = g_model->pointInsideMesh(g_fuzzy_system->spawnPoint) ? " is inside mesh" : " is outside mesh";
-		cout << g_fuzzy_system->spawnPoint << s << endl;
+		//cout << g_fuzzy_system->spawnPoint << s << endl;
+		g_fuzzy_system->buildSystem();
 	}
 
 	// 'up' key pressed

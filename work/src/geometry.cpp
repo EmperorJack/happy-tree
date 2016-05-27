@@ -303,6 +303,7 @@ void Geometry::renderGeometry() {
 	glShadeModel(GL_SMOOTH);
 
 	if (wireframe) {
+		glLineWidth(1);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glCallList(m_displayListWire);
 	} else {

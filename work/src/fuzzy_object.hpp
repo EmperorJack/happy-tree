@@ -46,18 +46,18 @@ class FuzzyObject {
 
 		// Particle system fields
 		std::vector<particle> particles;
-		int particleLimit = 5000;
+		int particleLimit = 50;
 
 		// Particle attributes
 		GLuint p_displayList = 0;
 		float p_velRange = 0.01f;
 		float p_radius = 0.1f;
-		float p_mass = 1.0f;
+		float p_mass = 0.00001f;
 
 		// LJ potential energy fields
-		float strength = 1.0f;
-		float lengthScale = 1.0f;
-		float effectRange = pow(2.0f, 1.0f / 6.0f) * lengthScale;
+		float e_strength = 1.0f;
+		float e_lengthScale = 1.0f / 100.0f;
+		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale * 100.0f;
 
 		// Material properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
@@ -67,6 +67,7 @@ class FuzzyObject {
 		void setupDisplayList();
 		void addParticle();
 		void updateSystem();
+		cgra::vec3 forceAtDistance(float dist, cgra::vec3);
 		bool stoppingCriteria();
 		bool systemAtRest();
 };
