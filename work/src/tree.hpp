@@ -24,6 +24,13 @@ struct branch{
 	std::vector<branch *> children;
 };
 
+struct treeNode{
+	cgra::vec3 position;
+	cgra::vec3 direction;
+	float length;
+	treeNode* parent;
+};
+
 class Tree{
 	public:
 		branch *root;
@@ -37,6 +44,10 @@ class Tree{
 		void setPosition(cgra::vec3);
 
 	private:
+		float param_branchLength = 0.8f;
+		float param_radiusOfInfluence = 17 * param_branchLength;
+		float param_killDistance = 5 * param_branchLength;
+
 		float treeHeight;
 		float trunkHeight;
 		float maxX = 3.0f;
@@ -51,9 +62,12 @@ class Tree{
 		float width = 0.3f;
 		float length = 5.0f;
 
+		std::vector<treeNode *> treeNodes;
 		std::vector<std::vector<cgra::vec3>> envelope;
 		std::vector<cgra::vec3> attractionPoints;
 
+		treeNode* generateTree();
+		std::vector<std::vector<cgra::vec3>> getAssociatedPoints();
 		void generateAttractionPoints(int num);
 		void generateAttractionPointsVolumetric(int num);
 		void generateEnvelope(int steps);

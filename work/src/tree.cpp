@@ -17,8 +17,78 @@ Tree::Tree(){
 	treeHeight = 15.0f;
 	trunkHeight = 5.0f;
 	generateEnvelope(20);
-	generateAttractionPointsVolumetric(1000);
+	generateAttractionPointsVolumetric(100);
 	//cout << inEnvelope(vec3(2.4,7.5f,2.4)) << endl;
+	generateTree();
+}
+
+treeNode* Tree::generateTree(){
+
+	float d = param_branchLength;
+	
+	treeNode parent = treeNode();
+	parent.position = vec3(0,0,0);
+	parent.direction = vec3(0,1,0);
+	parent.length = d;
+	treeNodes.push_back(&parent);
+	treeNode curNode = parent;
+	//Generate initial trunk
+	while(curNode.position.y <= (trunkHeight) + d){
+		curNode = treeNode();
+		curNode.position = parent.position + (parent.direction * parent.length);
+		curNode.direction = vec3(0,1,0);
+		curNode.length = d;
+
+		treeNodes.push_back(&curNode);
+		parent = curNode;
+	}
+	//Generate branches from attraction points
+	int prevSize = attractionPoints.size() + 1;
+	while(attractionPoints.size() > 0){
+		vector<vector<vec3>> closestSet = getAssociatedPoints();
+		//Loop for all treeNodes
+		for(int i=0; i<treeNodes.size(); i++){
+			//Check if we want to branch
+			if(closestSet[i].size() > 0){
+				
+			}
+		}
+		prevSize = attractionPoints.size();
+	}
+
+	return &parent;
+}
+
+vector<vector<vec3>> Tree::getAssociatedPoints(){
+	vector<vector<vec3>> closestNodes;
+	//init all the sets;
+	for(int j=0; j<treeNodes.size(); j++){
+		vector<vec3> sv = vector<vec3>();
+		closestNodes.push_back(sv);
+	}
+	//Scan through all attraction points
+	for(int i=0; i<attractionPoints.size(); i++){
+		vec3 aPoint = attractionPoints[i];
+
+		float minDist = distance(aPoint,treeNodes[0]->position + (treeNodes[0]->direction * treeNodes[0]->length));
+		int closest = 0;
+
+		for(int j=1; j<treeNodes.size(); j++){
+			treeNode* t = treeNodes[j];
+			vec3 p = t->position + (t->direction * t->length);
+			float dist = distance(aPoint,p);
+			if(dist <= minDist){
+				closest = j;
+				minDist = dist;
+			}
+		}
+
+		//Only assign to the set if it is within the radius of influence
+		if(minDist <= param_radiusOfInfluence){
+			closestNodes[closest].push_back(aPoint);
+		}
+	}
+	return closestNodes;
 }
 
 void Tree::generateAttractionPoints(int numPoints){
@@ -78,7 +148,7 @@ void Tree::generateEnvelope(int steps){
 		vector<vec3> layer;
 		y = (i * yStep) + trunkHeight;
 		for(float theta = 0; theta <= 360.0f; theta += 15.0f){
-			float d = envelopeFunction(y,theta);
+			float d = envelopeFunction(y-trunkHeight,theta);
 
 			float x = d * sin(radians(theta));
 			float z = d * cos(radians(theta));
@@ -135,7 +205,8 @@ bool Tree::inEnvelope(vec3 point){
 }
 
 float Tree::envelopeFunction(float u, float theta){
-	return 3;
+	float uN = (2*u)/(treeHeight-trunkHeight);
+	return (pow(3,uN) - (uN*uN*uN));
 }
 
 
