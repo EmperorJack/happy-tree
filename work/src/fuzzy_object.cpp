@@ -27,7 +27,8 @@ FuzzyObject::FuzzyObject(Geometry *g) {
 
 	setupDisplayList();
 
-	cout << e_effectRange << endl;
+	cout << "Length scale: " << e_lengthScale << endl;
+	cout << "Effect range: " << e_effectRange << endl;
 }
 
 FuzzyObject::~FuzzyObject() {}
@@ -47,11 +48,7 @@ void FuzzyObject::setupDisplayList() {
 	glEndList();
 }
 
-void FuzzyObject::buildSystem() {
-	for (int i = 0; i < particles.size(); i++) {
-		cout << particles[i].pos << endl;
-	}
-}
+void FuzzyObject::buildSystem() {}
 
 void FuzzyObject::buildIncremental() {
 	// First pass
@@ -78,14 +75,20 @@ void FuzzyObject::buildIncremental() {
 void FuzzyObject::addParticle() {
 	particle p;
 	p.pos = spawnPoint;
+	//p.pos = vec3(spawnPoint.x + math::random(-1.0f, 1.0f),
+	//						 spawnPoint.y + math::random(-1.0f, 1.0f),
+	//						 spawnPoint.z + math::random(-1.0f, 1.0f));
+
 	p.acc = vec3(0.0f, 0.0f, 0.0f);
 
 	// Random velocity generation
-	//p.vel = vec3(math::random(-1.0f, 1.0f) * p_velRange, math::random(-1.0f, 1.0f) * p_velRange, math::random(-1.0f, 1.0f) * p_velRange);
+	p.vel = vec3(math::random(-1.0f, 1.0f) * p_velRange,
+							 math::random(-1.0f, 1.0f) * p_velRange,
+							 math::random(-1.0f, 1.0f) * p_velRange);
 
-	p.pos = vec3(spawnPoint.x + math::random(-2.0f, 2.0f),
-							 spawnPoint.y + math::random(-2.0f, 2.0f),
-							 spawnPoint.z + math::random(-2.0f, 2.0f));
+	p.col = vec3(math::random(0.0f, 1.0f),
+							 math::random(0.0f, 1.0f),
+							 math::random(0.0f, 1.0f));
 
 	particles.push_back(p);
 }
@@ -104,13 +107,12 @@ void FuzzyObject::updateSystem() {
 			vec3 distVector = particles[i].pos - particles[j].pos;
 			float dist = length(distVector);
 
-			if (dist < e_effectRange) {
+			if (dist < e_effectRange && dist > e_lengthScale) {
 				forceVector += forceAtDistance(dist, distVector);
 			}
 		}
 
-		particles[i].acc = forceVector / p_mass;
-		//cout << particles[i].acc << endl;
+		particles[i].acc += forceVector / p_mass;
 	}
 
 	// For each particle
@@ -124,9 +126,6 @@ vec3 FuzzyObject::forceAtDistance(float dist, vec3 distVector) {
 	float a = (48 * e_strength / pow(e_lengthScale, 2));
 	float b = pow(e_lengthScale / dist, 14);
 	float c = 0.5f * pow(e_lengthScale / dist, 8);
-
-	//cout << b << "		" << c << endl;
-	//cout << e_lengthScale / dist << endl;
 	return a * (b - c) * distVector;
 }
 
@@ -160,23 +159,27 @@ void FuzzyObject::renderSystem() {
 	glEnable(GL_LIGHTING);
 
 	// Set particle material properties
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, diffuse.dataPointer());
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular.dataPointer());
 	glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
 
 	// Set particle drawing properties
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+	
 	for (int i = 0; i < particles.size(); i++) {
 		particle p = particles[i];
 
 		glPushMatrix();
-
 		glTranslatef(p.pos.x, p.pos.y, p.pos.z);
+
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, p.col.dataPointer());
 		glCallList(p_displayList);
+		//glBegin(GL_POINTS);
+		//glVertex3f(p.pos.x, p.pos.y, p.pos.z);
+		//glEnd();
 
 		glPopMatrix();
 	}
+	glEnd();
 }
 
 int FuzzyObject::getParticleCount() {

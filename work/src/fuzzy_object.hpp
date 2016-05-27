@@ -22,6 +22,7 @@ struct particle {
 	cgra::vec3 pos;
 	cgra::vec3 vel;
 	cgra::vec3 acc;
+	cgra::vec3 col;
 };
 
 class FuzzyObject {
@@ -46,19 +47,19 @@ class FuzzyObject {
 
 		// Particle system fields
 		std::vector<particle> particles;
-		int particleLimit = 50;
+		int particleLimit = 200;
 
 		// Particle attributes
 		GLuint p_displayList = 0;
 		float p_velRange = 0.01f;
 		float p_radius = 0.1f;
-		float p_mass = 0.00001f;
+		float p_mass = 100.0f;
 
 		// LJ potential energy fields
-		float e_strength = 1.0f;
-		float e_lengthScale = 1.0f / 100.0f;
-		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale * 100.0f;
-
+		float e_strength = 0.0001f;
+		float e_lengthScale = p_radius * 1;
+		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
+		
 		// Material properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
 		cgra::vec4 specular = cgra::vec4(0.8, 0.8, 0.8, 1.0);
