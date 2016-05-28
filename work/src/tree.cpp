@@ -233,4 +233,8 @@ void Tree::applyWind(branch* b){
 	b->rotation.x = motionAngleX;
 	b->rotation.y = motionAngleY;
 	b->rotation.z = motionAngleZ;
+
+	b->rotation.x = displacementX;
+	b->rotation.y = displacementY;
+	b->rotation.z = displacementZ;
 }
