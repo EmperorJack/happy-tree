@@ -11,16 +11,18 @@
 
 struct branch{
 	//Position is at the end of the parent branch
-	cgra::vec3 direction;
+	cgra::vec3 direction;			//initial 
 	cgra::vec3 basisRot;          // Euler angle rotations for the branch basis
 
 	float length;
+	float baseWidth;
+	float topWidth;
 
-	float widthBase;
-	float widthTop;
+	float thickness; //widthBase-widthTop
 
 	cgra::vec3 rotation;          // Rotation of joint in the basis (degrees)
 
+	//branch* parent;
 	std::vector<branch *> children;
 };
 
@@ -35,6 +37,8 @@ class Tree{
 
 	private:		
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
+		cgra::vec3 windForce = cgra::vec3(0.0f, 0.0f, 0.0f);
+
 		float width = 0.3f;
 		float length = 5.0f;
 
@@ -44,6 +48,8 @@ class Tree{
 
 		//drawing
 		void drawBranch(branch*);
-		void drawJoint();
+		void drawJoint(branch*);
 		void drawAxis(branch*);
+
+		void setWindForce(cgra::vec3);
 };

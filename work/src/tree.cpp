@@ -20,8 +20,12 @@ branch* Tree::makeDummyTree(int numBranches){
 	branch* b = new branch();
 	b->direction = vec3(0,1,0);
 	b->length = length;
-	b->widthBase = width * numBranches;
-	b->widthTop = (width * (numBranches - 1)) + 0.01f;
+	b->baseWidth = width * numBranches;
+	b->topWidth = (width * (numBranches - 1));
+	if(numBranches == 1){
+		b->topWidth = (width /2);
+	}
+
 	b->basisRot = vec3(0,0,0);
 	if(numBranches > 1){
 
@@ -29,18 +33,18 @@ branch* Tree::makeDummyTree(int numBranches){
 			branch* c = new branch();
 
 			if(i == 0){
-				c->direction = vec3(1,0,0);
+				c->direction = vec3(1,0.3,0);
 			}else if(i == 1){
-				c->direction = vec3(-1,0,0);
+				c->direction = vec3(-1,0.3,0);
 			}else if(i == 2){
-				c->direction = vec3(0,0,1);
+				c->direction = vec3(0,0.3,1);
 			}else if(i == 3){
-				c->direction = vec3(0,0,-1);
+				c->direction = vec3(0,0.3,-1);
 			}
 
-			c->length = length;
-			c->widthBase = width * (numBranches-1);
-			c->widthTop = 0.01f;
+			c->length = length/2 * (numBranches-1);
+			c->baseWidth = width * (numBranches-1);
+			c->topWidth = width/2;
 			c->basisRot = vec3(0,0,0);
 
 
@@ -60,7 +64,7 @@ void Tree::renderTree() {
 
 	glTranslatef(m_position.x, m_position.y, m_position.z);
 
-	//Actually draw the skeleton
+	//Actually draw the tree
 	renderBranch(root);
 
 	// Clean up
@@ -95,7 +99,7 @@ void Tree::renderBranch(branch *b) {
 			//drawAxis(b);
 
 			//draw the joint of this branch
-			//drawJoint();
+			drawJoint(b);
 
 			//glEnable(GL_LIGHTING);
 
@@ -114,11 +118,11 @@ void Tree::renderBranch(branch *b) {
 	glPopMatrix();
 }
 
-void Tree::drawJoint(){
+void Tree::drawJoint(branch* b){
 	glPushMatrix();
 		//colour cyan
 		glColor3f(0,1,1);
-		cgraSphere(1.2*width);
+		cgraSphere(b->baseWidth);
 	glPopMatrix();
 }
 
@@ -134,7 +138,7 @@ void Tree::drawBranch(branch* b){
 	//colour grey
 		glColor3f(1,1,1);
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
-		cgraCylinder(b->widthBase, b->widthTop, b->length);
+		cgraCylinder(b->baseWidth, b->topWidth, b->length);
 	glPopMatrix();
 }
 
@@ -168,4 +172,8 @@ void Tree::drawAxis(branch* b){
 
 void Tree::setPosition(vec3 position) {
 	m_position = position;
+}
+
+void Tree::setWindForce(vec3 wind){
+	windForce = wind;
 }
