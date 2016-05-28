@@ -18,8 +18,6 @@ struct branch{
 	float baseWidth;
 	float topWidth;
 
-	float thickness; //widthBase-widthTop
-
 	cgra::vec3 rotation;          // Rotation of joint in the basis (degrees)
 
 	//branch* parent;
@@ -41,6 +39,7 @@ class Tree{
 
 		float width = 0.3f;
 		float length = 5.0f;
+		float elasticity = 20.0f;
 
 		branch* makeDummyTree(int);
 
@@ -52,4 +51,8 @@ class Tree{
 		void drawAxis(branch*);
 
 		void setWindForce(cgra::vec3);
+		float calculatePressure(branch*, float);
+		float springConstant(branch*);
+		void applyWind(branch*);
+		float displacement(branch*, float);
 };

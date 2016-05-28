@@ -14,6 +14,7 @@ using namespace cgra;
 
 Tree::Tree(){
 	root = makeDummyTree(4);
+	setWindForce(vec3(20,20,20));
 }
 
 branch* Tree::makeDummyTree(int numBranches){
@@ -75,7 +76,7 @@ void Tree::renderBranch(branch *b) {
 	if(b == NULL){
 		return;
 	}
-
+	applyWind(b);
 	glPushMatrix();
 
 		//only draw branch info if it has a length
@@ -176,4 +177,42 @@ void Tree::setPosition(vec3 position) {
 
 void Tree::setWindForce(vec3 wind){
 	windForce = wind;
+}
+
+float Tree::calculatePressure(branch* branch, float force){
+	float t = branch->baseWidth - branch-> topWidth;
+
+	float a = 0.1; //change to a small number derived from the current angle of the branch
+	float b = math::random(0.0f,0.1f); //change to random value to make different branches be at different point of sine equation
+
+	float oscillation = (t+b);
+
+	//remove *degrees if calculation should be in radians
+	float degrees =  (float)(math::pi());
+	degrees = degrees / 180.0f;
+
+	float pressure = force * (1 + a * sin(oscillation*degrees));
+
+	return pressure;
+}
+
+float Tree::springConstant(branch* branch){
+	float k = (elasticity*branch->baseWidth*pow(branch->baseWidth-branch->topWidth, 3));
+	k = k/ (4*pow(branch->length, 3));
+
+	return k;
+}
+
+float Tree::displacement(branch* branch, float pressure){
+	return pressure/springConstant(branch);
+}
+
+void Tree::applyWind(branch* b){
+	float displacementX = displacement(b, calculatePressure(b, 20*(windForce.x)));
+	float displacementY = displacement(b, calculatePressure(b, 20*(windForce.y)));
+	float displacementZ = displacement(b, calculatePressure(b, 20*(windForce.z)));
+
+	b->rotation.x = displacementX;
+	b->rotation.y = displacementY;
+	b->rotation.z = displacementZ;
 }
