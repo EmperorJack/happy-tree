@@ -12,6 +12,7 @@
 #include "cgra_math.hpp"
 #include "simple_image.hpp"
 #include "simple_shader.hpp"
+#include "simple_gui.hpp"
 #include "opengl.hpp"
 #include "geometry.hpp"
 #include "tree.hpp"
@@ -21,7 +22,10 @@ using namespace cgra;
 
 // Window
 GLFWwindow* g_window;
+
+// Frame related values
 int frameCount = 0;
+double frameRate = 0.0;
 
 // Projection values
 float g_fovy = 20.0;
@@ -41,7 +45,6 @@ GLuint g_shader = 0;
 
 // Geometry draw lists
 Geometry* g_model = nullptr;
-
 
 // Tree to animate
 Tree* g_tree = nullptr;
@@ -191,11 +194,6 @@ void setupCamera(int width, int height) {
 	glRotatef(g_yaw, 0, 1, 0);
 }
 
-// Returns a random number between 0 and 1
-float randomNorm() {
-	return (rand() % 100) / 100.0f;
-}
-
 // Sets up the lighting of the scene
 void setupLight() {
 	// Set the light positions and directions
@@ -203,8 +201,8 @@ void setupLight() {
 	glLightfv(GL_LIGHT1, GL_POSITION, vec4(-5.0, 5.0, -5.0, 1.0).dataPointer());
 
 	if (frameCount % 20 == 0 && partyMode) {
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(randomNorm(),randomNorm(), randomNorm(), 1.0).dataPointer());
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(randomNorm(),randomNorm(), randomNorm(), 1.0).dataPointer());
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
 	}
 }
 
@@ -276,9 +274,7 @@ void renderScene() {
 	} else {
 		// Render geometry
 		g_model->renderGeometry();
-
 	}
-
 }
 
 // Draw the scene
@@ -312,6 +308,29 @@ void render(int width, int height) {
 	glDisable(GL_LIGHTING);
 	glDisable(GL_NORMALIZE);
 	glUseProgram(0);
+}
+
+// Render the IMGUI overlay
+void renderGUI() {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	// Start registering GUI components
+	SimpleGUI::newFrame();
+
+	// FPS counter
+	char fpsString[128];
+	sprintf(fpsString, "FPS: %.2f", 1 / frameRate);
+
+	ImGui::SetNextWindowPos(ImVec2(10, 10));
+
+	ImGui::Begin("", nullptr, ImVec2(0, 0), 0.3f,
+				 ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
+
+	ImGui::Text(string(fpsString).c_str());
+	ImGui::End();
+
+	// Flush components and render
+	SimpleGUI::render();
 }
 
 void APIENTRY debugCallbackARB(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);
@@ -370,23 +389,46 @@ int main(int argc, char **argv) {
 		cout << "GL_ARB_debug_output not available. No worries." << endl;
 	}
 
+	// Initialize IMGUI
+	if (!SimpleGUI::init(g_window, false)) {
+		cerr << "Error: Could not initialize IMGUI" << endl;
+		abort();
+	}
+
 	// Initialize geometry, materials, lighting and shaders
 	initGeometry();
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 
+	double lastTime = glfwGetTime();
+	int framesThisSecond = 0;
+
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(g_window)) {
+
+		// FPS update
+		double currentTime = glfwGetTime();
+		framesThisSecond++;
+		if (currentTime - lastTime >= 1.0) {
+    	frameRate = 1.0 / double(framesThisSecond);
+    	framesThisSecond = 0;
+    	lastTime += 1.0;
+    }
+
 		int width, height;
 		glfwGetFramebufferSize(g_window, &width, &height);
 
 		// Main render
 		render(width, height);
 
+		// Render GUI on top
+		renderGUI();
+
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();
 
+		// Update total frame count
 		frameCount++;
 	}
 
