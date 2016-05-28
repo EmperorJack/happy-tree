@@ -94,6 +94,19 @@ void FuzzyObject::addParticle() {
 }
 
 void FuzzyObject::updateSystem() {
+	
+	applyParticleForces();
+
+	applyBoundaryForces();
+
+	// Update the velocity and position of each particle
+	for (int i = 0; i < particles.size(); i++) {
+		particles[i].vel += particles[i].acc;
+		particles[i].pos += particles[i].vel;
+	}
+}
+
+void FuzzyObject::applyParticleForces() {
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
 
@@ -104,21 +117,46 @@ void FuzzyObject::updateSystem() {
 
 			if (i == j) continue;
 
+			// Compute the distance between particles
 			vec3 distVector = particles[i].pos - particles[j].pos;
 			float dist = length(distVector);
 
+			// If the particle is within the effect range
 			if (dist < e_effectRange && dist > e_lengthScale) {
+
+				// Compute the force particle j exterts on particle i
 				forceVector += forceAtDistance(dist, distVector);
 			}
 		}
 
+		// Apply the total force to the particle acceleration
 		particles[i].acc += forceVector / p_mass;
 	}
+}
 
+void FuzzyObject::applyBoundaryForces() {
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
-		particles[i].vel += particles[i].acc;
-		particles[i].pos += particles[i].vel;
+
+		vector<vec3> points = geometry->getPoints();
+		vector<triangle> triangles = geometry->getTriangles();
+
+		// For each triangle
+		for (int j = 0; j < triangles.size(); j++) {
+
+			// Compute the distance between the triangle and the particle
+			vec3 trianglePos = (points[triangles[j].v[0].p] + points[triangles[j].v[1].p] + points[triangles[j].v[2].p]) / 3.0f;
+			vec3 distVector = particles[i].pos - trianglePos;
+
+			// If the particle is touching the triangle and the ray cast in the
+			// particle velocity direction intersects the triangle
+			if (length(distVector) < p_radius &&
+				  geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, triangles[j])) {
+			 	
+			 	// Apply a rebound force on the particle
+				cout << "COLLIDED" << endl;
+			}
+		}
 	}
 }
 

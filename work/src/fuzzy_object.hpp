@@ -44,10 +44,11 @@ class FuzzyObject {
 	private:
 		// The 3D object the particle system represents
 		Geometry* geometry;
+		std::vector<triangle> m_triangles;
 
 		// Particle system fields
 		std::vector<particle> particles;
-		int particleLimit = 200;
+		int particleLimit = 1;
 
 		// Particle attributes
 		GLuint p_displayList = 0;
@@ -57,7 +58,7 @@ class FuzzyObject {
 
 		// LJ potential energy fields
 		float e_strength = 0.0001f;
-		float e_lengthScale = p_radius * 1;
+		float e_lengthScale = p_radius;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 		
 		// Material properties
@@ -68,6 +69,8 @@ class FuzzyObject {
 		void setupDisplayList();
 		void addParticle();
 		void updateSystem();
+		void applyParticleForces();
+		void applyBoundaryForces();
 		cgra::vec3 forceAtDistance(float dist, cgra::vec3);
 		bool stoppingCriteria();
 		bool systemAtRest();

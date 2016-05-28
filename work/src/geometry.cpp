@@ -232,8 +232,10 @@ void Geometry::setMaterial(vec4 ambient, vec4 diffuse, vec4 specular, float shin
 	m_material.emission = emission;
 }
 
-bool Geometry::rayIntersectsTriangle(vec3 p, vec3 d,
-			vec3 v0, vec3 v1, vec3 v2) {
+bool Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
+	vec3 v0 = m_points[tri.v[0].p];
+	vec3 v1 = m_points[tri.v[1].p];
+	vec3 v2 = m_points[tri.v[2].p];
 
 	vec3 e1, e2, h, s, q; //float e1[3],e2[3],h[3],s[3],q[3];
 	float a,f,u,v;
@@ -277,10 +279,7 @@ bool Geometry::pointInsideMesh(vec3 point) {
 	vec3 direction = vec3(0, 0, 1);
 
 	for (int i = 0; i < m_triangles.size(); i++) {
-		if (rayIntersectsTriangle(point, direction,
-					m_points[m_triangles[i].v[0].p],
-					m_points[m_triangles[i].v[1].p],
-					m_points[m_triangles[i].v[2].p])) {
+		if (rayIntersectsTriangle(point, direction, m_triangles[i])) {
 			intersectionCount++;
 		}
 	}
@@ -316,4 +315,12 @@ void Geometry::renderGeometry() {
 
 void Geometry::toggleWireframe() {
 	wireframe = !wireframe;
+}
+
+vector<vec3> Geometry::getPoints() {
+	return vector<vec3>(m_points);
+}
+
+vector<triangle> Geometry::getTriangles() {
+	return vector<triangle>(m_triangles);
 }
