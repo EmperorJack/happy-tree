@@ -47,7 +47,7 @@ class Geometry {
 
 		void setPosition(cgra::vec3);
 		void setMaterial(cgra::vec4, cgra::vec4, cgra::vec4, float, cgra::vec4);
-		bool rayIntersectsTriangle(cgra::vec3, cgra::vec3, triangle);
+		cgra::vec3* rayIntersectsTriangle(cgra::vec3, cgra::vec3, triangle);
 		bool pointInsideMesh(cgra::vec3);
 		void renderGeometry();
 		void toggleWireframe();

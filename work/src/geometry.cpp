@@ -232,45 +232,53 @@ void Geometry::setMaterial(vec4 ambient, vec4 diffuse, vec4 specular, float shin
 	m_material.emission = emission;
 }
 
-bool Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
+vec3* Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
+	// https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+
 	vec3 v0 = m_points[tri.v[0].p];
 	vec3 v1 = m_points[tri.v[1].p];
 	vec3 v2 = m_points[tri.v[2].p];
 
-	vec3 e1, e2, h, s, q; //float e1[3],e2[3],h[3],s[3],q[3];
+	vec3 e1, e2, h, s, q;
 	float a,f,u,v;
-	e1 = v1 - v0; //vector(e1,v1,v0);
-	e2 = v2 - v0; //vector(e2,v2,v0);
+	e1 = v1 - v0;
+	e2 = v2 - v0;
 
-	h = cross(d, e2); //crossProduct(h,d,e2);
+	h = cross(d, e2);
 	a = dot(e1, h);
 
-	if (a > -0.00001 && a < 0.00001)
-		return(false);
+	if (a > -0.00001 && a < 0.00001) {
+		return(nullptr);
+	}
 
 	f = 1/a;
-	s = p - v0; //vector(s,p,v0);
+	s = p - v0;
 	u = f * (dot(s,h));
 
-	if (u < 0.0 || u > 1.0)
-		return(false);
+	if (u < 0.0 || u > 1.0) {
+		return(nullptr);
+	}
 
-	q = cross(s, e1); //crossProduct(q,s,e1);
+	q = cross(s, e1);
 	v = f * dot(d,q);
 
-	if (v < 0.0 || u + v > 1.0)
-		return(false);
+	if (v < 0.0 || u + v > 1.0) {
+		return(nullptr);
+	}
 
-	// at this stage we can compute t to find out where
-	// the intersection point is on the line
+	// Compute t to find out where the intersection point is on the line
 	float t = f * dot(e2,q);
 
-	if (t > 0.00001) // ray intersection
-		return(true);
-
-	else // this means that there is a line intersection
-		 // but not a ray intersection
-		 return (false);
+	// Ray intersection occured
+	if (t > 0.00001) {
+		vec3 intersectionPoint = vec3((1 - u - v) * v0 + (u * v1) + (v * v2));
+		vec3* pointer = &intersectionPoint;
+		return(pointer);
+	}
+	// Line intersection occured but not a ray intersection
+	else {
+		return (nullptr);
+	}
 }
 
 bool Geometry::pointInsideMesh(vec3 point) {
@@ -278,8 +286,8 @@ bool Geometry::pointInsideMesh(vec3 point) {
 
 	vec3 direction = vec3(0, 0, 1);
 
-	for (int i = 0; i < m_triangles.size(); i++) {
-		if (rayIntersectsTriangle(point, direction, m_triangles[i])) {
+	for (int i = 0; i < m_triangles.size(); i++) {		
+		if (rayIntersectsTriangle(point, direction, m_triangles[i]) != nullptr) {
 			intersectionCount++;
 		}
 	}
