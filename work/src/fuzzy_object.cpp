@@ -43,7 +43,7 @@ void FuzzyObject::setupDisplayList() {
 	glNewList(p_displayList, GL_COMPILE);
 
 	// Draw the geometry
-	cgraSphere(p_radius, 3, 3);
+	cgraSphere(p_radius, 8, 8);
 
 	glEndList();
 }
@@ -74,10 +74,10 @@ void FuzzyObject::buildIncremental() {
 
 void FuzzyObject::addParticle() {
 	particle p;
-	p.pos = spawnPoint;
-	//p.pos = vec3(spawnPoint.x + math::random(-1.0f, 1.0f),
-	//						 spawnPoint.y + math::random(-1.0f, 1.0f),
-	//						 spawnPoint.z + math::random(-1.0f, 1.0f));
+	//p.pos = spawnPoint;
+	p.pos = vec3(spawnPoint.x + math::random(-0.1f, 0.1f),
+							 spawnPoint.y + math::random(-0.1f, 0.1f),
+							 spawnPoint.z + math::random(-0.1f, 0.1f));
 
 	p.acc = vec3(0.0f, 0.0f, 0.0f);
 
@@ -101,7 +101,7 @@ void FuzzyObject::updateSystem() {
 
 	// Update the velocity and position of each particle
 	for (int i = 0; i < particles.size(); i++) {
-		particles[i].vel += particles[i].acc;
+		particles[i].vel = clamp(particles[i].vel + particles[i].acc, -p_velRange, p_velRange);
 		particles[i].pos += particles[i].vel;
 	}
 }
@@ -122,7 +122,8 @@ void FuzzyObject::applyParticleForces() {
 			float dist = length(distVector);
 
 			// If the particle is within the effect range
-			if (dist < e_effectRange && dist > e_lengthScale) {
+			//if (dist < e_effectRange && dist > e_lengthScale) {
+			if (dist < e_effectRange && dist > 0.001f) {
 
 				// Compute the force particle j exterts on particle i
 				forceVector += forceAtDistance(dist, distVector);
@@ -130,7 +131,8 @@ void FuzzyObject::applyParticleForces() {
 		}
 
 		// Apply the total force to the particle acceleration
-		particles[i].acc += forceVector / p_mass;
+		//if (length(forceVector) > 0.0f) cout << forceVector << endl;
+		particles[i].acc = forceVector / p_mass;
 	}
 }
 
@@ -144,17 +146,23 @@ void FuzzyObject::applyBoundaryForces() {
 		// For each triangle
 		for (int j = 0; j < triangles.size(); j++) {
 
-			// Compute the distance between the triangle and the particle
-			vec3 trianglePos = (points[triangles[j].v[0].p] + points[triangles[j].v[1].p] + points[triangles[j].v[2].p]) / 3.0f;
-			vec3 distVector = particles[i].pos - trianglePos;
+			// Using the particle velocity as the direction vector
+			// Compute the intersection point on the triangle
+			vec3* pointer = (geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, triangles[j]));
+			if (pointer == nullptr) continue;
+			vec3 intersectionPoint = vec3(pointer->x, pointer->y, pointer->z);
 
-			// If the particle is touching the triangle and the ray cast in the
-			// particle velocity direction intersects the triangle
-			if (length(distVector) < p_radius &&
-				  geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, triangles[j])) {
+			// Compute the distance between the intersection point and the particle
+			vec3 distVector = particles[i].pos - intersectionPoint;
+
+			// If the particle is colliding with the intersection point
+			if (length(distVector) < p_boundaryRadius) {
 			 	
-			 	// Apply a rebound force on the particle
-				cout << "COLLIDED" << endl;
+			 	// Bounce the particle off the triangle surface by reflecting it's velocity
+				vec3 normal = normalize(cross(points[triangles[j].v[1].p] - points[triangles[j].v[0].p],
+											 points[triangles[j].v[2].p] - points[triangles[j].v[0].p]));
+				particles[i].vel = reflect(particles[i].vel, -normal) * velocityReductionOnCollision;
+				particles[i].acc = vec3(0, 0, 0);
 			}
 		}
 	}
@@ -212,7 +220,7 @@ void FuzzyObject::renderSystem() {
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, p.col.dataPointer());
 		glCallList(p_displayList);
 		//glBegin(GL_POINTS);
-		//glVertex3f(p.pos.x, p.pos.y, p.pos.z);
+		//glVertex3f(0, 0, 0);
 		//glEnd();
 
 		glPopMatrix();

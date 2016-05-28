@@ -154,7 +154,7 @@ void Geometry::createNormals() {
 		vec3 v3 = m_points[m_triangles[i].v[2].p];
 
 		// Compute the surface normal from the triangle vertices
-		vec3 n = cgra::cross(v2 - v1, v3 - v1);
+		vec3 n = cross(v2 - v1, v3 - v1);
 
 		// Add the surface normal to each associated vertex normal
 		for (int j = 0; j < 3; j++) {
@@ -166,7 +166,7 @@ void Geometry::createNormals() {
 		for (int j = 0; j < 3; j++) {
 			// Push the normalized vertex normal to the model normals
 			vec3 v_normal = vertex_normals[m_triangles[i].v[j].p];
-			m_normals.push_back(cgra::normalize(v_normal));
+			m_normals.push_back(normalize(v_normal));
 
 			// Associate the current vertex with the new vertex normal
 			m_triangles[i].v[j].n = m_normals.size() - 1;
@@ -247,24 +247,18 @@ vec3* Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
 	h = cross(d, e2);
 	a = dot(e1, h);
 
-	if (a > -0.00001 && a < 0.00001) {
-		return(nullptr);
-	}
+	if (a > -0.00001 && a < 0.00001) return(nullptr);
 
 	f = 1/a;
 	s = p - v0;
 	u = f * (dot(s,h));
 
-	if (u < 0.0 || u > 1.0) {
-		return(nullptr);
-	}
+	if (u < 0.0 || u > 1.0) return(nullptr);
 
 	q = cross(s, e1);
 	v = f * dot(d,q);
 
-	if (v < 0.0 || u + v > 1.0) {
-		return(nullptr);
-	}
+	if (v < 0.0 || u + v > 1.0) return(nullptr);
 
 	// Compute t to find out where the intersection point is on the line
 	float t = f * dot(e2,q);
@@ -276,9 +270,7 @@ vec3* Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
 		return(pointer);
 	}
 	// Line intersection occured but not a ray intersection
-	else {
-		return (nullptr);
-	}
+	else return (nullptr);
 }
 
 bool Geometry::pointInsideMesh(vec3 point) {
