@@ -17,75 +17,98 @@ Tree::Tree(){
 	treeHeight = 15.0f;
 	trunkHeight = 5.0f;
 	generateEnvelope(20);
-	generateAttractionPointsVolumetric(100);
-	//cout << inEnvelope(vec3(2.4,7.5f,2.4)) << endl;
-	generateTree();
+	generateAttractionPointsVolumetric(300);
+	root = generateTree();
 }
 
-treeNode* Tree::generateTree(){
+branch* Tree::generateTree(){
 
 	float d = param_branchLength;
 	
-	treeNode parent = treeNode();
-	parent.position = vec3(0,0,0);
-	parent.direction = vec3(0,1,0);
-	parent.length = d;
-	treeNodes.push_back(&parent);
-	treeNode curNode = parent;
-	//Generate initial trunk
-	while(curNode.position.y <= (trunkHeight) + d){
-		curNode = treeNode();
-		curNode.position = parent.position + (parent.direction * parent.length);
-		curNode.direction = vec3(0,1,0);
-		curNode.length = d;
+	branch *root = new branch();
+	branch *parent = root;
+	branch *curNode = root;
 
-		treeNodes.push_back(&curNode);
+	curNode->position = vec3(0,0,0);
+	curNode->direction = vec3(0,1,0);
+	curNode->length = d;
+	treeNodes.push_back(curNode);
+
+	//Generate initial trunk
+	while(curNode->position.y <= trunkHeight){
+		curNode = new branch();
+		curNode->position = parent->position + (parent->direction * parent->length);
+		curNode->direction = vec3(0,1,0);
+		curNode->length = d;
+		curNode->parent = parent;
+		parent->children.push_back(curNode);
+
+		treeNodes.push_back(curNode);
 		parent = curNode;
 	}
+
 	//Generate branches from attraction points
-	// int prevSize = attractionPoints.size() + 1;
+	int prevSize = attractionPoints.size() + 1;
 	while(attractionPoints.size() > 0){
-		vector<vector<vec3>> closestSet = getAssociatedPoints();
+		cout << "treeSize " << treeNodes.size() << " attPoints " << attractionPoints.size() << endl;
+		vector<vector<int>> closestSet = getAssociatedPoints();
+		vector<branch *> toBeAdded;
 		//Loop for all treeNodes
 		for(int i=0; i<treeNodes.size(); i++){
-			cout <<"B1"<<endl;
 			//Check if we want to branch
 			if(closestSet[i].size() > 0){
-				// vector<vec3> activeNodes = closestSet[i];
 				vec3 v = treeNodes[i]->position + (treeNodes[i]->direction * treeNodes[i]->length);
 				vec3 newDir = vec3(0,0,0);
-				cout <<"C3"<<endl;
+
 				for(int j=0; j<closestSet[i].size(); j++){
-					newDir += normalize((closestSet[i]).at(j) - v);
+					int ind = closestSet[i][j];
+					newDir += normalize(attractionPoints[ind] - v);
 				}
 				newDir = normalize(newDir);
 
-				cout <<"C4"<<endl;
-				treeNode newNode = treeNode();
-				cout <<"C5"<<endl;
-				newNode.position = v;
-				cout <<"C5a"<<endl;
-				newNode.direction = newDir;
-				cout <<"C5b"<<endl;
-				newNode.length = d;
-				cout <<"C6"<<endl;
+				branch* newNode = new branch();
+				newNode->position = v;
+				newNode->direction = newDir;
+				newNode->length = d;
+				newNode->parent = treeNodes[i];
+				treeNodes[i]->children.push_back(newNode);
 				
-				treeNodes.push_back(&newNode);
-				cout <<"C7"<<endl;
+				toBeAdded.push_back(newNode);
 			}
 		}
+		treeNodes.insert(treeNodes.end(), toBeAdded.begin(), toBeAdded.end());
 		cullAttractionPoints();
-		//prevSize = attractionPoints.size();
+		prevSize = attractionPoints.size();
 	}
 
-	return &parent;
+	setWidth(root);
+	root->widthBase = root->widthTop;
+	return root;
 }
 
-vector<vector<vec3>> Tree::getAssociatedPoints(){
-	vector<vector<vec3>> closestNodes;
+float Tree::setWidth(branch *b){
+	float width = 0.0;
+
+	cout << "branch with children: " << b->children.size() << endl;
+
+	for(int i=0; i<b->children.size(); i++){
+		width += setWidth(b->children[i]);
+	}
+
+	b->widthTop = width;
+
+	for(int i=0; i<b->children.size(); i++){
+		(b->children[i])->widthBase = width;
+	}
+
+	return (width == 0) ? 0.01 : width;
+}
+
+vector<vector<int>> Tree::getAssociatedPoints(){
+	vector<vector<int>> closestNodes;
 	//init all the sets;
 	for(int j=0; j<treeNodes.size(); j++){
-		vector<vec3> sv = vector<vec3>();
+		vector<int> sv = vector<int>();
 		closestNodes.push_back(sv);
 	}
 	//Scan through all attraction points
@@ -96,7 +119,7 @@ vector<vector<vec3>> Tree::getAssociatedPoints(){
 		int closest = 0;
 
 		for(int j=1; j<treeNodes.size(); j++){
-			treeNode* t = treeNodes[j];
+			branch* t = treeNodes[j];
 			vec3 p = t->position + (t->direction * t->length);
 			float dist = distance(aPoint,p);
 			if(dist <= minDist){
@@ -107,7 +130,7 @@ vector<vector<vec3>> Tree::getAssociatedPoints(){
 
 		//Only assign to the set if it is within the radius of influence
 		if(minDist <= param_radiusOfInfluence){
-			closestNodes[closest].push_back(aPoint);
+			closestNodes[closest].push_back(i);
 		}
 	}
 	return closestNodes;
@@ -116,11 +139,12 @@ vector<vector<vec3>> Tree::getAssociatedPoints(){
 void Tree::cullAttractionPoints(){
 	int countRemoved = 0;
 
-	for(int i=0; i<attractionPoints.size();){
+	for(int i=0; i<attractionPoints.size() - countRemoved;){
 		vec3 aPoint = attractionPoints[i];
+
 		bool toRemove = false;
 		for(int j=0; j<treeNodes.size(); j++){
-			treeNode* t = treeNodes[j];
+			branch* t = treeNodes[j];
 			vec3 p = t->position + (t->direction * t->length);
 			if(distance(aPoint,p) < param_killDistance){
 				toRemove = true;
@@ -129,13 +153,20 @@ void Tree::cullAttractionPoints(){
 		}
 		if(toRemove){
 			vec3 temp = attractionPoints[i];
-			attractionPoints[i] = attractionPoints[attractionPoints.size() - (1+countRemoved)];
+			int ind = attractionPoints.size() - (1+countRemoved);
+			attractionPoints[i] = attractionPoints[ind];
+			attractionPoints[ind] = temp;
+
+			countRemoved++;
 		}else{
 			i++;
 		}
 	}
-	cout << "removed " << countRemoved << " points" << endl;
-	attractionPoints.erase(attractionPoints.end() - countRemoved,attractionPoints.end());
+	if(attractionPoints.size() <= countRemoved){
+		attractionPoints.erase(attractionPoints.begin(), attractionPoints.end());
+	}else{
+		attractionPoints.erase(attractionPoints.end() - (1+countRemoved),attractionPoints.end());
+	}
 }
 
 void Tree::generateAttractionPoints(int numPoints){

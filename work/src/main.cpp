@@ -273,6 +273,7 @@ void renderScene() {
 	} else {
 		// Render geometry
 		// g_model->renderGeometry();
+		g_tree->renderTree();
 	}
 }
 
@@ -399,7 +400,6 @@ int main(int argc, char **argv) {
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
-	g_tree = new Tree();
 
 	double lastTime = glfwGetTime();
 	int framesThisSecond = 0;

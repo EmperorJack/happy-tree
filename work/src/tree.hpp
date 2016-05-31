@@ -11,24 +11,19 @@
 
 struct branch{
 	//Position is at the end of the parent branch
-	cgra::vec3 direction;
-	cgra::vec3 basisRot;          // Euler angle rotations for the branch basis
+	cgra::vec3 position = cgra::vec3(0,0,0); //Only used while generating the tree
+	cgra::vec3 direction = cgra::vec3(0,0,0);
+	cgra::vec3 basisRot = cgra::vec3(0,0,0);          // Euler angle rotations for the branch basis
 
 	float length;
 
 	float widthBase;
 	float widthTop;
 
-	cgra::vec3 rotation;          // Rotation of joint in the basis (degrees)
+	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
 
-	std::vector<branch *> children;
-};
-
-struct treeNode{
-	cgra::vec3 position;
-	cgra::vec3 direction;
-	float length;
-	treeNode* parent;
+	std::vector<branch *> children = std::vector<branch*>();
+	branch* parent;
 };
 
 class Tree{
@@ -44,8 +39,8 @@ class Tree{
 		void setPosition(cgra::vec3);
 
 	private:
-		float param_branchLength = 0.8f;
-		float param_radiusOfInfluence = 17 * param_branchLength;
+		float param_branchLength = 0.4f;
+		float param_radiusOfInfluence = 20 * param_branchLength;
 		float param_killDistance = 5 * param_branchLength;
 
 		float treeHeight;
@@ -62,12 +57,13 @@ class Tree{
 		float width = 0.3f;
 		float length = 5.0f;
 
-		std::vector<treeNode *> treeNodes;
+		std::vector<branch *> treeNodes;
 		std::vector<std::vector<cgra::vec3>> envelope;
 		std::vector<cgra::vec3> attractionPoints;
 
-		treeNode* generateTree();
-		std::vector<std::vector<cgra::vec3>> getAssociatedPoints();
+		branch* generateTree();
+		float setWidth(branch*);
+		std::vector<std::vector<int>> getAssociatedPoints();
 		void cullAttractionPoints();
 		void generateAttractionPoints(int num);
 		void generateAttractionPointsVolumetric(int num);
