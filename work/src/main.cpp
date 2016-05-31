@@ -57,6 +57,7 @@ float spawnPointShiftAmount = 0.1f;
 // Toggle fields
 bool drawAxes = false;
 bool treeMode = false;
+bool realtimeBuild = false;
 bool partyMode = false;
 
 // Mouse Position callback
@@ -77,7 +78,10 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 	}
 	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 		g_rightMouseDown = (action == GLFW_PRESS);
-		g_fuzzy_system->addParticle();
+		//g_fuzzy_system->addParticle();
+		if (g_rightMouseDown) {
+			g_fuzzy_system->buildIncremental();
+		}
 	}
 }
 
@@ -151,6 +155,11 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	if (key == 'R' && (action == 1 || action == 2)) {
 		g_fuzzy_system->spawnPoint.y += spawnPointShiftAmount;
 	}
+
+	// 'q' key pressed
+	if (key == 'Q' && (action == 1 || action == 2)) {
+		realtimeBuild = !realtimeBuild;
+	}
 }
 
 // Character callback
@@ -161,7 +170,7 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	g_model = new Geometry("./work/res/assets/bunny-reduced.obj");
+	g_model = new Geometry("./work/res/assets/sphere.obj");
 	g_model->setPosition(vec3(0, 0, 0));
 
 	g_tree = new Tree();
@@ -319,7 +328,7 @@ void renderScene() {
 	}
 
 	// Update particle system
-	g_fuzzy_system->buildIncremental();
+	if (realtimeBuild) g_fuzzy_system->buildIncremental();
 
 	// Render particle system
 	g_fuzzy_system->renderSystem();

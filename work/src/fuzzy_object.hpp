@@ -49,22 +49,24 @@ class FuzzyObject {
 
 		// Particle system fields
 		std::vector<particle> particles;
-		int particleLimit = 2000;
+		int particleLimit = 400;
 
 		// Particle attributes
 		GLuint p_displayList = 0;
 		float p_velRange = 0.01f;
-		float p_radius = 0.1f;
+		float p_radius = 0.05f;
 		float p_boundaryRadius = 0.1f;
-		float p_mass = 5.0f;
+		float p_mass = 100.0f;
 
 		// LJ potential energy fields
-		float e_strength = 5.0f;
-		float e_lengthScale = 0.1f;
+		float e_strength = 0.001f;
+		float e_lengthScale = 0.2f;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
-		float velocityReductionOnCollision = 0.9f;
-		
+		// Physics fields
+		float meshCollisionFriction = 0.9f;
+		float particleCollisionFriction = 0.9f;
+
 		// Material properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
 		cgra::vec4 specular = cgra::vec4(0.8, 0.8, 0.8, 1.0);

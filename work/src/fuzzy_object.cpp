@@ -94,12 +94,12 @@ void FuzzyObject::addParticle() {
 }
 
 void FuzzyObject::updateSystem() {
-	
+
 	applyParticleForces();
 
-	applyBoundaryForces();
+	//applyBoundaryForces();
 
-	// Update the velocity and position of each particle
+	// Update the particle positions and velocities
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].vel = clamp(particles[i].vel + particles[i].acc, -p_velRange, p_velRange);
 		particles[i].pos += particles[i].vel;
@@ -107,6 +107,8 @@ void FuzzyObject::updateSystem() {
 }
 
 void FuzzyObject::applyParticleForces() {
+	int collisions = 0;
+
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
 
@@ -121,17 +123,19 @@ void FuzzyObject::applyParticleForces() {
 			vec3 distVector = particles[i].pos - particles[j].pos;
 			float dist = length(distVector);
 
-			// If the particle is within the effect range
-			//if (dist < e_effectRange && dist > e_lengthScale) {
+			// If the particle is within the effect range we count this as a collision
 			if (dist < e_effectRange && dist > 0.001f) {
+				collisions++;
 
 				// Compute the force particle j exterts on particle i
 				forceVector += forceAtDistance(dist, distVector);
+
+				// Apply friction to the particle
+				particles[i].vel *= particleCollisionFriction;
 			}
 		}
 
 		// Apply the total force to the particle acceleration
-		//if (length(forceVector) > 0.0f) cout << forceVector << endl;
 		particles[i].acc = forceVector / p_mass;
 	}
 }
@@ -157,11 +161,11 @@ void FuzzyObject::applyBoundaryForces() {
 
 			// If the particle is colliding with the intersection point
 			if (length(distVector) < p_boundaryRadius) {
-			 	
+
 			 	// Bounce the particle off the triangle surface by reflecting it's velocity
 				vec3 normal = normalize(cross(points[triangles[j].v[1].p] - points[triangles[j].v[0].p],
 											 points[triangles[j].v[2].p] - points[triangles[j].v[0].p]));
-				particles[i].vel = reflect(particles[i].vel, -normal) * velocityReductionOnCollision;
+				particles[i].vel = reflect(particles[i].vel, -normal) * meshCollisionFriction;
 				particles[i].acc = vec3(0, 0, 0);
 			}
 		}
@@ -210,7 +214,7 @@ void FuzzyObject::renderSystem() {
 
 	// Set particle drawing properties
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	
+
 	for (int i = 0; i < particles.size(); i++) {
 		particle p = particles[i];
 
