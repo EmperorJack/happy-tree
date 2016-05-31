@@ -250,24 +250,24 @@ vec3 Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
 	h = cross(d, e2);
 	a = dot(e1, h);
 
-	if (a > -0.00001 && a < 0.00001) return noIntersectionVector;
+	if (a > -0.00001f && a < 0.00001f) return noIntersectionVector;
 
 	f = 1/a;
 	s = p - v0;
 	u = f * (dot(s,h));
 
-	if (u < 0.0 || u > 1.0) return noIntersectionVector;
+	if (u < 0.0f || u > 1.0f) return noIntersectionVector;
 
 	q = cross(s, e1);
 	v = f * dot(d,q);
 
-	if (v < 0.0 || u + v > 1.0) return noIntersectionVector;
+	if (v < 0.0f || u + v > 1.0f) return noIntersectionVector;
 
 	// Compute t to find out where the intersection point is on the line
 	float t = f * dot(e2,q);
 
 	// Ray intersection occured
-	if (t > 0.00001) {
+	if (t > 0.00001f) {
 		return vec3(((1 - u - v) * v0) + (u * v1) + (v * v2));
 	}
 

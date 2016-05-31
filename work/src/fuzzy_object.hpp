@@ -35,8 +35,8 @@ class FuzzyObject {
 		FuzzyObject(Geometry*);
 		~FuzzyObject();
 
-		void buildSystem();
-		void buildIncremental();
+		void buildSystemIncrement();
+		void buildSystem(bool);
 		void addParticle();
 		void renderSystem();
 
@@ -50,7 +50,20 @@ class FuzzyObject {
 
 		// Particle system fields
 		std::vector<particle> particles;
-		int particleLimit = 400;
+		int particleLimit = 1000;
+
+		// Stopping criteria
+		int collisionCount = 0;
+		int lastCollisionCount = 0;
+
+		float manualShiftAmount = 0.001f;
+
+		int overfullStepCount = 0;
+		int overfullThreshold = 10;
+		bool overfull = false;
+
+		int stabilityStepCount = 0;
+		int stabilityThreshold = 10;
 
 		// Particle attributes
 		GLuint p_displayList = 0;
@@ -65,7 +78,7 @@ class FuzzyObject {
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
 		// Physics fields
-		float meshCollisionFriction = 0.9f;
+		float meshCollisionFriction = 0.6f;
 		float particleCollisionFriction = 0.9f;
 
 		// Drawing properties
@@ -75,10 +88,10 @@ class FuzzyObject {
 		bool particleViewMode = true;
 
 		void setupDisplayList();
+		bool stoppingCriteria();
+		bool systemAtRest();
 		void updateSystem();
 		void applyParticleForces();
 		void applyBoundaryForces();
 		cgra::vec3 forceAtDistance(float dist, cgra::vec3);
-		bool stoppingCriteria();
-		bool systemAtRest();
 };

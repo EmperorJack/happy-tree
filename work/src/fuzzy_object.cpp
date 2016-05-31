@@ -26,9 +26,6 @@ FuzzyObject::FuzzyObject(Geometry *g) {
 	geometry = g;
 
 	setupDisplayList();
-
-	cout << "Length scale: " << e_lengthScale << endl;
-	cout << "Effect range: " << e_effectRange << endl;
 }
 
 FuzzyObject::~FuzzyObject() {}
@@ -48,22 +45,28 @@ void FuzzyObject::setupDisplayList() {
 	glEndList();
 }
 
-void FuzzyObject::buildSystem() {}
+void FuzzyObject::buildSystemIncrement() {
+	buildSystem(true);
+}
 
-void FuzzyObject::buildIncremental() {
+void FuzzyObject::buildSystem(bool incremental = false) {
 	// First pass
 	if (!stoppingCriteria()) {
-		addParticle();
+		if (!overfull) addParticle();
 		updateSystem();
-		return;
+
+		if (incremental) return;
 	}
+
+	//stoppingCriteria();
 
 	// Second pass
 	int maxParticles = particles.size() - 1;
 	if (particles.size() < maxParticles) {
 		addParticle();
 		//updateSystem();
-		return;
+
+		if (incremental) return;
 	}
 
 	// Final pass
@@ -72,7 +75,61 @@ void FuzzyObject::buildIncremental() {
 	}
 }
 
+bool FuzzyObject::stoppingCriteria() {
+	//if (particles.size() >= particleLimit) return true;
+
+	// Compute the total velocity of the system
+	// vec3 totalVelocity;
+	// for (int i = 0; i < particles.size(); i++) {
+	// 	particles[i].vel = clamp(particles[i].vel + particles[i].acc, -p_velRange, p_velRange);
+	// 	particles[i].pos += particles[i].vel;
+	// }
+	cout << collisionCount << endl;
+
+	//if (particles.size() >= particleLimit) return true;
+
+	if (collisionCount >= lastCollisionCount && !overfull) {
+		// Move each particle slightly
+		for (int i = 0; i < particles.size(); i++) {
+			particles[i].pos.x += math::random(-manualShiftAmount, manualShiftAmount);
+			particles[i].pos.y += math::random(-manualShiftAmount, manualShiftAmount);
+			particles[i].pos.z += math::random(-manualShiftAmount, manualShiftAmount);
+		}
+
+		overfullStepCount++;
+	} else {
+		// Reset overfull counter
+		overfullStepCount = 0;
+	}
+
+	// Check if the system is overfull
+	if (!overfull && overfullStepCount >= overfullThreshold) {
+		overfull = true;
+		cout << "overfull" << endl;
+
+		// Remove a random particle
+		particles.erase(particles.begin() + (int) math::random(0.0f, (float) particles.size()));
+	}
+
+	// Check if the system is not overfull anymore
+	if (overfull && overfullStepCount >= overfullThreshold) {
+		cout << "still overfull" << endl;
+	}
+
+	lastCollisionCount = collisionCount;
+
+	//return collisionCount == 0 && particles.size() > 1;
+	return false;
+}
+
+bool FuzzyObject::systemAtRest() {
+	return false;
+}
+
 void FuzzyObject::addParticle() {
+	// Do not add another particle if we reached the limit
+	if (particles.size() >= particleLimit) return;
+
 	particle p;
 	p.pos = vec3(spawnPoint.x + math::random(-0.1f, 0.1f),
 							 spawnPoint.y + math::random(-0.1f, 0.1f),
@@ -94,8 +151,10 @@ void FuzzyObject::addParticle() {
 
 void FuzzyObject::updateSystem() {
 
+	// Apply LJ physics based forces to the particle system
 	applyParticleForces();
 
+	// Apply forces to particles that collide with the geometry
 	applyBoundaryForces();
 
 	// Update the particle positions and velocities
@@ -106,7 +165,7 @@ void FuzzyObject::updateSystem() {
 }
 
 void FuzzyObject::applyParticleForces() {
-	int collisions = 0;
+	collisionCount = 0;
 
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
@@ -124,13 +183,15 @@ void FuzzyObject::applyParticleForces() {
 
 			// If the particle is within the effect range we count this as a collision
 			if (dist < e_effectRange && dist > 0.001f) {
-				collisions++;
 
 				// Compute the force particle j exterts on particle i
 				forceVector += forceAtDistance(dist, distVector);
 
 				// Apply friction to the particle
 				particles[i].vel *= particleCollisionFriction;
+
+				// Increment the collision count if the particles repelled eachother
+				if (dist < e_lengthScale) collisionCount++;
 			}
 		}
 
@@ -176,14 +237,6 @@ vec3 FuzzyObject::forceAtDistance(float dist, vec3 distVector) {
 	float b = pow(e_lengthScale / dist, 14);
 	float c = 0.5f * pow(e_lengthScale / dist, 8);
 	return a * (b - c) * distVector;
-}
-
-bool FuzzyObject::stoppingCriteria() {
-	return particles.size() >= particleLimit;
-}
-
-bool FuzzyObject::systemAtRest() {
-	return false;
 }
 
 void FuzzyObject::renderSystem() {
