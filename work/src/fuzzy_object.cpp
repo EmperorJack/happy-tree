@@ -43,15 +43,17 @@ void FuzzyObject::setupDisplayList() {
 	cgraSphere(p_radius, 8, 8);
 
 	glEndList();
+
+	//buildSystem(false);
 }
 
 void FuzzyObject::buildSystemIncrement() {
 	buildSystem(true);
 }
 
-void FuzzyObject::buildSystem(bool incremental = false) {
+void FuzzyObject::buildSystem(bool incremental) {
 	// First pass
-	if (!stoppingCriteria()) {
+	while (!finished && !stoppingCriteria()) {
 		if (!overfull) addParticle();
 		updateSystem();
 
@@ -62,7 +64,7 @@ void FuzzyObject::buildSystem(bool incremental = false) {
 
 	// Second pass
 	int maxParticles = particles.size() - 1;
-	if (particles.size() < maxParticles) {
+	while (particles.size() < maxParticles) {
 		addParticle();
 		//updateSystem();
 
@@ -70,25 +72,41 @@ void FuzzyObject::buildSystem(bool incremental = false) {
 	}
 
 	// Final pass
-	if (!systemAtRest()) {
+	while (!systemAtRest()) {
 		updateSystem();
+
+		if (incremental) return;
 	}
 }
 
 bool FuzzyObject::stoppingCriteria() {
-	//if (particles.size() >= particleLimit) return true;
+	if (particles.size() >= particleLimit) return true;
 
 	// Compute the total velocity of the system
-	// vec3 totalVelocity;
-	// for (int i = 0; i < particles.size(); i++) {
-	// 	particles[i].vel = clamp(particles[i].vel + particles[i].acc, -p_velRange, p_velRange);
-	// 	particles[i].pos += particles[i].vel;
-	// }
-	cout << collisionCount << endl;
+	vec3 totalVelocity;
+	for (int i = 0; i < particles.size(); i++) {
+		totalVelocity += particles[i].vel;
+	}
 
-	//if (particles.size() >= particleLimit) return true;
+	bool stable = collisionCount == 0;
 
-	if (collisionCount >= lastCollisionCount && !overfull) {
+	// If the system regained stability last step but lost it again
+	if (wasStable && !stable) {
+		stabilityStepCount++;
+
+		if (stabilityStepCount >= stabilityThreshold && length(totalVelocity) < p_velRange) {
+			// System cannot maintain stability, it is overfull
+			finished = true;
+			return true;
+		}
+	} else {
+		// Reset stability counter
+		wasStable = false;
+		stabilityStepCount = 0;
+	}
+	// TODO Make criteria for below when all particles are colliding
+	// If the particles are repeatedly colliding
+	if (!overfull && !stable && collisionCount >= lastCollisionCount) {
 		// Move each particle slightly
 		for (int i = 0; i < particles.size(); i++) {
 			particles[i].pos.x += math::random(-manualShiftAmount, manualShiftAmount);
@@ -105,25 +123,27 @@ bool FuzzyObject::stoppingCriteria() {
 	// Check if the system is overfull
 	if (!overfull && overfullStepCount >= overfullThreshold) {
 		overfull = true;
+		overfullStepCount = 0;
 		cout << "overfull" << endl;
-
 		// Remove a random particle
 		particles.erase(particles.begin() + (int) math::random(0.0f, (float) particles.size()));
+		//particles.pop_back();
 	}
 
-	// Check if the system is not overfull anymore
-	if (overfull && overfullStepCount >= overfullThreshold) {
-		cout << "still overfull" << endl;
+	// If the system was overfull check and it has regained stability
+	if (overfull && stable) {
+		// Enable particles to spawn again
+		overfull = false;
+		wasStable = true;
 	}
 
 	lastCollisionCount = collisionCount;
 
-	//return collisionCount == 0 && particles.size() > 1;
 	return false;
 }
 
 bool FuzzyObject::systemAtRest() {
-	return false;
+	return true;
 }
 
 void FuzzyObject::addParticle() {
@@ -150,6 +170,7 @@ void FuzzyObject::addParticle() {
 }
 
 void FuzzyObject::updateSystem() {
+	collisionCount = 0;
 
 	// Apply LJ physics based forces to the particle system
 	applyParticleForces();
@@ -165,8 +186,6 @@ void FuzzyObject::updateSystem() {
 }
 
 void FuzzyObject::applyParticleForces() {
-	collisionCount = 0;
-
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
 
@@ -227,6 +246,7 @@ void FuzzyObject::applyBoundaryForces() {
 											 points[triangles[j].v[2].p] - points[triangles[j].v[0].p]));
 				particles[i].vel = reflect(particles[i].vel, -normal) * meshCollisionFriction;
 				particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
+				collisionCount++;
 			}
 		}
 	}

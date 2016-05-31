@@ -81,7 +81,7 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 		g_rightMouseDown = (action == GLFW_PRESS);
 		//g_fuzzy_system->addParticle();
 		if (g_rightMouseDown) {
-			g_fuzzy_system->buildSystemIncrement();
+			for (int i = 0; i < 100; i++) g_fuzzy_system->buildSystemIncrement();
 		}
 	}
 
@@ -177,7 +177,7 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	g_model = new Geometry("./work/res/assets/box.obj");
+	g_model = new Geometry("./work/res/assets/sphere.obj");
 	g_model->setPosition(vec3(0, 0, 0));
 
 	g_tree = new Tree();
