@@ -232,8 +232,11 @@ void Geometry::setMaterial(vec4 ambient, vec4 diffuse, vec4 specular, float shin
 	m_material.emission = emission;
 }
 
-vec3* Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
+vec3 Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
 	// https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+
+	// The vector to return if no ray intersection is found
+	vec3 noIntersectionVector = vec3(numeric_limits<float>::max(), 0.0f, 0.0f);
 
 	vec3 v0 = m_points[tri.v[0].p];
 	vec3 v1 = m_points[tri.v[1].p];
@@ -247,30 +250,29 @@ vec3* Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
 	h = cross(d, e2);
 	a = dot(e1, h);
 
-	if (a > -0.00001 && a < 0.00001) return(nullptr);
+	if (a > -0.00001 && a < 0.00001) return noIntersectionVector;
 
 	f = 1/a;
 	s = p - v0;
 	u = f * (dot(s,h));
 
-	if (u < 0.0 || u > 1.0) return(nullptr);
+	if (u < 0.0 || u > 1.0) return noIntersectionVector;
 
 	q = cross(s, e1);
 	v = f * dot(d,q);
 
-	if (v < 0.0 || u + v > 1.0) return(nullptr);
+	if (v < 0.0 || u + v > 1.0) return noIntersectionVector;
 
 	// Compute t to find out where the intersection point is on the line
 	float t = f * dot(e2,q);
 
 	// Ray intersection occured
 	if (t > 0.00001) {
-		vec3 intersectionPoint = vec3((1 - u - v) * v0 + (u * v1) + (v * v2));
-		vec3* pointer = &intersectionPoint;
-		return(pointer);
+		return vec3(((1 - u - v) * v0) + (u * v1) + (v * v2));
 	}
+
 	// Line intersection occured but not a ray intersection
-	else return (nullptr);
+	return noIntersectionVector;
 }
 
 bool Geometry::pointInsideMesh(vec3 point) {
@@ -278,8 +280,8 @@ bool Geometry::pointInsideMesh(vec3 point) {
 
 	vec3 direction = vec3(0, 0, 1);
 
-	for (int i = 0; i < m_triangles.size(); i++) {		
-		if (rayIntersectsTriangle(point, direction, m_triangles[i]) != nullptr) {
+	for (int i = 0; i < m_triangles.size(); i++) {
+		if (rayIntersectsTriangle(point, direction, m_triangles[i]).x != numeric_limits<float>::max()) {
 			intersectionCount++;
 		}
 	}

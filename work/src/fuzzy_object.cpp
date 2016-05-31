@@ -74,7 +74,6 @@ void FuzzyObject::buildIncremental() {
 
 void FuzzyObject::addParticle() {
 	particle p;
-	//p.pos = spawnPoint;
 	p.pos = vec3(spawnPoint.x + math::random(-0.1f, 0.1f),
 							 spawnPoint.y + math::random(-0.1f, 0.1f),
 							 spawnPoint.z + math::random(-0.1f, 0.1f));
@@ -97,7 +96,7 @@ void FuzzyObject::updateSystem() {
 
 	applyParticleForces();
 
-	//applyBoundaryForces();
+	applyBoundaryForces();
 
 	// Update the particle positions and velocities
 	for (int i = 0; i < particles.size(); i++) {
@@ -152,21 +151,21 @@ void FuzzyObject::applyBoundaryForces() {
 
 			// Using the particle velocity as the direction vector
 			// Compute the intersection point on the triangle
-			vec3* pointer = (geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, triangles[j]));
-			if (pointer == nullptr) continue;
-			vec3 intersectionPoint = vec3(pointer->x, pointer->y, pointer->z);
+			vec3 intersectionPoint = (geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, triangles[j]));
+
+			// Skip this particle if no intersection occured
+			if (intersectionPoint.x == numeric_limits<float>::max()) continue;
 
 			// Compute the distance between the intersection point and the particle
 			vec3 distVector = particles[i].pos - intersectionPoint;
 
 			// If the particle is colliding with the intersection point
 			if (length(distVector) < p_boundaryRadius) {
-
 			 	// Bounce the particle off the triangle surface by reflecting it's velocity
 				vec3 normal = normalize(cross(points[triangles[j].v[1].p] - points[triangles[j].v[0].p],
 											 points[triangles[j].v[2].p] - points[triangles[j].v[0].p]));
 				particles[i].vel = reflect(particles[i].vel, -normal) * meshCollisionFriction;
-				particles[i].acc = vec3(0, 0, 0);
+				particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
 			}
 		}
 	}
@@ -222,10 +221,14 @@ void FuzzyObject::renderSystem() {
 		glTranslatef(p.pos.x, p.pos.y, p.pos.z);
 
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, p.col.dataPointer());
-		glCallList(p_displayList);
-		//glBegin(GL_POINTS);
-		//glVertex3f(0, 0, 0);
-		//glEnd();
+
+		if (particleViewMode) {
+			glCallList(p_displayList);
+		} else {
+			glBegin(GL_POINTS);
+			glVertex3f(0, 0, 0);
+			glEnd();
+		}
 
 		glPopMatrix();
 	}
@@ -234,4 +237,8 @@ void FuzzyObject::renderSystem() {
 
 int FuzzyObject::getParticleCount() {
 	return particles.size();
+}
+
+void FuzzyObject::toggleParticleViewMode() {
+	particleViewMode = !particleViewMode;
 }

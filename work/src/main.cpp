@@ -76,11 +76,18 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
 		g_leftMouseDown = (action == GLFW_PRESS);
 	}
+
 	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 		g_rightMouseDown = (action == GLFW_PRESS);
 		//g_fuzzy_system->addParticle();
 		if (g_rightMouseDown) {
 			g_fuzzy_system->buildIncremental();
+		}
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+		if (action == GLFW_PRESS) {
+			g_fuzzy_system->toggleParticleViewMode();
 		}
 	}
 }
