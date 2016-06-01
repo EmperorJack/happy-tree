@@ -94,9 +94,10 @@ void Tree::renderBranch(branch *b) {
 			glRotatef(rot.z, 0, 0, 1);
 			glRotatef(rot.y, 0, 1, 0);
 			glRotatef(rot.x, 1, 0, 0);
+
 			cout << b->name << endl;
 			cout << "Branch Rotation X: " <<  b->rotation.x << endl;
-			cout << "Branch Rotation Y: " <<  b->rotation.y << endl;
+			//cout << "Branch Rotation Y: " <<  b->rotation.y << endl;
 			cout << "Branch Rotation Z: " <<  b->rotation.z << endl;
 			cout << endl;
 
@@ -110,7 +111,7 @@ void Tree::renderBranch(branch *b) {
 
 			//glDisable(GL_LIGHTING);
 			//draw the axes of this branch
-			drawAxis(b);
+			//drawAxis(b);
 
 			//draw the joint of this branch
 			drawJoint(b);
@@ -195,7 +196,7 @@ void Tree::setWindForce(vec3 wind){
 float Tree::calculatePressure(branch* branch, float force){
 	float t = branch->baseWidth - branch-> topWidth;
 
-	float a = 0.1; //change to a small number derived from the current angle of the branch
+	float a = 1.0f; //change to a small number derived from the current angle of the branch
 	//float b = math::random(0.0f,0.1f); //change to random value to make different branches be at different point of sine equation
 
 	float oscillation = (time+branch->offset);
@@ -223,17 +224,16 @@ float Tree::displacement(branch* branch, float pressure){
 }
 
 void Tree::applyWind(branch* b){
-	time += 0.000001f;
+	time += 0.000008f;
 
 	float displacementX = displacement(b, calculatePressure(b, (windForce.x)));
-	float displacementY = displacement(b, calculatePressure(b, (windForce.y)));
+	//float displacementY = displacement(b, calculatePressure(b, (windForce.y)));
 	float displacementZ = displacement(b, calculatePressure(b, (windForce.z)));
 
-	//cout << "length " << b-> length << endl;
-	//cout << "Displacement - x: " << displacementX << "  y: " << displacementY << "  z: " << displacementZ << endl;
+	cout << "length " << b->length << endl;
+	cout << "Displacement - x: " << displacementX /*<< "  y: " << displacementY */<< "  z: " << displacementZ << endl;
 	
-	float degrees =  (float)(math::pi());
-	degrees = degrees / 180.0f;
+	float degrees =  ( (float)(math::pi()) ) / 180.0f;
 
 	int len = b->length;
 
@@ -242,18 +242,19 @@ void Tree::applyWind(branch* b){
 	}
 
 	float motionAngleX = asin(displacementX/float(len)); //* degrees;
-	float motionAngleY = asin(displacementY/float(len)); //* degrees;
+	//float motionAngleY = asin(displacementY/float(len)); //* degrees;
 	float motionAngleZ = asin(displacementZ/float(len));// * degrees;
 
-	// cout << "Motion Angle - x: " << motionAngleX << "  y: " << motionAngleY << "  z: " << motionAngleZ << endl << endl;
-	// cout << asin(0.5) << endl;
+	cout << "Motion Angle - x: " << motionAngleX /*<< "  y: " << motionAngleY */<< "  z: " << motionAngleZ << endl;
+	cout << asin(5) << endl;
+	cout << endl;
 
 	b->rotation.x = motionAngleX;
-	b->rotation.y = motionAngleY;
+	//b->rotation.y = motionAngleY;
 	b->rotation.z = motionAngleZ;
 
 	b->rotation.x = displacementX;
-	b->rotation.y = displacementY;
+	//b->rotation.y = displacementY;
 	b->rotation.z = displacementZ;
 }
 
