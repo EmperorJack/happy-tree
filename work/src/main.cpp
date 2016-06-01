@@ -97,6 +97,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 		treeMode = !treeMode;
 	}
 
+	if (key == 'F' && action == 1) {
+		g_tree->toggleWind();
+	}
+
 	// 'p' key pressed
 	if (key == 'P' && action == 1) {
 		partyMode = !partyMode;

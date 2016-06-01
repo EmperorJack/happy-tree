@@ -14,7 +14,7 @@ using namespace cgra;
 
 Tree::Tree(){
 	root = makeDummyTree(4);
-	setWindForce(vec3(20,20,20));
+	setWindForce(vec3(20,0,20));
 }
 
 branch* Tree::makeDummyTree(int numBranches){
@@ -82,8 +82,9 @@ void Tree::renderBranch(branch *b) {
 	if(b == NULL){
 		return;
 	}
-	applyWind(b);
-	time += 0.000001f;
+	if(windEnabled){
+		applyWind(b);
+	}
 	glPushMatrix();
 
 		//only draw branch info if it has a length
@@ -100,7 +101,7 @@ void Tree::renderBranch(branch *b) {
 			cout << endl;
 
 			glRotatef(b->rotation.z, 0, 0, 1);
-			glRotatef(b->rotation.y, 0, 1, 0);
+			//glRotatef(b->rotation.y, 0, 1, 0);
 			glRotatef(b->rotation.x, 1, 0, 0);
 	
 			glRotatef(-rot.x, 1, 0, 0);
@@ -109,7 +110,7 @@ void Tree::renderBranch(branch *b) {
 
 			//glDisable(GL_LIGHTING);
 			//draw the axes of this branch
-			//drawAxis(b);
+			drawAxis(b);
 
 			//draw the joint of this branch
 			drawJoint(b);
@@ -222,9 +223,11 @@ float Tree::displacement(branch* branch, float pressure){
 }
 
 void Tree::applyWind(branch* b){
-	float displacementX = displacement(b, calculatePressure(b, 2*(windForce.x)));
-	float displacementY = displacement(b, calculatePressure(b, 2*(windForce.y)));
-	float displacementZ = displacement(b, calculatePressure(b, 2*(windForce.z)));
+	time += 0.000001f;
+
+	float displacementX = displacement(b, calculatePressure(b, (windForce.x)));
+	float displacementY = displacement(b, calculatePressure(b, (windForce.y)));
+	float displacementZ = displacement(b, calculatePressure(b, (windForce.z)));
 
 	//cout << "length " << b-> length << endl;
 	//cout << "Displacement - x: " << displacementX << "  y: " << displacementY << "  z: " << displacementZ << endl;
@@ -252,4 +255,8 @@ void Tree::applyWind(branch* b){
 	b->rotation.x = displacementX;
 	b->rotation.y = displacementY;
 	b->rotation.z = displacementZ;
+}
+
+void Tree::toggleWind(){
+	windEnabled = ! windEnabled;
 }

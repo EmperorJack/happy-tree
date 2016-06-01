@@ -35,6 +35,7 @@ class Tree{
 
 		void renderTree();
 		void setPosition(cgra::vec3);
+		void toggleWind();
 
 	private:		
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
@@ -44,6 +45,7 @@ class Tree{
 		float length = 5.0f;
 		float elasticity = 20.0f;
 		float time = 0.0f;
+		bool windEnabled = false;
 
 		branch* makeDummyTree(int);
 
