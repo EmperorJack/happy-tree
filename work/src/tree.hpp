@@ -14,9 +14,12 @@ struct branch{
 	cgra::vec3 direction;			//initial 
 	cgra::vec3 basisRot;          // Euler angle rotations for the branch basis
 
+	std::string name;
+
 	float length;
 	float baseWidth;
 	float topWidth;
+	float offset;
 
 	cgra::vec3 rotation;          // Rotation of joint in the basis (degrees)
 
@@ -40,6 +43,7 @@ class Tree{
 		float width = 0.3f;
 		float length = 5.0f;
 		float elasticity = 20.0f;
+		float time = 0.0f;
 
 		branch* makeDummyTree(int);
 
