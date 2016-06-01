@@ -45,10 +45,10 @@ class FuzzyObject {
 
 	private:
 		// The 3D object the particle system represents
-		//Geometry* geometry;
+		Geometry* g_geometry;
 		std::vector<cgra::vec3> g_points;
 		std::vector<triangle> g_triangles;
-		std::vector<cgra::vec3 g_surfaceNormals;
+		std::vector<cgra::vec3> g_surfaceNormals;
 
 		// Particle system fields
 		std::vector<particle> particles;

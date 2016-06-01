@@ -22,15 +22,18 @@
 using namespace std;
 using namespace cgra;
 
-FuzzyObject::FuzzyObject(Geometry *g) {
-	//geometry = g;
+FuzzyObject::FuzzyObject(Geometry *geometry) {
+	g_geometry = geometry;
 	g_points = geometry->getPoints();
 	g_triangles = geometry->getTriangles();
 
+	// Compute the inverted surface normal of each triangle
+	for (int i = 0; i < g_triangles.size(); i++) {
+		g_surfaceNormals.push_back(-normalize(cross(g_points[g_triangles[i].v[1].p] - g_points[g_triangles[i].v[0].p],
+			 																					g_points[g_triangles[i].v[2].p] - g_points[g_triangles[i].v[0].p])));
+	}
+	
 	setupDisplayList();
-
-	vec3 normal = normalize(cross(points[triangles[j].v[1].p] - points[triangles[j].v[0].p],
-								 points[triangles[j].v[2].p] - points[triangles[j].v[0].p]));
 }
 
 FuzzyObject::~FuzzyObject() {}
@@ -229,11 +232,11 @@ void FuzzyObject::applyBoundaryForces() {
 	for (int i = 0; i < particles.size(); i++) {
 
 		// For each triangle
-		for (int j = 0; j < triangles.size(); j++) {
+		for (int j = 0; j < g_triangles.size(); j++) {
 
 			// Using the particle velocity as the direction vector
 			// Compute the intersection point on the triangle
-			vec3 intersectionPoint = (geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, triangles[j]));
+			vec3 intersectionPoint = (g_geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, g_triangles[j]));
 
 			// Skip this particle if no intersection occured
 			if (intersectionPoint.x == numeric_limits<float>::max()) continue;
@@ -245,7 +248,7 @@ void FuzzyObject::applyBoundaryForces() {
 			if (length(distVector) < p_boundaryRadius) {
 			 	// Bounce the particle off the triangle surface by reflecting it's velocity
 				
-				particles[i].vel = reflect(particles[i].vel, -normal) * meshCollisionFriction;
+				particles[i].vel = reflect(particles[i].vel, g_surfaceNormals[j]) * meshCollisionFriction;
 				particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
 				collisionCount++;
 			}
