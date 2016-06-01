@@ -23,9 +23,14 @@ using namespace std;
 using namespace cgra;
 
 FuzzyObject::FuzzyObject(Geometry *g) {
-	geometry = g;
+	//geometry = g;
+	g_points = geometry->getPoints();
+	g_triangles = geometry->getTriangles();
 
 	setupDisplayList();
+
+	vec3 normal = normalize(cross(points[triangles[j].v[1].p] - points[triangles[j].v[0].p],
+								 points[triangles[j].v[2].p] - points[triangles[j].v[0].p]));
 }
 
 FuzzyObject::~FuzzyObject() {}
@@ -223,9 +228,6 @@ void FuzzyObject::applyBoundaryForces() {
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
 
-		vector<vec3> points = geometry->getPoints();
-		vector<triangle> triangles = geometry->getTriangles();
-
 		// For each triangle
 		for (int j = 0; j < triangles.size(); j++) {
 
@@ -242,8 +244,7 @@ void FuzzyObject::applyBoundaryForces() {
 			// If the particle is colliding with the intersection point
 			if (length(distVector) < p_boundaryRadius) {
 			 	// Bounce the particle off the triangle surface by reflecting it's velocity
-				vec3 normal = normalize(cross(points[triangles[j].v[1].p] - points[triangles[j].v[0].p],
-											 points[triangles[j].v[2].p] - points[triangles[j].v[0].p]));
+				
 				particles[i].vel = reflect(particles[i].vel, -normal) * meshCollisionFriction;
 				particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
 				collisionCount++;
@@ -263,19 +264,10 @@ void FuzzyObject::renderSystem() {
 	// Draw the spawn position
 	glDisable(GL_LIGHTING);
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(1.0f, 0.0f, 0.0f, 1.0f).dataPointer());
-	glPointSize(8);
+	glPointSize(4);
 
 	glBegin(GL_POINTS);
 	glVertex3f(spawnPoint.x, spawnPoint.y, spawnPoint.z);
-	glEnd();
-
-	// Draw the effect radius
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(0.0f, 0.0f, 1.0f, 1.0f).dataPointer());
-	glLineWidth(6);
-
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(e_effectRange, 0.0f, 0.0f);
 	glEnd();
 
 	glEnable(GL_LIGHTING);
@@ -286,6 +278,7 @@ void FuzzyObject::renderSystem() {
 
 	// Set particle drawing properties
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glLineWidth(1);
 
 	for (int i = 0; i < particles.size(); i++) {
 		particle p = particles[i];
@@ -295,11 +288,18 @@ void FuzzyObject::renderSystem() {
 
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, p.col.dataPointer());
 
+		// Draw the particle
 		if (particleViewMode) {
 			glCallList(p_displayList);
 		} else {
 			glBegin(GL_POINTS);
 			glVertex3f(0, 0, 0);
+			glEnd();
+
+			// Draw the particle velocity
+			glBegin(GL_LINES);
+			glVertex3f(0.0f, 0.0f, 0.0f);
+			glVertex3f(p.vel.x * 2, p.vel.y * 2, p.vel.z * 2);
 			glEnd();
 		}
 

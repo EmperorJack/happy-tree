@@ -45,8 +45,10 @@ class FuzzyObject {
 
 	private:
 		// The 3D object the particle system represents
-		Geometry* geometry;
-		std::vector<triangle> m_triangles;
+		//Geometry* geometry;
+		std::vector<cgra::vec3> g_points;
+		std::vector<triangle> g_triangles;
+		std::vector<cgra::vec3 g_surfaceNormals;
 
 		// Particle system fields
 		std::vector<particle> particles;
@@ -70,7 +72,7 @@ class FuzzyObject {
 		// Particle attributes
 		GLuint p_displayList = 0;
 		float p_velRange = 0.02f;
-		float p_radius = 0.05f;
+		float p_radius = 0.1f;
 		float p_boundaryRadius = 0.1f;
 		float p_mass = 100.0f;
 

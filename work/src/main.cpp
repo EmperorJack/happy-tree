@@ -79,15 +79,14 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 		g_rightMouseDown = (action == GLFW_PRESS);
-		//g_fuzzy_system->addParticle();
 		if (g_rightMouseDown) {
-			for (int i = 0; i < 100; i++) g_fuzzy_system->buildSystemIncrement();
+			g_fuzzy_system->buildSystemIncrement();
 		}
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
 		if (action == GLFW_PRESS) {
-			g_fuzzy_system->toggleParticleViewMode();
+			for (int i = 0; i < 100; i++) g_fuzzy_system->buildSystemIncrement();
 		}
 	}
 }
@@ -164,8 +163,13 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	}
 
 	// 'q' key pressed
-	if (key == 'Q' && (action == 1 || action == 2)) {
+	if (key == 'Q' && action == 1) {
 		realtimeBuild = !realtimeBuild;
+	}
+
+	// 'v' key pressed
+	if (key == 'V' && action == 1) {
+		g_fuzzy_system->toggleParticleViewMode();
 	}
 }
 
