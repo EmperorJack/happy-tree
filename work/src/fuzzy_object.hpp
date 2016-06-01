@@ -66,24 +66,24 @@ class FuzzyObject {
 		bool overfull = false;
 
 		int stabilityStepCount = 0;
-		int stabilityThreshold = 40;
+		int stabilityThreshold = 30;
 		bool wasStable = false;
 
 		// Particle attributes
 		GLuint p_displayList = 0;
-		float p_velRange = 0.02f;
+		float p_velRange = 0.03f;
 		float p_radius = 0.1f;
-		float p_boundaryRadius = 0.1f;
+		float p_boundaryRadius = 0.2f;
 		float p_mass = 100.0f;
 
 		// LJ potential energy fields
 		float e_strength = 0.002f;
-		float e_lengthScale = 0.3f;
+		float e_lengthScale = 0.2f;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
 		// Physics fields
 		float meshCollisionFriction = 0.9f;
-		float particleCollisionFriction = 0.99f;
+		float particleCollisionFriction = 0.98f;
 
 		// Drawing properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);

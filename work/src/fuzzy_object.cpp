@@ -250,7 +250,8 @@ void FuzzyObject::applyBoundaryForces() {
 				
 				particles[i].vel = reflect(particles[i].vel, g_surfaceNormals[j]) * meshCollisionFriction;
 				particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
-				collisionCount++;
+				//collisionCount++;
+				// TODO should be counting collisions here
 			}
 		}
 	}
