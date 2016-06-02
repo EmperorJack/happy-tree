@@ -17,7 +17,7 @@ Tree::Tree(){
 	treeHeight = 15.0f;
 	trunkHeight = 5.0f;
 	generateEnvelope(20);
-	generateAttractionPointsVolumetric(300);
+	generateAttractionPointsVolumetric(500);
 	root = generateTree();
 }
 
@@ -31,37 +31,25 @@ branch* Tree::generateTree(){
 
 	curNode->position = vec3(0,0,0);
 	curNode->direction = vec3(0,1,0);
-	curNode->length = d;
+	curNode->length = (param_radiusOfInfluence + d < trunkHeight) ? trunkHeight : d;
 	treeNodes.push_back(curNode);
 
-	//Generate initial trunk
-	while(curNode->position.y <= trunkHeight){
-		curNode = new branch();
-		curNode->position = parent->position + (parent->direction * parent->length);
-		curNode->direction = vec3(0,1,0);
-		curNode->length = d;
-		curNode->parent = parent;
-		parent->children.push_back(curNode);
-
-		treeNodes.push_back(curNode);
-		parent = curNode;
-	}
-
 	//Generate branches from attraction points
-	int prevSize = attractionPoints.size() + 1;
+	// int prevSize = attractionPoints.size() + 1;
 	while(attractionPoints.size() > 0){
-		cout << "treeSize " << treeNodes.size() << " attPoints " << attractionPoints.size() << endl;
+		// cout << "treeSize " << treeNodes.size() << " attPoints " << attractionPoints.size() << endl;
+		
 		vector<vector<int>> closestSet = getAssociatedPoints();
 		vector<branch *> toBeAdded;
 		//Loop for all treeNodes
-		for(int i=0; i<treeNodes.size(); i++){
+		for(int t=0; t<treeNodes.size(); t++){
 			//Check if we want to branch
-			if(closestSet[i].size() > 0){
-				vec3 v = treeNodes[i]->position + (treeNodes[i]->direction * treeNodes[i]->length);
+			if(closestSet[t].size() > 0){
+				vec3 v = treeNodes[t]->position + (treeNodes[t]->direction * treeNodes[t]->length);
 				vec3 newDir = vec3(0,0,0);
 
-				for(int j=0; j<closestSet[i].size(); j++){
-					int ind = closestSet[i][j];
+				for(int j=0; j<closestSet[t].size(); j++){
+					int ind = closestSet[t][j];
 					newDir += normalize(attractionPoints[ind] - v);
 				}
 				newDir = normalize(newDir);
@@ -70,15 +58,15 @@ branch* Tree::generateTree(){
 				newNode->position = v;
 				newNode->direction = newDir;
 				newNode->length = d;
-				newNode->parent = treeNodes[i];
-				treeNodes[i]->children.push_back(newNode);
+				newNode->parent = treeNodes[t];
+				treeNodes[t]->children.push_back(newNode);
 				
 				toBeAdded.push_back(newNode);
 			}
 		}
 		treeNodes.insert(treeNodes.end(), toBeAdded.begin(), toBeAdded.end());
 		cullAttractionPoints();
-		prevSize = attractionPoints.size();
+		// prevSize = attractionPoints.size();
 	}
 
 	setWidth(root);
@@ -89,11 +77,13 @@ branch* Tree::generateTree(){
 float Tree::setWidth(branch *b){
 	float width = 0.0;
 
-	cout << "branch with children: " << b->children.size() << endl;
+	//cout << "branch with children: " << b->children.size() << endl;
 
 	for(int i=0; i<b->children.size(); i++){
 		width += setWidth(b->children[i]);
 	}
+
+	width = (width == 0) ? 0.1 : width;
 
 	b->widthTop = width;
 
@@ -101,7 +91,7 @@ float Tree::setWidth(branch *b){
 		(b->children[i])->widthBase = width;
 	}
 
-	return (width == 0) ? 0.01 : width;
+	return width;
 }
 
 vector<vector<int>> Tree::getAssociatedPoints(){
@@ -284,7 +274,7 @@ bool Tree::inEnvelope(vec3 point){
 
 float Tree::envelopeFunction(float u, float theta){
 	float uN = (2*u)/(treeHeight-trunkHeight);
-	return (pow(3,uN) - (uN*uN*uN));
+	return 2*(pow(3,uN) - (uN*uN*uN));
 }
 
 
@@ -337,46 +327,46 @@ void Tree::renderBranch(branch *b) {
 		return;
 	}
 
-	glPushMatrix();
+	glPushMatrix();{
+		vec3 basRot = b->basisRot;
+		vec3 dir = b->direction;
+		vec3 rot = b->rotation;
+		/*
+		//align local axis with world axis
+		glRotatef(basRot.z,0,0,1);
+		glRotatef(basRot.y,0,1,0);
+		glRotatef(basRot.x,1,0,0);
 
-		//only draw branch info if it has a length
-		if(b->length > 0){
+		//rotate the body
+		glRotatef(rot.z,0,0,1);
+		glRotatef(rot.y,0,1,0);
+		glRotatef(rot.x,1,0,0);
+
+		//translate back to global axis
+		glRotatef(-basRot.x,1,0,0);
+		glRotatef(-basRot.y,0,1,0);
+		glRotatef(-basRot.z,0,0,1);
+		*/
+
+		glPushMatrix();{
+			float angle = acos(dot(normalize(dir),vec3(0,0,1)));
+			vec3 axis = cross(normalize(dir),vec3(0,0,1));
+			glRotatef(-degrees(angle),axis.x,axis.y,axis.z);
+
+			cgraCylinder(b->widthBase, b->widthTop, b->length);
+
+			//cgraSphere(b->widthBase);
+
+		}glPopMatrix();
 		
-			vec3 rot = b->basisRot;
-			glRotatef(rot.z, 0, 0, 1);
-			glRotatef(rot.y, 0, 1, 0);
-			glRotatef(rot.x, 1, 0, 0);
 		
-			glRotatef(b->rotation.x, 1, 0, 0);
-			glRotatef(b->rotation.y, 0, 1, 0);
-			glRotatef(b->rotation.z, 0, 0, 1);
-	
-			glRotatef(-rot.x, 1, 0, 0);
-			glRotatef(-rot.y, 0, 1, 0);
-			glRotatef(-rot.z, 0, 0, 1);
+		vec3 offset = dir * b->length;
+		glTranslatef(offset.x,offset.y,offset.z);
 
-			//glDisable(GL_LIGHTING);
-			//draw the axes of this branch
-			//drawAxis(b);
-
-			//draw the joint of this branch
-			//drawJoint();
-
-			//glEnable(GL_LIGHTING);
-
-			//draw the branch itself
-			drawBranch(b);
-
-			vec3 dir = b->direction;
-			//translate to the end of the branch based off length and direction
-			glTranslatef(dir.x*b->length, dir.y*b->length, dir.z*b->length);
-
+		for(branch* c : b->children){
+			renderBranch(c);
 		}
-		//loop through all child branches and render them too
-		for(branch* child : b->children){
-			renderBranch(child);
-		}	
-	glPopMatrix();
+	}glPopMatrix();
 }
 
 void Tree::drawJoint(){
@@ -431,10 +421,33 @@ void Tree::drawAxis(branch* b){
 	glPopMatrix();
 }
 
+void Tree::renderStick(){
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
 
+	glTranslatef(m_position.x, m_position.y, m_position.z);
 
+	//Actually draw the skeleton
+	renderStick(root);
 
+	// Clean up
+	glPopMatrix();
+}
 
+void Tree::renderStick(branch *b){
+	glPushMatrix();{
+		glBegin(GL_LINE_STRIP);
+		vec3 p1 = b->position;
+		vec3 p2 = b->position + (b->direction * b->length);
+		glVertex3f(p1.x,p1.y,p1.z);
+		glVertex3f(p2.x,p2.y,p2.z);
+		glEnd();
+
+		for(branch* child : b->children){
+			renderStick(child);
+		}	
+	}glPopMatrix();
+}
 
 //------------------------------------------------//
 //   Miscellaneous Functions                      //

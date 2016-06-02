@@ -268,8 +268,10 @@ void renderScene() {
 
 	if (treeMode){
 		//Render Tree
-		g_tree->drawEnvelope();
-		g_tree->renderAttractionPoints();
+		g_tree->renderStick();
+		//g_tree->drawEnvelope();
+		// g_tree->renderAttractionPoints();
+
 	} else {
 		// Render geometry
 		// g_model->renderGeometry();

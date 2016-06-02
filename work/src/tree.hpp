@@ -34,6 +34,7 @@ class Tree{
 
 		void drawEnvelope();
 		void renderTree();
+		void renderStick();
 		void renderAttractionPoints();
 		
 		void setPosition(cgra::vec3);
@@ -41,7 +42,7 @@ class Tree{
 	private:
 		float param_branchLength = 0.4f;
 		float param_radiusOfInfluence = 20 * param_branchLength;
-		float param_killDistance = 5 * param_branchLength;
+		float param_killDistance = 2 * param_branchLength;
 
 		float treeHeight;
 		float trunkHeight;
@@ -77,6 +78,8 @@ class Tree{
 		void drawBranch(branch*);
 		void drawJoint();
 		void drawAxis(branch*);
+
+		void renderStick(branch *b);
 
 		branch* makeDummyTree(int);
 };
