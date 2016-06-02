@@ -22,7 +22,6 @@ Tree::Tree(){
 }
 
 branch* Tree::generateTree(){
-
 	float d = param_branchLength;
 	
 	branch *root = new branch();
@@ -70,7 +69,7 @@ branch* Tree::generateTree(){
 	}
 
 	setWidth(root);
-	root->widthBase = root->widthTop;
+	root->baseWidth = root->topWidth;
 	return root;
 }
 
@@ -80,15 +79,16 @@ float Tree::setWidth(branch *b){
 	//cout << "branch with children: " << b->children.size() << endl;
 
 	for(int i=0; i<b->children.size(); i++){
-		width += setWidth(b->children[i]);
+		float cw = setWidth(b->children[i]);
+		width += pow(cw, 3);
 	}
 
-	width = (width == 0) ? 0.1 : width;
+	width = (width == 0) ? 0.02 : cbrt(width);
 
-	b->widthTop = width;
+	b->topWidth = width;
 
 	for(int i=0; i<b->children.size(); i++){
-		(b->children[i])->widthBase = width;
+		(b->children[i])->baseWidth = width;
 	}
 
 	return width;
@@ -353,9 +353,9 @@ void Tree::renderBranch(branch *b) {
 			vec3 axis = cross(normalize(dir),vec3(0,0,1));
 			glRotatef(-degrees(angle),axis.x,axis.y,axis.z);
 
-			cgraCylinder(b->widthBase, b->widthTop, b->length);
+			cgraCylinder(b->baseWidth, b->topWidth, b->length);
 
-			//cgraSphere(b->widthBase);
+			//cgraSphere(b->baseWidth);
 
 		}glPopMatrix();
 		
@@ -389,7 +389,7 @@ void Tree::drawBranch(branch* b){
 	//colour grey
 		glColor3f(1,1,1);
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
-		cgraCylinder(b->widthBase, b->widthTop, b->length);
+		cgraCylinder(b->baseWidth, b->topWidth, b->length);
 	glPopMatrix();
 }
 
@@ -454,44 +454,4 @@ void Tree::renderStick(branch *b){
 //------------------------------------------------//
 void Tree::setPosition(vec3 position) {
 	m_position = position;
-}
-
-// UNNECESSARY METHOD
-// Only used so that there is a model to work with
-branch* Tree::makeDummyTree(int numBranches){
-	branch* b = new branch();
-	b->direction = vec3(0,1,0);
-	b->length = length;
-	b->widthBase = width * numBranches;
-	b->widthTop = (width * (numBranches - 1)) + 0.01f;
-	b->basisRot = vec3(0,0,0);
-	if(numBranches > 1){
-
-		for (int i = 0; i < 4; i++){
-			branch* c = new branch();
-
-			if(i == 0){
-				c->direction = vec3(1,0,0);
-			}else if(i == 1){
-				c->direction = vec3(-1,0,0);
-			}else if(i == 2){
-				c->direction = vec3(0,0,1);
-			}else if(i == 3){
-				c->direction = vec3(0,0,-1);
-			}
-
-			c->length = length;
-			c->widthBase = width * (numBranches-1);
-			c->widthTop = 0.01f;
-			c->basisRot = vec3(0,0,0);
-
-
-			b->children.push_back(c);
-		}
-
-		b->children.push_back(makeDummyTree(numBranches - 1));
-
-		
-	}
-	return b;
 }

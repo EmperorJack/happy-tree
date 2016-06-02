@@ -13,12 +13,12 @@ struct branch{
 	//Position is at the end of the parent branch
 	cgra::vec3 position = cgra::vec3(0,0,0); //Only used while generating the tree
 	cgra::vec3 direction = cgra::vec3(0,0,0);
-	cgra::vec3 basisRot = cgra::vec3(0,0,0);          // Euler angle rotations for the branch basis
+	cgra::vec3 basisRot = cgra::vec3(0,0,0);// Euler angle rotations for the branch basis
 
 	float length;
 
-	float widthBase;
-	float widthTop;
+	float baseWidth;
+	float topWidth;
 
 	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
 
@@ -80,6 +80,4 @@ class Tree{
 		void drawAxis(branch*);
 
 		void renderStick(branch *b);
-
-		branch* makeDummyTree(int);
 };
