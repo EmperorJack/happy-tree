@@ -19,16 +19,15 @@ Tree::Tree(){
 	generateEnvelope(20);
 	generateAttractionPointsVolumetric(500);
 	root = generateTree();
+	setWindForce(vec3(20,0,20));
 }
 
 branch* Tree::generateTree(){
-
 	float d = param_branchLength;
 	
 	branch *root = new branch();
 	branch *parent = root;
 	branch *curNode = root;
-
 	curNode->position = vec3(0,0,0);
 	curNode->direction = vec3(0,1,0);
 	curNode->length = (param_radiusOfInfluence + d < trunkHeight) ? trunkHeight : d;
@@ -68,9 +67,8 @@ branch* Tree::generateTree(){
 		cullAttractionPoints();
 		// prevSize = attractionPoints.size();
 	}
-
 	setWidth(root);
-	root->widthBase = root->widthTop;
+	root->baseWidth = root->topWidth;
 	return root;
 }
 
@@ -85,10 +83,10 @@ float Tree::setWidth(branch *b){
 
 	width = (width == 0) ? 0.1 : width;
 
-	b->widthTop = width;
+	b->topWidth = width;
 
 	for(int i=0; i<b->children.size(); i++){
-		(b->children[i])->widthBase = width;
+		(b->children[i])->baseWidth = width;
 	}
 
 	return width;
@@ -315,7 +313,7 @@ void Tree::renderTree() {
 
 	glTranslatef(m_position.x, m_position.y, m_position.z);
 
-	//Actually draw the skeleton
+	//Actually draw the tree
 	renderBranch(root);
 
 	// Clean up
@@ -327,40 +325,41 @@ void Tree::renderBranch(branch *b) {
 		return;
 	}
 
-	glPushMatrix();{
-		vec3 basRot = b->basisRot;
-		vec3 dir = b->direction;
-		vec3 rot = b->rotation;
-		/*
-		//align local axis with world axis
-		glRotatef(basRot.z,0,0,1);
-		glRotatef(basRot.y,0,1,0);
-		glRotatef(basRot.x,1,0,0);
+	if(windEnabled){
+		applyWind(b);
+	}
+	glPushMatrix();
 
-		//rotate the body
-		glRotatef(rot.z,0,0,1);
-		glRotatef(rot.y,0,1,0);
-		glRotatef(rot.x,1,0,0);
+		//only draw branch info if it has a length
+		if(b->length > 0){
+		
+			vec3 rot = b->basisRot;
+			glRotatef(rot.z, 0, 0, 1);
+			glRotatef(rot.y, 0, 1, 0);
+			glRotatef(rot.x, 1, 0, 0);
 
-		//translate back to global axis
-		glRotatef(-basRot.x,1,0,0);
-		glRotatef(-basRot.y,0,1,0);
-		glRotatef(-basRot.z,0,0,1);
-		*/
+			cout << b->name << endl;
+			cout << "Branch Rotation X: " <<  b->rotation.x << endl;
+			//cout << "Branch Rotation Y: " <<  b->rotation.y << endl;
+			cout << "Branch Rotation Z: " <<  b->rotation.z << endl;
+			cout << endl;
+
+			glRotatef(b->rotation.z, 0, 0, 1);
+			//glRotatef(b->rotation.y, 0, 1, 0);
+			glRotatef(b->rotation.x, 1, 0, 0);
+	
+			glRotatef(-rot.x, 1, 0, 0);
+			glRotatef(-rot.y, 0, 1, 0);
+			glRotatef(-rot.z, 0, 0, 1);
 
 		glPushMatrix();{
-			float angle = acos(dot(normalize(dir),vec3(0,0,1)));
-			vec3 axis = cross(normalize(dir),vec3(0,0,1));
-			glRotatef(-degrees(angle),axis.x,axis.y,axis.z);
-
-			cgraCylinder(b->widthBase, b->widthTop, b->length);
-
-			//cgraSphere(b->widthBase);
-
+			//draw the joint of this branch
+			//drawJoint(b);
+			drawBranch(b);
 		}glPopMatrix();
 		
 		
-		vec3 offset = dir * b->length;
+		vec3 offset = b->direction * b->length;
 		glTranslatef(offset.x,offset.y,offset.z);
 
 		for(branch* c : b->children){
@@ -369,11 +368,11 @@ void Tree::renderBranch(branch *b) {
 	}glPopMatrix();
 }
 
-void Tree::drawJoint(){
+void Tree::drawJoint(branch* b){
 	glPushMatrix();
 		//colour cyan
 		glColor3f(0,1,1);
-		cgraSphere(1.2*width);
+		cgraSphere(b->baseWidth);
 	glPopMatrix();
 }
 
@@ -389,7 +388,7 @@ void Tree::drawBranch(branch* b){
 	//colour grey
 		glColor3f(1,1,1);
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
-		cgraCylinder(b->widthBase, b->widthTop, b->length);
+		cgraCylinder(b->baseWidth, b->topWidth, b->length);
 	glPopMatrix();
 }
 
@@ -462,8 +461,8 @@ branch* Tree::makeDummyTree(int numBranches){
 	branch* b = new branch();
 	b->direction = vec3(0,1,0);
 	b->length = length;
-	b->widthBase = width * numBranches;
-	b->widthTop = (width * (numBranches - 1)) + 0.01f;
+	b->baseWidth = width * numBranches;
+	b->topWidth = (width * (numBranches - 1)) + 0.01f;
 	b->basisRot = vec3(0,0,0);
 	if(numBranches > 1){
 
@@ -481,8 +480,8 @@ branch* Tree::makeDummyTree(int numBranches){
 			}
 
 			c->length = length;
-			c->widthBase = width * (numBranches-1);
-			c->widthTop = 0.01f;
+			c->baseWidth = width * (numBranches-1);
+			c->topWidth = 0.01f;
 			c->basisRot = vec3(0,0,0);
 
 
@@ -494,4 +493,77 @@ branch* Tree::makeDummyTree(int numBranches){
 		
 	}
 	return b;
+}
+
+void Tree::setWindForce(vec3 wind){
+	windForce = wind;
+}
+
+float Tree::calculatePressure(branch* branch, float force){
+	float t = branch->baseWidth - branch-> topWidth;
+
+	float a = 1.0f; //change to a small number derived from the current angle of the branch
+	//float b = math::random(0.0f,0.1f); //change to random value to make different branches be at different point of sine equation
+
+	float oscillation = (time+branch->offset);
+
+	//remove *degrees if calculation should be in radians
+	float degrees =  (float)(math::pi());
+	degrees = degrees / 180.0f;
+
+	float pressure = force * (1 + a * sin(oscillation) );
+
+	return pressure;
+}
+
+float Tree::springConstant(branch* branch){
+	float k = (elasticity*branch->baseWidth*pow(branch->baseWidth-branch->topWidth, 3));
+	k = k/ (4*pow(branch->length, 3));
+
+	return k;
+}
+
+float Tree::displacement(branch* branch, float pressure){
+	float spring = springConstant(branch);
+
+	return pressure/spring;
+}
+
+void Tree::applyWind(branch* b){
+	time += 0.000008f;
+
+	float displacementX = displacement(b, calculatePressure(b, (windForce.x)));
+	//float displacementY = displacement(b, calculatePressure(b, (windForce.y)));
+	float displacementZ = displacement(b, calculatePressure(b, (windForce.z)));
+
+	cout << "length " << b->length << endl;
+	cout << "Displacement - x: " << displacementX /*<< "  y: " << displacementY */<< "  z: " << displacementZ << endl;
+	
+	float degrees =  ( (float)(math::pi()) ) / 180.0f;
+
+	int len = b->length;
+
+	if(len == 0){
+		len = 0.00001f;
+	}
+
+	float motionAngleX = asin(displacementX/float(len)); //* degrees;
+	//float motionAngleY = asin(displacementY/float(len)); //* degrees;
+	float motionAngleZ = asin(displacementZ/float(len));// * degrees;
+
+	cout << "Motion Angle - x: " << motionAngleX /*<< "  y: " << motionAngleY */<< "  z: " << motionAngleZ << endl;
+	cout << asin(5) << endl;
+	cout << endl;
+
+	b->rotation.x = motionAngleX;
+	//b->rotation.y = motionAngleY;
+	b->rotation.z = motionAngleZ;
+
+	b->rotation.x = displacementX;
+	//b->rotation.y = displacementY;
+	b->rotation.z = displacementZ;
+}
+
+void Tree::toggleWind(){
+	windEnabled = ! windEnabled;
 }

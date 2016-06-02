@@ -15,12 +15,15 @@ struct branch{
 	cgra::vec3 direction = cgra::vec3(0,0,0);
 	cgra::vec3 basisRot = cgra::vec3(0,0,0);          // Euler angle rotations for the branch basis
 
-	float length;
+	std::string name;
 
-	float widthBase;
-	float widthTop;
+	float length;
+	float baseWidth;
+	float topWidth;
+	float offset;
 
 	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
+
 
 	std::vector<branch *> children = std::vector<branch*>();
 	branch* parent;
@@ -38,6 +41,7 @@ class Tree{
 		void renderAttractionPoints();
 		
 		void setPosition(cgra::vec3);
+		void toggleWind();
 
 	private:
 		float param_branchLength = 0.4f;
@@ -55,8 +59,13 @@ class Tree{
 		float thetaStep = 15.0f;
 		
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
+		cgra::vec3 windForce = cgra::vec3(0.0f, 0.0f, 0.0f);
+
 		float width = 0.3f;
 		float length = 5.0f;
+		float elasticity = 20.0f;
+		float time = 0.0f;
+		bool windEnabled = false;
 
 		std::vector<branch *> treeNodes;
 		std::vector<std::vector<cgra::vec3>> envelope;
@@ -76,10 +85,16 @@ class Tree{
 		//drawing
 		void renderBranch(branch *b);
 		void drawBranch(branch*);
-		void drawJoint();
+		void drawJoint(branch*);
 		void drawAxis(branch*);
 
 		void renderStick(branch *b);
 
 		branch* makeDummyTree(int);
+
+		void setWindForce(cgra::vec3);
+		float calculatePressure(branch*, float);
+		float springConstant(branch*);
+		void applyWind(branch*);
+		float displacement(branch*, float);
 };
