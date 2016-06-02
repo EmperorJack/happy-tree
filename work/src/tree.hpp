@@ -13,7 +13,7 @@ struct branch{
 	//Position is at the end of the parent branch
 	cgra::vec3 position = cgra::vec3(0,0,0); //Only used while generating the tree
 	cgra::vec3 direction = cgra::vec3(0,0,0);
-	cgra::vec3 basisRot = cgra::vec3(0,0,0);          // Euler angle rotations for the branch basis
+	cgra::vec3 basisRot = cgra::vec3(0,0,0);// Euler angle rotations for the branch basis
 
 	std::string name;
 
@@ -22,8 +22,7 @@ struct branch{
 	float topWidth;
 	float offset;
 
-	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
-
+	cgra::vec3 rotation = cgra::vec3(0,0,0);// Rotation of joint in the basis (degrees)
 
 	std::vector<branch *> children = std::vector<branch*>();
 	branch* parent;
@@ -89,8 +88,6 @@ class Tree{
 		void drawAxis(branch*);
 
 		void renderStick(branch *b);
-
-		branch* makeDummyTree(int);
 
 		void setWindForce(cgra::vec3);
 		float calculatePressure(branch*, float);
