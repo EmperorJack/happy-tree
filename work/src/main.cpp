@@ -131,6 +131,16 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 		g_tree->adjustWind('a', -1);
 	}
 
+	// increase a coefficient in wind calculation
+	if (key == 'G' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('t', 1);
+	}
+
+	// decrease a coefficient in wind calculation
+	if (key == 'V' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('t', -1);
+	}
+
 	// 'p' key pressed
 	if (key == 'P' && action == 1) {
 		partyMode = !partyMode;

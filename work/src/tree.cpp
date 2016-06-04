@@ -14,7 +14,7 @@ using namespace cgra;
 
 Tree::Tree(){
 	root = makeDummyTree(4); // make dummy tree to work with
-	setWindForce(vec3(20,0,20)); //set wind 
+	//setWindForce(vec3(20,0,20)); //set wind 
 }
 
 /* public method for drawing the tree to the screen.
@@ -164,12 +164,13 @@ float Tree::springConstant(branch* branch){
 */
 void Tree::applyWind(branch* b){
 	//increment time (this value is currently has no meaning, just seems to fit at an ok speed)
-	time += 0.000008f;
+	time += timeIncrement;
 
 	//calculates the pressure value for each axis	
 	float pressureX = calculatePressure(b, windForce.x, 'x');
 	float pressureZ = calculatePressure(b, windForce.z, 'z');
 
+	//debug info
 	cout << "Pressure X: " << pressureX << endl;
 	cout << "Pressure Z: " << pressureZ << endl;
 
@@ -200,17 +201,16 @@ void Tree::applyWind(branch* b){
 	float motionAngleZ = asin(displacementZ/float(len));
 
 	cout << "Motion Angle - x: " << motionAngleX << "  z: " << motionAngleZ << endl;
-	cout << endl;
 
 	b->rotation.x = motionAngleX;
 	b->rotation.z = motionAngleZ;
 
 	//temporarily just rotating by displacement value because motionAngle is NaN
+	//attempt to restrict the rotation by converting it to degrees, and then limit it to 20degrees
 	b->rotation.x = ((displacementX*degrees) / 180 ) * 20;
 	b->rotation.z = ((displacementZ*degrees) / 180 ) * 20;
 
-
-
+	//debug info
 	cout << "Restricted Angle - x: " << b->rotation.x << "  z: " << b->rotation.z << endl;
 	cout << endl;
 
@@ -250,26 +250,33 @@ void Tree::setWindForce(vec3 wind){
 }
 
 void Tree::adjustWind(int axis, int dir){
-	float increase = 1.0f;
+	float wIncrease = 1.0f;
 	float aIncrease = 0.1f;
+	float tIncrease = 0.000002f;
 
 	if (axis == 'x'){
 		if (dir == 1){
-			windForce.x += increase;
+			windForce.x += wIncrease;
 		} else if (dir == -1){
-			windForce.x -= increase;
+			windForce.x -= wIncrease;
 		}
 	} else if (axis == 'z'){
 		if (dir == 1){
-			windForce.z += increase;
+			windForce.z += wIncrease;
 		} else if (dir == -1){
-			windForce.z -= increase;
+			windForce.z -= wIncrease;
 		}
 	}  else if (axis == 'a'){
 		if (dir == 1){
 			windCoefficent += aIncrease;
 		} else if (dir == -1){
 			windCoefficent -= aIncrease;
+		}
+	}  else if (axis == 't'){
+		if (dir == 1){
+			timeIncrement += tIncrease;
+		} else if (dir == -1){
+			timeIncrement -= tIncrease;
 		}
 	} 
 }

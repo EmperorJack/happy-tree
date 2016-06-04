@@ -55,8 +55,9 @@ class Tree{
 		// the elasticity value of this tree, used for calculating spring value of branches
 		float elasticity = 20.0f;	
 		float time = 0.0f;			// time value used for moving along a sine curve 		
-		bool windEnabled = false;
+		bool windEnabled = true;
 		float windCoefficent = 1.0f;
+		float timeIncrement = 0.002f;
 		//the wind acting upon this tree
 		cgra::vec3 windForce = cgra::vec3(0.0f, 0.0f, 0.0f);
 		void setWindForce(cgra::vec3);
