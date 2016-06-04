@@ -51,7 +51,7 @@ Tree* g_tree = nullptr;
 
 // Toggle fields
 bool drawAxes = false;
-bool treeMode = false;
+bool treeMode = true;
 bool partyMode = false;
 
 // Mouse Position callback
