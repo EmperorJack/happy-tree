@@ -50,7 +50,7 @@ Geometry* g_model = nullptr;
 Tree* g_tree = nullptr;
 
 // Toggle fields
-bool drawAxes = false;
+bool drawAxes = true;
 bool treeMode = true;
 bool partyMode = false;
 
@@ -99,6 +99,36 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 	if (key == 'F' && action == 1) {
 		g_tree->toggleWind();
+	}
+
+	// increase wind on X axis
+	if (key == 'J' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('x', 1);
+	}
+
+	// decrease wind on X axis
+	if (key == 'N' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('x', -1);
+	}
+
+	// increase wind on Z axis
+	if (key == 'K' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('z', 1);
+	}
+
+	// decrease wind on Z axis
+	if (key == 'M' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('z', -1);
+	}
+
+	// increase a coefficient in wind calculation
+	if (key == 'H' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('a', 1);
+	}
+
+	// decrease a coefficient in wind calculation
+	if (key == 'B' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('a', -1);
 	}
 
 	// 'p' key pressed

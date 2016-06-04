@@ -14,7 +14,7 @@ using namespace cgra;
 
 Tree::Tree(){
 	root = makeDummyTree(4); // make dummy tree to work with
-	setWindForce(vec3(2,0,0)); //set wind 
+	setWindForce(vec3(20,0,20)); //set wind 
 }
 
 /* public method for drawing the tree to the screen.
@@ -118,15 +118,12 @@ void Tree::drawBranch(branch* b){
 	dir is an int to let us know which axis to calculate the force for (0 == x, 2 == z)
 */
 float Tree::calculatePressure(branch* branch, float force, int dir){
-	//the thickness of the branch
-	float t = branch->baseWidth - branch->topWidth;
-
-	float a = 1.0f; //change to a small number derived from the current angle of the branch
+	float a = windCoefficent; //change to a small number derived from the current angle of the branch
 	
 	//attempt at making the small value use the current angle of the branch
-	if (dir == 0){ //x axis
+	if (dir == 'x'){ //x axis
 		//a = branch->rotation.x;
-	} else if (dir == 1){ //z axis
+	} else if (dir == 'z'){ //z axis
 		//a = branch->rotation.z;
 	}
 
@@ -140,10 +137,9 @@ float Tree::calculatePressure(branch* branch, float force, int dir){
 	float degrees =  ((float)(math::pi()))/180.0f;
 
 	//pressure is the final return value
-	//float pressure = force * (1 + a * sin(oscillation) );
-	float pressure = sin(oscillation);
+	float pressure = force * (1 + a * sin(oscillation) );
+	//float pressure = sin(oscillation);
 
-	cout << "Pressure: " << pressure<< endl;
 	return pressure;
 }
 
@@ -162,17 +158,6 @@ float Tree::springConstant(branch* branch){
 }
 
 /*
-	calculates the displacement value of a branch based on 
-	1) the pressure of the branch from calculatePressure(), and
-	2) the spring value of the branch from springConstant()
-*/
-float Tree::displacement(branch* branch, float pressure){
-	float spring = springConstant(branch);
-
-	return pressure/spring;
-}
-
-/*
 	the central method for applying wind force to a branch.
 	calculates the displacement value for the branch based on the wind then
 	stores the value to rotate it by
@@ -180,15 +165,20 @@ float Tree::displacement(branch* branch, float pressure){
 void Tree::applyWind(branch* b){
 	//increment time (this value is currently has no meaning, just seems to fit at an ok speed)
 	time += 0.000008f;
-	//time += (1/60.0f);
+
+	//calculates the pressure value for each axis	
+	float pressureX = calculatePressure(b, windForce.x, 'x');
+	float pressureZ = calculatePressure(b, windForce.z, 'z');
+
+	cout << "Pressure X: " << pressureX << endl;
+	cout << "Pressure Z: " << pressureZ << endl;
+
+	//the spring value of this branch
+	float spring = springConstant(b);
 
 	//calculates the displacement value for each axis	
-	float pressureX = calculatePressure(b, windForce.x, 0);
-	float pressureZ = calculatePressure(b, windForce.z, 1);
-
-	//calculates the displacement value for each axis	
-	float displacementX = displacement(b, pressureX);
-	float displacementZ = displacement(b, pressureZ);
+	float displacementX = pressureX / spring;
+	float displacementZ = pressureZ / spring;
 
 	//debug info
 	cout << "length " << b->length << endl;
@@ -216,8 +206,26 @@ void Tree::applyWind(branch* b){
 	b->rotation.z = motionAngleZ;
 
 	//temporarily just rotating by displacement value because motionAngle is NaN
-	b->rotation.x = displacementX;
-	b->rotation.z = displacementZ;
+	b->rotation.x = ((displacementX*degrees) / 180 ) * 20;
+	b->rotation.z = ((displacementZ*degrees) / 180 ) * 20;
+
+
+
+	cout << "Restricted Angle - x: " << b->rotation.x << "  z: " << b->rotation.z << endl;
+	cout << endl;
+
+	// if(b->rotation.x > 20){
+	// 	b->rotation.x = 20;
+	// } else if(b->rotation.x < -20){
+	// 	b->rotation.x = -20;
+	// }
+
+	// if(b->rotation.z > 20){
+	// 	b->rotation.z = 20;
+	// } else if(b->rotation.z < -20){
+	// 	b->rotation.z = -20;
+	// }
+
 }
 
 /*
@@ -239,6 +247,31 @@ void Tree::setPosition(vec3 position) {
 */
 void Tree::setWindForce(vec3 wind){
 	windForce = wind;
+}
+
+void Tree::adjustWind(int axis, int dir){
+	float increase = 1.0f;
+	float aIncrease = 0.1f;
+
+	if (axis == 'x'){
+		if (dir == 1){
+			windForce.x += increase;
+		} else if (dir == -1){
+			windForce.x -= increase;
+		}
+	} else if (axis == 'z'){
+		if (dir == 1){
+			windForce.z += increase;
+		} else if (dir == -1){
+			windForce.z -= increase;
+		}
+	}  else if (axis == 'a'){
+		if (dir == 1){
+			windCoefficent += aIncrease;
+		} else if (dir == -1){
+			windCoefficent -= aIncrease;
+		}
+	} 
 }
 
 /* Builds a test tree to work with for simulating wind animation.
