@@ -56,10 +56,10 @@ void Tree::renderBranch(branch *b) {
 			glRotatef(rot.x, 1, 0, 0);
 
 			//debug info
-			cout << b->name << endl;
-			cout << "Branch Rotation X: " <<  b->rotation.x << endl;
-			cout << "Branch Rotation Z: " <<  b->rotation.z << endl;
-			cout << endl;
+			// cout << b->name << endl;
+			// cout << "Branch Rotation X: " <<  b->rotation.x << endl;
+			// cout << "Branch Rotation Z: " <<  b->rotation.z << endl;
+			// cout << endl;
 
 			//perform rotation as updated by wind
 			glRotatef(b->rotation.z, 0, 0, 1);
@@ -171,6 +171,7 @@ void Tree::applyWind(branch* b){
 	float pressureZ = calculatePressure(b, windForce.z, 'z');
 
 	//debug info
+	cout << "Name: " << b->name << endl;
 	cout << "Pressure X: " << pressureX << endl;
 	cout << "Pressure Z: " << pressureZ << endl;
 
@@ -250,9 +251,9 @@ void Tree::setWindForce(vec3 wind){
 }
 
 void Tree::adjustWind(int axis, int dir){
-	float wIncrease = 1.0f;
+	float wIncrease = 0.05f;
 	float aIncrease = 0.1f;
-	float tIncrease = 0.000002f;
+	float tIncrease = 0.0002f;
 
 	if (axis == 'x'){
 		if (dir == 1){
@@ -286,7 +287,7 @@ void Tree::adjustWind(int axis, int dir){
 */
 branch* Tree::makeDummyTree(int numBranches){
 	//hardcoded values for this dummy tree
-	float width = 0.3f;
+	float width = 0.1f;
 	float length = 5.0f;
 
 	branch* b = new branch();
@@ -297,7 +298,7 @@ branch* Tree::makeDummyTree(int numBranches){
 	b->baseWidth = width * numBranches;
 	b->topWidth = (width * (numBranches - 1));
 	if(numBranches == 1){
-		b->topWidth = (width /2);
+		b->topWidth = 0.0001f;//(width /2);
 	}
 
 	b->basisRot = vec3(0,0,0);
@@ -306,7 +307,7 @@ branch* Tree::makeDummyTree(int numBranches){
 		for (int i = 0; i < 4; i++){
 			branch* c = new branch();
 
-			c->name = "branch"+to_string(i)+" trunk"+to_string(numBranches);
+			c->name = "branch"+to_string(i+1)+" trunk"+to_string(numBranches);
 
 			if(i == 0){
 				c->direction = vec3(1,0.3,0);

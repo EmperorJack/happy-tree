@@ -53,11 +53,13 @@ class Tree{
 		// BELLOW HERE - wind variables and methods
 
 		// the elasticity value of this tree, used for calculating spring value of branches
+		//hard coded right now, as number increases tree sway decreases
+		//make skinnier trees have higher elasticity to prevent them from going crazy...
 		float elasticity = 20.0f;	
 		float time = 0.0f;			// time value used for moving along a sine curve 		
 		bool windEnabled = true;
-		float windCoefficent = 1.0f;
-		float timeIncrement = 0.002f;
+		float windCoefficent = 1.2f;
+		float timeIncrement = 0.0002f;
 		//the wind acting upon this tree
 		cgra::vec3 windForce = cgra::vec3(0.0f, 0.0f, 0.0f);
 		void setWindForce(cgra::vec3);
