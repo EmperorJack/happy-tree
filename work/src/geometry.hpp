@@ -47,12 +47,12 @@ class Geometry {
 
 		void setPosition(cgra::vec3);
 		void setMaterial(cgra::vec4, cgra::vec4, cgra::vec4, float, cgra::vec4);
-		cgra::vec3 rayIntersectsTriangle(cgra::vec3, cgra::vec3, triangle);
+		cgra::vec3 rayIntersectsTriangle(cgra::vec3, cgra::vec3, int);
 		bool pointInsideMesh(cgra::vec3);
 		void renderGeometry();
 		void toggleWireframe();
-		std::vector<cgra::vec3> getPoints();
-		std::vector<triangle> getTriangles();
+		int triangleCount();
+		cgra::vec3 getSurfaceNormal(int);
 
 	private:
 		std::string m_filename;
@@ -62,10 +62,14 @@ class Geometry {
 		std::vector<cgra::vec2> m_uvs;
 		std::vector<cgra::vec3> m_normals;
 		std::vector<triangle> m_triangles;
+		std::vector<cgra::vec3> m_surfaceNormals;
 
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 		material m_material;
 		bool wireframe = true;
+
+		// The vector to return if no ray intersection is found
+		cgra::vec3 noIntersectionVector = cgra::vec3(std::numeric_limits<float>::max(), 0.0f, 0.0f);
 
 		// IDs for the display list to render
 		GLuint m_displayListPoly = 0;
@@ -73,6 +77,7 @@ class Geometry {
 
 		void readOBJ(std::string);
 		void createNormals();
+		void createSurfaceNormals();
 		void createDisplayListPoly();
 		void createDisplayListWire();
 		void displayTriangles();

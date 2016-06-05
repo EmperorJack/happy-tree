@@ -46,9 +46,6 @@ class FuzzyObject {
 	private:
 		// The 3D object the particle system represents
 		Geometry* g_geometry;
-		std::vector<cgra::vec3> g_points;
-		std::vector<triangle> g_triangles;
-		std::vector<cgra::vec3> g_surfaceNormals;
 
 		// Particle system fields
 		std::vector<particle> particles;
@@ -72,13 +69,13 @@ class FuzzyObject {
 		// Particle attributes
 		GLuint p_displayList = 0;
 		float p_velRange = 0.03f;
-		float p_radius = 0.1f;
+		float p_radius = 0.3f;
 		float p_boundaryRadius = 0.2f;
 		float p_mass = 100.0f;
 
 		// LJ potential energy fields
 		float e_strength = 0.002f;
-		float e_lengthScale = 0.2f;
+		float e_lengthScale = 0.3f;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
 		// Physics fields
@@ -97,5 +94,6 @@ class FuzzyObject {
 		void updateSystem();
 		void applyParticleForces();
 		void applyBoundaryForces();
-		cgra::vec3 forceAtDistance(float dist, cgra::vec3);
+		cgra::vec3 forceAtDistance(float, cgra::vec3);
+		bool withinRange(cgra::vec3, cgra::vec3, float);
 };

@@ -24,16 +24,10 @@ using namespace cgra;
 
 FuzzyObject::FuzzyObject(Geometry *geometry) {
 	g_geometry = geometry;
-	g_points = geometry->getPoints();
-	g_triangles = geometry->getTriangles();
 
-	// Compute the inverted surface normal of each triangle
-	for (int i = 0; i < g_triangles.size(); i++) {
-		g_surfaceNormals.push_back(-normalize(cross(g_points[g_triangles[i].v[1].p] - g_points[g_triangles[i].v[0].p],
-			 																					g_points[g_triangles[i].v[2].p] - g_points[g_triangles[i].v[0].p])));
-	}
-	
 	setupDisplayList();
+
+	//buildSystem(false);
 }
 
 FuzzyObject::~FuzzyObject() {}
@@ -51,8 +45,6 @@ void FuzzyObject::setupDisplayList() {
 	cgraSphere(p_radius, 8, 8);
 
 	glEndList();
-
-	//buildSystem(false);
 }
 
 void FuzzyObject::buildSystemIncrement() {
@@ -204,12 +196,14 @@ void FuzzyObject::applyParticleForces() {
 
 			if (i == j) continue;
 
-			// Compute the distance between particles
-			vec3 distVector = particles[i].pos - particles[j].pos;
-			float dist = length(distVector);
-
 			// If the particle is within the effect range we count this as a collision
-			if (dist < e_effectRange && dist > 0.001f) {
+			if (withinRange(particles[i].pos, particles[j].pos, e_effectRange)) {
+
+				// Compute the distance between particles
+				vec3 distVector = particles[i].pos - particles[j].pos;
+				float dist = length(distVector);
+
+				if (dist > 0.001f) continue; // Prevent dividing by 0 effects
 
 				// Compute the force particle j exterts on particle i
 				forceVector += forceAtDistance(dist, distVector);
@@ -232,11 +226,10 @@ void FuzzyObject::applyBoundaryForces() {
 	for (int i = 0; i < particles.size(); i++) {
 
 		// For each triangle
-		for (int j = 0; j < g_triangles.size(); j++) {
-
+		for (int j = 0; j < g_geometry->triangleCount(); j++) {
 			// Using the particle velocity as the direction vector
 			// Compute the intersection point on the triangle
-			vec3 intersectionPoint = (g_geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, g_triangles[j]));
+			vec3 intersectionPoint = (g_geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, j));
 
 			// Skip this particle if no intersection occured
 			if (intersectionPoint.x == numeric_limits<float>::max()) continue;
@@ -245,10 +238,9 @@ void FuzzyObject::applyBoundaryForces() {
 			vec3 distVector = particles[i].pos - intersectionPoint;
 
 			// If the particle is colliding with the intersection point
-			if (length(distVector) < p_boundaryRadius) {
+			if (withinRange(particles[i].pos, intersectionPoint, p_boundaryRadius)) {
 			 	// Bounce the particle off the triangle surface by reflecting it's velocity
-				
-				particles[i].vel = reflect(particles[i].vel, g_surfaceNormals[j]) * meshCollisionFriction;
+				particles[i].vel = reflect(particles[i].vel, -(g_geometry->getSurfaceNormal(j))) * meshCollisionFriction;
 				particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
 				//collisionCount++;
 				// TODO should be counting collisions here
@@ -262,6 +254,12 @@ vec3 FuzzyObject::forceAtDistance(float dist, vec3 distVector) {
 	float b = pow(e_lengthScale / dist, 14);
 	float c = 0.5f * pow(e_lengthScale / dist, 8);
 	return a * (b - c) * distVector;
+}
+
+// Use the square distance to cut costs by avoiding square roots
+bool FuzzyObject::withinRange(vec3 p1, vec3 p2, float range) {
+	vec3 d = p1 - p2;
+	return (d.x * d.x + d.y * d.y + d.z * d.z) < (range * range);
 }
 
 void FuzzyObject::renderSystem() {

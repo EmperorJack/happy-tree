@@ -181,7 +181,7 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	g_model = new Geometry("./work/res/assets/box.obj");
+	g_model = new Geometry("./work/res/assets/sphere.obj");
 	g_model->setPosition(vec3(0, 0, 0));
 
 	g_tree = new Tree();

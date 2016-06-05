@@ -134,14 +134,17 @@ void Geometry::readOBJ(string filename) {
 		}
 	}
 
+	// Create the surface normals for every triangle
+	createSurfaceNormals();
+
+	// If we didn't have any vertex normals, create them
+	if (m_normals.size() <= 1) createNormals();
+
 	cout << "Reading OBJ file is DONE." << endl;
 	cout << m_points.size()-1 << " points" << endl;
 	cout << m_uvs.size()-1 << " uv coords" << endl;
 	cout << m_normals.size()-1 << " normals" << endl;
 	cout << m_triangles.size() << " faces" << endl;
-
-	// If we didn't have any normals, create them
-	if (m_normals.size() <= 1) createNormals();
 }
 
 void Geometry::createNormals() {
@@ -171,6 +174,14 @@ void Geometry::createNormals() {
 			// Associate the current vertex with the new vertex normal
 			m_triangles[i].v[j].n = m_normals.size() - 1;
 		}
+	}
+}
+
+void Geometry::createSurfaceNormals() {
+	// Compute the surface normal of each triangle
+	for (int i = 0; i < m_triangles.size(); i++) {
+		m_surfaceNormals.push_back(normalize(cross(m_points[m_triangles[i].v[1].p] - m_points[m_triangles[i].v[0].p],
+			 																					m_points[m_triangles[i].v[2].p] - m_points[m_triangles[i].v[0].p])));
 	}
 }
 
@@ -232,12 +243,10 @@ void Geometry::setMaterial(vec4 ambient, vec4 diffuse, vec4 specular, float shin
 	m_material.emission = emission;
 }
 
-vec3 Geometry::rayIntersectsTriangle(vec3 p, vec3 d, triangle tri) {
+vec3 Geometry::rayIntersectsTriangle(vec3 p, vec3 d, int triIndex) {
 	// https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 
-	// The vector to return if no ray intersection is found
-	vec3 noIntersectionVector = vec3(numeric_limits<float>::max(), 0.0f, 0.0f);
-
+	triangle tri = m_triangles[triIndex];
 	vec3 v0 = m_points[tri.v[0].p];
 	vec3 v1 = m_points[tri.v[1].p];
 	vec3 v2 = m_points[tri.v[2].p];
@@ -281,11 +290,12 @@ bool Geometry::pointInsideMesh(vec3 point) {
 	vec3 direction = vec3(0, 0, 1);
 
 	for (int i = 0; i < m_triangles.size(); i++) {
-		if (rayIntersectsTriangle(point, direction, m_triangles[i]).x != numeric_limits<float>::max()) {
+		if (rayIntersectsTriangle(point, direction, i).x != numeric_limits<float>::max()) {
 			intersectionCount++;
 		}
 	}
 
+	// An odd number of intersections means the point is inside the mesh
 	return intersectionCount % 2;
 }
 
@@ -319,10 +329,10 @@ void Geometry::toggleWireframe() {
 	wireframe = !wireframe;
 }
 
-vector<vec3> Geometry::getPoints() {
-	return vector<vec3>(m_points);
+int Geometry::triangleCount() {
+  return m_triangles.size();
 }
 
-vector<triangle> Geometry::getTriangles() {
-	return vector<triangle>(m_triangles);
+vec3 Geometry::getSurfaceNormal(int index) {
+	return m_surfaceNormals[index];
 }
