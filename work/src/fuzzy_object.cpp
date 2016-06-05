@@ -80,7 +80,7 @@ void FuzzyObject::buildSystem(bool incremental) {
 }
 
 bool FuzzyObject::stoppingCriteria() {
-	if (particles.size() >= particleLimit) return true;
+	//if (particles.size() >= particleLimit) return true;
 
 	// Compute the total velocity of the system
 	vec3 totalVelocity;
@@ -172,6 +172,11 @@ void FuzzyObject::addParticle() {
 void FuzzyObject::updateSystem() {
 	collisionCount = 0;
 
+	// Reset each particles acceleraiton
+	for (int i = 0; i < particles.size(); i++) {
+		particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
+	}
+
 	// Apply LJ physics based forces to the particle system
 	applyParticleForces();
 
@@ -180,44 +185,39 @@ void FuzzyObject::updateSystem() {
 
 	// Update the particle positions and velocities
 	for (int i = 0; i < particles.size(); i++) {
+		particles[i].acc /= p_mass;
 		particles[i].vel = clamp(particles[i].vel + particles[i].acc, -p_velRange, p_velRange);
 		particles[i].pos += particles[i].vel;
 	}
 }
 
 void FuzzyObject::applyParticleForces() {
-	// For each particle
+	// For each pair of particles
 	for (int i = 0; i < particles.size(); i++) {
+		for (int j = i + 1; j < particles.size(); j++) {
 
-		vec3 forceVector = vec3(0.0f, 0.0f, 0.0f);
-
-		// For each other particle
-		for (int j = 0; j < particles.size(); j++) {
-
-			if (i == j) continue;
-
-			// If the particle is within the effect range we count this as a collision
+			// If the particles are within the effect range of eachother we count this as a collision
 			if (withinRange(particles[i].pos, particles[j].pos, e_effectRange)) {
 
 				// Compute the distance between particles
 				vec3 distVector = particles[i].pos - particles[j].pos;
 				float dist = length(distVector);
 
-				if (dist > 0.001f) continue; // Prevent dividing by 0 effects
+				if (dist < 0.001f) continue; // Prevent dividing by 0 effects
 
-				// Compute the force particle j exterts on particle i
-				forceVector += forceAtDistance(dist, distVector);
+				// Compute and apply the force both particles exert on eachother
+				vec3 force = forceAtDistance(dist, distVector);
+				particles[i].acc += force;
+				particles[j].acc -= force;
 
 				// Apply friction to the particle
 				particles[i].vel *= particleCollisionFriction;
+				particles[j].vel *= particleCollisionFriction;
 
 				// Increment the collision count if the particles repelled eachother
-				if (dist < e_lengthScale) collisionCount++;
+				if (dist < e_lengthScale) collisionCount += 2;
 			}
 		}
-
-		// Apply the total force to the particle acceleration
-		particles[i].acc = forceVector / p_mass;
 	}
 }
 
@@ -227,6 +227,7 @@ void FuzzyObject::applyBoundaryForces() {
 
 		// For each triangle
 		for (int j = 0; j < g_geometry->triangleCount(); j++) {
+
 			// Using the particle velocity as the direction vector
 			// Compute the intersection point on the triangle
 			vec3 intersectionPoint = (g_geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, j));
