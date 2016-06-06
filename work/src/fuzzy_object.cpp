@@ -187,14 +187,20 @@ void FuzzyObject::updateSystem() {
 	// Apply forces to particles that collide with the geometry
 	applyBoundaryForces();
 
+	// Delete any particles marked for deletion
+	for (int i = 0; i < particlesForDeletion.size(); i++) {
+		particles.erase(particles.begin() + particlesForDeletion[i]);
+	}
+	particlesForDeletion.clear();
+
 	// Update the particle positions and velocities
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].acc /= p_mass;
 		particles[i].vel = clamp(particles[i].vel + particles[i].acc, -p_velRange, p_velRange);
 		particles[i].pos += particles[i].vel;
 
-		// If the particle accelerated and potentially changed direction
-		if (length(particles[i].acc) > 0.0f) {
+		// If the particle accelerated it has potentially changed direction
+		if (particles[i].acc.x != 0.0f && particles[i].acc.y != 0.0f && particles[i].acc.z != 0.0f) {
 
 			// Recompute the particle facing triangle
 			updateFacingTriangle(&particles[i]);
@@ -247,6 +253,12 @@ void FuzzyObject::applyBoundaryForces() {
 
 			//collisionCount++;
 			// TODO should be counting collisions here
+		} else {
+			// Check if the particle left the mesh
+			if (dot(particles[i].pos - particles[i].triangleIntersectionPos, -g_geometry->getSurfaceNormal(particles[i].triangleIndex)) <= 0.0f) {
+				particles[i].col = vec3(0.0f, 1.0f, 0.0f);
+				particlesForDeletion.push_back(i);
+			}
 		}
 	}
 }
