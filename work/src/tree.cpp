@@ -30,6 +30,9 @@ void Tree::renderTree() {
 	//Actually draw the tree
 	renderBranch(root);
 
+	//increment wind "time"
+	time += timeIncrement;
+
 	// Clean up
 	glPopMatrix();
 }
@@ -164,7 +167,6 @@ float Tree::springConstant(branch* branch){
 */
 void Tree::applyWind(branch* b){
 	//increment time (this value is currently has no meaning, just seems to fit at an ok speed)
-	time += timeIncrement;
 
 	//calculates the pressure value for each axis	
 	float pressureX = calculatePressure(b, windForce.x, 'x');
@@ -253,7 +255,7 @@ void Tree::setWindForce(vec3 wind){
 void Tree::adjustWind(int axis, int dir){
 	float wIncrease = 0.05f;
 	float aIncrease = 0.1f;
-	float tIncrease = 0.0002f;
+	float tIncrease = 0.002f;
 
 	if (axis == 'x'){
 		if (dir == 1){

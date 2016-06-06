@@ -59,7 +59,7 @@ class Tree{
 		float time = 0.0f;			// time value used for moving along a sine curve 		
 		bool windEnabled = true;
 		float windCoefficent = 1.2f;
-		float timeIncrement = 0.0002f;
+		float timeIncrement = 0.004f;
 		//the wind acting upon this tree
 		cgra::vec3 windForce = cgra::vec3(0.0f, 0.0f, 0.0f);
 		void setWindForce(cgra::vec3);
