@@ -55,7 +55,7 @@ void FuzzyObject::buildSystem(bool incremental) {
 	// First pass
 	while (!firstPassFinished && !stoppingCriteria()) {
 		addParticle();
-		updateSystem();
+		updateBuildingSystem();
 
 		if (incremental) return;
 	}
@@ -64,14 +64,14 @@ void FuzzyObject::buildSystem(bool incremental) {
 	int maxParticles = particles.size() - 1;
 	while (particles.size() < maxParticles) {
 		addParticle();
-		updateSystem();
+		updateBuildingSystem();
 
 		if (incremental) return;
 	}
 
 	// Final pass
 	while (!systemAtRest()) {
-		updateSystem();
+		updateBuildingSystem();
 
 		if (incremental) return;
 	}
@@ -85,7 +85,7 @@ bool FuzzyObject::stoppingCriteria() {
 	if (collisionCount == particles.size() && particles.size() > 1) {
 
 		for (int i = 0; i < stabilityUpdates; i++) {
-			updateSystem();
+			updateBuildingSystem();
 		}
 
 		if (collisionCount == particles.size()) {
@@ -122,10 +122,10 @@ void FuzzyObject::addParticle() {
 	updateFacingTriangle(particles.size() - 1);
 }
 
-void FuzzyObject::updateSystem() {
+void FuzzyObject::updateBuildingSystem() {
 	collisionCount = 0;
 
-	// Reset each particles acceleration
+	// Reset required fields on each particle for the next update
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
 		particles[i].col = vec3(0.0f, 0.0f, 1.0f);
@@ -134,6 +134,8 @@ void FuzzyObject::updateSystem() {
 		// Check if the particle left the mesh
 		float d = dot(particles[i].pos - particles[i].triangleIntersectionPos, -g_geometry->getSurfaceNormal(particles[i].triangleIndex));
 		if (d < 0.0f || d == maxFloatVector.x) {
+
+			// Mark it for deletion
 			particles[i].col = vec3(0.0f, 1.0f, 0.0f);
 			particlesForDeletion.push_back(i);
 		}
@@ -255,16 +257,34 @@ void FuzzyObject::updateFacingTriangle(int index) {
 	particles[index].inCollision = true;
 }
 
+void FuzzyObject::updateSystem() {
+	// For each particle
+	for (int i = 0; i < particles.size(); i++) {
+		particles[i].vel = particles[i].vel + particles[i].acc;
+		particles[i].pos += particles[i].vel;
+
+		vec3 actualPos = particles[i].pos + g_geometry->getPosition();
+		if (actualPos.y - p_radius < 0.0f) {
+			particles[i].vel.y *= -1;
+			particles[i].vel *= 0.9f;
+			particles[i].pos.y += p_radius;
+		}
+	}
+}
+
 void FuzzyObject::renderSystem() {
+	// Translate to the geometry position
+	glPushMatrix();
+	vec3 geometry_pos = g_geometry->getPosition();
+	glTranslatef(geometry_pos.x, geometry_pos.y, geometry_pos.z);
+
 	// Draw the spawn position
 	glDisable(GL_LIGHTING);
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(1.0f, 0.0f, 0.0f, 1.0f).dataPointer());
 	glPointSize(4);
-
 	glBegin(GL_POINTS);
 	glVertex3f(spawnPoint.x, spawnPoint.y, spawnPoint.z);
 	glEnd();
-
 	glEnable(GL_LIGHTING);
 
 	// Set particle material properties
@@ -291,15 +311,18 @@ void FuzzyObject::renderSystem() {
 			glVertex3f(0, 0, 0);
 			glEnd();
 
-			// Draw the particle velocity
+			// Draw the particle velocity as a line
 			glBegin(GL_LINES);
 			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(p.vel.x * 2, p.vel.y * 2, p.vel.z * 2);
+			glVertex3f(p.vel.x * 3, p.vel.y * 3, p.vel.z * 3);
 			glEnd();
 		}
 
 		glPopMatrix();
 	}
+
+	glPopMatrix();
+
 	glEnd();
 }
 
@@ -309,4 +332,30 @@ int FuzzyObject::getParticleCount() {
 
 void FuzzyObject::toggleParticleViewMode() {
 	particleViewMode = !particleViewMode;
+}
+
+bool FuzzyObject::finishedBuilding() {
+	return buildFinished;
+}
+
+vector<vec3> FuzzyObject::getSystem() {
+	vector<vec3> points;
+
+	for (int i = 0; i < particles.size(); i++) {
+		points.push_back(particles[i].pos);
+	}
+
+	return points;
+}
+
+void FuzzyObject::explode() {
+	for (int i = 0; i < particles.size(); i++) {
+		particles[i].acc = vec3(0.0f, -0.00981f, 0.0f);
+		particles[i].vel = vec3(math::random(-1.0f, 1.0f) * p_velRange / 2.0f,
+			                      math::random(-0.01f, 0.0f),
+			                      math::random(-1.0f, 1.0f) * p_velRange / 2.0f);
+		//particles[i].vel = vec3(math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
+		//	                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
+		//	                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f);
+	}
 }

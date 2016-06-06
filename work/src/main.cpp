@@ -53,6 +53,7 @@ Tree* g_tree = nullptr;
 // Particle system fields
 FuzzyObject* g_fuzzy_system = nullptr;
 float spawnPointShiftAmount = 0.1f;
+bool explodingSystem = false;
 
 // Toggle fields
 bool drawAxes = false;
@@ -128,8 +129,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 	// 'space' key pressed
 	if (key == 32 && action == 1) {
-		string s = g_model->pointInsideMesh(g_fuzzy_system->spawnPoint) ? " is inside mesh" : " is outside mesh";
-		cout << g_fuzzy_system->spawnPoint << s << endl;
+		if (g_fuzzy_system->finishedBuilding()) {
+			g_fuzzy_system->explode();
+			explodingSystem = true;
+		}
 	}
 
 	// 'up' key pressed
@@ -176,13 +179,12 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 // Character callback
 void charCallback(GLFWwindow *win, unsigned int c) {
 	// cout << "Char Callback :: c=" << char(c) << endl;
-	// Not needed for this assignment, but useful to have later on
 }
 
 // Load and setup the 3D geometry models
 void initGeometry() {
 	g_model = new Geometry("./work/res/assets/bunny-reduced.obj");
-	g_model->setPosition(vec3(0, 0, 0));
+	g_model->setPosition(vec3(0, 3, 0));
 
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
@@ -326,7 +328,7 @@ void renderScene() {
 	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
 
 	// Render plane
-	//renderPlane(20);
+	renderPlane(20);
 
 	if (treeMode){
 		//Render Tree
@@ -335,11 +337,13 @@ void renderScene() {
 		glEnable(GL_LIGHTING);
 	} else {
 		// Render geometry
-		g_model->renderGeometry();
+		if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry();
 	}
 
-	// Update particle system
-	if (realtimeBuild) g_fuzzy_system->buildSystemIncrement();
+	// Update building particle system
+	if (realtimeBuild && !g_fuzzy_system->finishedBuilding()) g_fuzzy_system->buildSystemIncrement();
+
+	if (explodingSystem && g_fuzzy_system->finishedBuilding()) g_fuzzy_system->updateSystem();
 
 	// Render particle system
 	g_fuzzy_system->renderSystem();
@@ -469,6 +473,7 @@ int main(int argc, char **argv) {
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
+
 	g_fuzzy_system = new FuzzyObject(g_model);
 
 	double lastTime = glfwGetTime();

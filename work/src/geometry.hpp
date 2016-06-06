@@ -45,6 +45,7 @@ class Geometry {
 		Geometry(std::string);
 		~Geometry();
 
+		cgra::vec3 getPosition();
 		void setPosition(cgra::vec3);
 		void setMaterial(cgra::vec4, cgra::vec4, cgra::vec4, float, cgra::vec4);
 		cgra::vec3 rayIntersectsTriangle(cgra::vec3, cgra::vec3, int);

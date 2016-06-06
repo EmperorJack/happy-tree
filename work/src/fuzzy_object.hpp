@@ -38,13 +38,22 @@ class FuzzyObject {
 		FuzzyObject(Geometry*);
 		~FuzzyObject();
 
+		// Methods for building the system
 		void buildSystemIncrement();
 		void buildSystem(bool);
-		void addParticle();
+
+		// Methods for animating and rendering the system
+		void updateSystem();
 		void renderSystem();
 
+		// Misc methods
 		int getParticleCount();
 		void toggleParticleViewMode();
+
+		// Methods for utilizing the built system
+		bool finishedBuilding();
+		std::vector<cgra::vec3> getSystem();
+		void explode();
 
 	private:
 		// The 3D object the particle system represents
@@ -66,18 +75,18 @@ class FuzzyObject {
 		// Particle attributes
 		GLuint p_displayList = 0;
 		float p_velRange = 0.03f;
-		float p_radius = 0.3f;
+		float p_radius = 0.2f;
 		float p_boundaryRadius = 0.05f;
 		float p_mass = 100.0f;
 
 		// LJ potential energy fields
 		float e_strength = 0.005f;
-		float e_lengthScale = 0.4f;
+		float e_lengthScale = 0.35f;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
 		// Physics fields
-		float meshCollisionFriction = 0.998f;
-		float particleCollisionFriction = 0.998f;
+		float meshCollisionFriction = 0.995f;
+		float particleCollisionFriction = 0.995f;
 
 		// Drawing properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
@@ -87,10 +96,12 @@ class FuzzyObject {
 
 		cgra::vec3 maxFloatVector = cgra::vec3(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 
+		// Private methods for building the system
 		void setupDisplayList();
 		bool stoppingCriteria();
 		bool systemAtRest();
-		void updateSystem();
+		void addParticle();
+		void updateBuildingSystem();
 		void applyParticleForces();
 		void applyBoundaryForces();
 		cgra::vec3 forceAtDistance(float, cgra::vec3);

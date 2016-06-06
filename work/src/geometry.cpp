@@ -231,6 +231,10 @@ void Geometry::displayTriangles() {
 	glEnd();
 }
 
+vec3 Geometry::getPosition() {
+	return m_position;
+}
+
 void Geometry::setPosition(vec3 position) {
 	m_position = position;
 }
