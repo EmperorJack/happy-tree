@@ -51,7 +51,7 @@ class FuzzyObject {
 
 		// Particle system fields
 		std::vector<particle> particles;
-		int particleLimit = 2000;
+		int particleLimit = 3000;
 
 		// Stopping criteria
 		bool finished = false;

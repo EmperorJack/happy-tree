@@ -162,9 +162,10 @@ void FuzzyObject::addParticle() {
 							 math::random(-1.0f, 1.0f) * p_velRange,
 							 math::random(-1.0f, 1.0f) * p_velRange);
 
-	p.col = vec3(math::random(0.0f, 1.0f),
-							 math::random(0.0f, 1.0f),
-							 math::random(0.0f, 1.0f));
+	//p.col = vec3(math::random(0.0f, 1.0f),
+	//						 math::random(0.0f, 1.0f),
+	//						 math::random(0.0f, 1.0f));
+	p.col = vec3(0.0f, 0.0f, 1.0f);
 
 	updateFacingTriangle(&p);
 
@@ -177,6 +178,7 @@ void FuzzyObject::updateSystem() {
 	// Reset each particles acceleraiton
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
+		particles[i].col = vec3(0.0f, 0.0f, 1.0f);
 	}
 
 	// Apply LJ physics based forces to the particle system
@@ -234,16 +236,6 @@ void FuzzyObject::applyBoundaryForces() {
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
 
-		// For each triangle
-		//for (int j = 0; j < g_geometry->triangleCount(); j++) {
-
-		// Using the particle velocity as the direction vector
-		// Compute the intersection point on the triangle
-		//vec3 intersectionPoint = (g_geometry->rayIntersectsTriangle(particles[i].pos, particles[i].vel, k));
-
-		// Skip this particle if no intersection occured
-		//if (intersectionPoint.x == numeric_limits<float>::max()) continue;
-
 		// If the particle is colliding with the intersection point
 		if (withinRange(particles[i].pos, particles[i].triangleIntersectionPos, p_boundaryRadius)) {
 		 	// Bounce the particle off the triangle surface by reflecting it's velocity
@@ -253,13 +245,9 @@ void FuzzyObject::applyBoundaryForces() {
 			// The particle is now facing the opposite direction so the facing triangle must be recomputed
 			updateFacingTriangle(&particles[i]);
 
-			//particles[i].acc += reflect(normalize(particles[i].vel), -(g_geometry->getSurfaceNormal(j))) * 1.0f;
-			//particles[i].vel *= meshCollisionFriction;
-
 			//collisionCount++;
 			// TODO should be counting collisions here
 		}
-		//}
 	}
 }
 
@@ -302,6 +290,8 @@ void FuzzyObject::updateFacingTriangle(particle* p) {
 	// Assign the final closest intersection point
 	p->triangleIntersectionPos = newIntersectionPoint;
 	p->triangleIndex = triangleIndex;
+
+	p->col = vec3(1.0f, 0.0f, 0.0f);
 }
 
 void FuzzyObject::renderSystem() {
