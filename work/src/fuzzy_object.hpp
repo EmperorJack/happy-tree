@@ -23,6 +23,8 @@ struct particle {
 	cgra::vec3 vel;
 	cgra::vec3 acc;
 	cgra::vec3 col;
+	cgra::vec3 triangleIntersectionPos;
+	int triangleIndex;
 };
 
 class FuzzyObject {
@@ -49,7 +51,7 @@ class FuzzyObject {
 
 		// Particle system fields
 		std::vector<particle> particles;
-		int particleLimit = 5000;
+		int particleLimit = 2000;
 
 		// Stopping criteria
 		bool finished = false;
@@ -96,4 +98,5 @@ class FuzzyObject {
 		void applyBoundaryForces();
 		cgra::vec3 forceAtDistance(float, cgra::vec3);
 		bool withinRange(cgra::vec3, cgra::vec3, float);
+		void updateFacingTriangle(particle*);
 };
