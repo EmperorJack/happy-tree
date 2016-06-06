@@ -60,8 +60,6 @@ void FuzzyObject::buildSystem(bool incremental) {
 		if (incremental) return;
 	}
 
-	//stoppingCriteria();
-
 	// Second pass
 	int maxParticles = particles.size() - 1;
 	while (particles.size() < maxParticles) {
@@ -77,10 +75,12 @@ void FuzzyObject::buildSystem(bool incremental) {
 
 		if (incremental) return;
 	}
+
+	buildFinished = true;
 }
 
 bool FuzzyObject::stoppingCriteria() {
-	//if (particles.size() >= particleLimit) return true;
+	if (particles.size() >= particleLimit) return true;
 
 	// Compute the total velocity of the system
 	vec3 totalVelocity;
@@ -255,7 +255,8 @@ void FuzzyObject::applyBoundaryForces() {
 			// TODO should be counting collisions here
 		} else {
 			// Check if the particle left the mesh
-			if (dot(particles[i].pos - particles[i].triangleIntersectionPos, -g_geometry->getSurfaceNormal(particles[i].triangleIndex)) <= 0.0f) {
+			//if (dot(particles[i].pos - particles[i].triangleIntersectionPos, g_geometry->getSurfaceNormal(particles[i].triangleIndex)) >= 0.0f) {
+			if (!g_geometry->pointInsideMesh(particles[i].pos)) {
 				particles[i].col = vec3(0.0f, 1.0f, 0.0f);
 				particlesForDeletion.push_back(i);
 			}
