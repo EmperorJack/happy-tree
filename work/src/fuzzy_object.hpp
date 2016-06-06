@@ -25,6 +25,7 @@ struct particle {
 	cgra::vec3 col;
 	cgra::vec3 triangleIntersectionPos;
 	int triangleIndex;
+	bool inCollision;
 };
 
 class FuzzyObject {
@@ -58,7 +59,7 @@ class FuzzyObject {
 		bool buildFinished = false;
 
 		// Stopping criteria
-		bool finished = false;
+		bool firstPassFinished = false;
 		float manualShiftAmount = 0.001f;
 
 		int collisionCount = 0;
@@ -80,7 +81,7 @@ class FuzzyObject {
 		float p_mass = 100.0f;
 
 		// LJ potential energy fields
-		float e_strength = 0.006f;
+		float e_strength = 0.005f;
 		float e_lengthScale = 0.4f;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
