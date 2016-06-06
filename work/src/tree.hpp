@@ -40,9 +40,11 @@ class Tree{
 		void setPosition(cgra::vec3);
 
 	private:
-		float param_branchLength = 0.4f;
-		float param_radiusOfInfluence = 20 * param_branchLength;
-		float param_killDistance = 2 * param_branchLength;
+		float param_branchLength;
+		float param_radiusOfInfluence;
+		float param_killDistance;
+		float param_branchTipWidth;
+		float param_branchMinWidth;
 
 		float treeHeight;
 		float trunkHeight;
@@ -52,7 +54,7 @@ class Tree{
 		float minZ = -3.0f;
 
 		float yStep;
-		float thetaStep = 15.0f;
+		float thetaStep = 1.0f;
 		
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 		float width = 0.3f;
@@ -74,10 +76,10 @@ class Tree{
 		bool inEnvelope(cgra::vec3);
 
 		//drawing
-		void renderBranch(branch *b);
+		void renderBranch(branch *b, int depth=0, cgra::vec3=cgra::vec3());
 		void drawBranch(branch*);
 		void drawJoint();
 		void drawAxis(branch*);
 
-		void renderStick(branch *b);
+		void renderStick(branch *b, int depth=0);
 };

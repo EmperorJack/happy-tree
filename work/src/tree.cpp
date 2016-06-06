@@ -14,10 +14,17 @@ using namespace cgra;
 
 
 Tree::Tree(){
-	treeHeight = 15.0f;
-	trunkHeight = 5.0f;
+	treeHeight = 30.0f;
+	trunkHeight = 2.0f;
+
+	param_branchLength = 1.3f;
+	param_radiusOfInfluence = 8 * param_branchLength;
+	param_killDistance = param_branchLength;
+	param_branchTipWidth = 0.01;
+	param_branchMinWidth = 0.03;
+
 	generateEnvelope(20);
-	generateAttractionPointsVolumetric(500);
+	generateAttractionPointsVolumetric(1000);
 	root = generateTree();
 }
 
@@ -27,11 +34,22 @@ branch* Tree::generateTree(){
 	branch *root = new branch();
 	branch *parent = root;
 	branch *curNode = root;
-
 	curNode->position = vec3(0,0,0);
 	curNode->direction = vec3(0,1,0);
-	curNode->length = (param_radiusOfInfluence + d < trunkHeight) ? trunkHeight : d;
+	curNode->length = d;
 	treeNodes.push_back(curNode);
+
+	while(curNode->position.y + d < trunkHeight){
+		curNode = new branch();
+		curNode->position = parent->position + (parent->direction * parent->length);
+		curNode->direction = vec3(0,1,0);
+		curNode->length = d;
+		curNode->parent = parent;
+		parent->children.push_back(curNode);
+		treeNodes.push_back(curNode);
+
+		parent = curNode;
+	}
 
 	//Generate branches from attraction points
 	// int prevSize = attractionPoints.size() + 1;
@@ -75,21 +93,24 @@ branch* Tree::generateTree(){
 
 float Tree::setWidth(branch *b){
 	float width = 0.0;
+	float maxW = param_branchTipWidth;
 
 	//cout << "branch with children: " << b->children.size() << endl;
 
 	for(int i=0; i<b->children.size(); i++){
 		float cw = setWidth(b->children[i]);
-		width += pow(cw, 3);
+		width += pow(cw, 2);
+		maxW = (cw > maxW) ? cw : maxW;
 	}
 
-	width = (width == 0) ? 0.02 : cbrt(width);
+	width = (width == 0) ? param_branchMinWidth : sqrt(width);
 
-	b->topWidth = width;
+	b->topWidth = maxW;
+	b->baseWidth = width;
 
-	for(int i=0; i<b->children.size(); i++){
-		(b->children[i])->baseWidth = width;
-	}
+	// for(int i=0; i<b->children.size(); i++){
+	// 	(b->children[i])->baseWidth = width;
+	// }
 
 	return width;
 }
@@ -215,7 +236,7 @@ void Tree::generateEnvelope(int steps){
 	for(int i = 0; i <= steps; i++){
 		vector<vec3> layer;
 		y = (i * yStep) + trunkHeight;
-		for(float theta = 0; theta <= 360.0f; theta += 15.0f){
+		for(float theta = 0; theta <= 360.0f; theta += thetaStep){
 			float d = envelopeFunction(y-trunkHeight,theta);
 
 			float x = d * sin(radians(theta));
@@ -273,8 +294,10 @@ bool Tree::inEnvelope(vec3 point){
 }
 
 float Tree::envelopeFunction(float u, float theta){
-	float uN = (2*u)/(treeHeight-trunkHeight);
-	return 2*(pow(3,uN) - (uN*uN*uN));
+	float uN = u/(treeHeight-trunkHeight);
+	// return 6*(pow(3,2*uN) - (8*uN*uN*uN));
+	// return (1.0f - uN) * 8;
+	return -50 * (uN * uN * (uN - 1));
 }
 
 
@@ -310,7 +333,7 @@ void Tree::renderAttractionPoints(){
 }
 
 void Tree::renderTree() {
-	glMatrixMode(GL_MODELVIEW);
+	//glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
 	glTranslatef(m_position.x, m_position.y, m_position.z);
@@ -322,10 +345,12 @@ void Tree::renderTree() {
 	glPopMatrix();
 }
 
-void Tree::renderBranch(branch *b) {
+void Tree::renderBranch(branch *b, int depth, vec3 pos) {
 	if(b == NULL){
 		return;
 	}
+
+	static int i_k =0;
 
 	glPushMatrix();{
 		vec3 basRot = b->basisRot;
@@ -348,6 +373,7 @@ void Tree::renderBranch(branch *b) {
 		glRotatef(-basRot.z,0,0,1);
 		*/
 
+
 		glPushMatrix();{
 			float angle = acos(dot(normalize(dir),vec3(0,0,1)));
 			vec3 axis = cross(normalize(dir),vec3(0,0,1));
@@ -363,8 +389,15 @@ void Tree::renderBranch(branch *b) {
 		vec3 offset = dir * b->length;
 		glTranslatef(offset.x,offset.y,offset.z);
 
+
+		// if (depth < 20 && i_k < 1000) {
+		// 	i_k++;
+		// 	for (int i = 0; i < depth; ++i) cout << " ";
+		// 	cout << "branch :: pos " << b->position << " : post " << pos << " : offset " << offset << endl;
+		// }
+
 		for(branch* c : b->children){
-			renderBranch(c);
+			renderBranch(c, depth+1, pos+offset);
 		}
 	}glPopMatrix();
 }
@@ -425,7 +458,7 @@ void Tree::renderStick(){
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
-	glTranslatef(m_position.x, m_position.y, m_position.z);
+	// glTranslatef(m_position.x, m_position.y, m_position.z);
 
 	//Actually draw the skeleton
 	renderStick(root);
@@ -434,17 +467,31 @@ void Tree::renderStick(){
 	glPopMatrix();
 }
 
-void Tree::renderStick(branch *b){
+void Tree::renderStick(branch *b, int depth){
 	glPushMatrix();{
-		glBegin(GL_LINE_STRIP);
+		int n = depth * 15;
+		int cR = (n > 255) ? 255 : n;
+		int cB = (n >= 255) ? ( n > 510 ? 255 : (n - 255) ) : 0;
+		int cG = (n >= 510) ? n - 510 : 0;
+
+		glColor3f(cR / 255.0f,cB / 255.0f,cG / 255.0f);
+		glBegin(GL_LINES);
 		vec3 p1 = b->position;
 		vec3 p2 = b->position + (b->direction * b->length);
 		glVertex3f(p1.x,p1.y,p1.z);
 		glVertex3f(p2.x,p2.y,p2.z);
 		glEnd();
 
+		// vec3 dir = b->direction;
+		// vec3 offset = dir * b->length;
+		// glBegin(GL_LINES);
+		// 	glVertex3f(0.0f,0.0f,0.0f);
+		// 	glVertex3f(offset.x,offset.y,offset.z);
+		// glEnd();
+		// glTranslatef(offset.x,offset.y,offset.z);
+
 		for(branch* child : b->children){
-			renderStick(child);
+			renderStick(child, depth+1);
 		}	
 	}glPopMatrix();
 }

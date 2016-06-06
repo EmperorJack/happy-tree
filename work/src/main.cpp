@@ -51,7 +51,7 @@ Tree* g_tree = nullptr;
 
 // Toggle fields
 bool drawAxes = false;
-bool treeMode = false;
+bool treeMode = true;
 bool partyMode = false;
 
 // Mouse Position callback
@@ -267,11 +267,12 @@ void renderScene() {
 	renderPlane(20);
 
 	if (treeMode){
+		glDisable(GL_LIGHTING);
 		//Render Tree
 		g_tree->renderStick();
-		//g_tree->drawEnvelope();
+		g_tree->drawEnvelope();
 		// g_tree->renderAttractionPoints();
-
+		glEnable(GL_LIGHTING);
 	} else {
 		// Render geometry
 		// g_model->renderGeometry();
