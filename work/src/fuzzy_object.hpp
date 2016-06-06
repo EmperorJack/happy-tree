@@ -61,19 +61,7 @@ class FuzzyObject {
 		// Stopping criteria
 		bool firstPassFinished = false;
 		float stabilityUpdates = 10;
-
-		float manualShiftAmount = 0.001f;
-
 		int collisionCount = 0;
-		int lastCollisionCount = 0;
-
-		int overfullStepCount = 0;
-		int overfullThreshold = 10;
-		bool overfull = false;
-
-		int stabilityStepCount = 0;
-		int stabilityThreshold = 30;
-		bool wasStable = false;
 
 		// Particle attributes
 		GLuint p_displayList = 0;

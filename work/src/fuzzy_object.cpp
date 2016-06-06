@@ -97,66 +97,6 @@ bool FuzzyObject::stoppingCriteria() {
 	return false;
 }
 
-// 	// Compute the total velocity of the system
-// 	vec3 totalVelocity;
-// 	for (int i = 0; i < particles.size(); i++) {
-// 		totalVelocity += particles[i].vel;
-// 	}
-
-// 	bool stable = collisionCount == 0;
-
-// 	// If the system regained stability last step but lost it again
-// 	if (wasStable && !stable) {
-// 		stabilityStepCount++;
-
-// 		if (stabilityStepCount >= stabilityThreshold && length(totalVelocity) < p_velRange) {
-// 			// System cannot maintain stability, it is overfull
-// 			finished = true;
-// 			return true;
-// 		}
-// 	} else {
-// 		// Reset stability counter
-// 		wasStable = false;
-// 		stabilityStepCount = 0;
-// 	}
-// 	// TODO Make criteria for below when all particles are colliding
-// 	// If the particles are repeatedly colliding
-// 	if (!overfull && !stable && collisionCount >= lastCollisionCount) {
-// 		// Move each particle slightly
-// 		for (int i = 0; i < particles.size(); i++) {
-// 			particles[i].pos.x += math::random(-manualShiftAmount, manualShiftAmount);
-// 			particles[i].pos.y += math::random(-manualShiftAmount, manualShiftAmount);
-// 			particles[i].pos.z += math::random(-manualShiftAmount, manualShiftAmount);
-// 		}
-
-// 		overfullStepCount++;
-// 	} else {
-// 		// Reset overfull counter
-// 		overfullStepCount = 0;
-// 	}
-
-// 	// Check if the system is overfull
-// 	if (!overfull && overfullStepCount >= overfullThreshold) {
-// 		overfull = true;
-// 		overfullStepCount = 0;
-// 		cout << "overfull" << endl;
-// 		// Remove a random particle
-// 		particles.erase(particles.begin() + (int) math::random(0.0f, (float) particles.size()));
-// 		//particles.pop_back();
-// 	}
-
-// 	// If the system was overfull check and it has regained stability
-// 	if (overfull && stable) {
-// 		// Enable particles to spawn again
-// 		overfull = false;
-// 		wasStable = true;
-// 	}
-
-// 	lastCollisionCount = collisionCount;
-
-// 	return false;
-// }
-
 bool FuzzyObject::systemAtRest() {
 	return true;
 }
