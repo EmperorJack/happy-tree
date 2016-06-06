@@ -290,7 +290,7 @@ bool Geometry::pointInsideMesh(vec3 point) {
 	vec3 direction = vec3(0, 0, 1);
 
 	for (int i = 0; i < m_triangles.size(); i++) {
-		if (rayIntersectsTriangle(point, direction, i).x != numeric_limits<float>::max()) {
+		if (rayIntersectsTriangle(point, direction, i).x != noIntersectionVector.x) {
 			intersectionCount++;
 		}
 	}

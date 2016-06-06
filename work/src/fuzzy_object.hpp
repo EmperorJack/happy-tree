@@ -60,6 +60,8 @@ class FuzzyObject {
 
 		// Stopping criteria
 		bool firstPassFinished = false;
+		float stabilityUpdates = 10;
+
 		float manualShiftAmount = 0.001f;
 
 		int collisionCount = 0;
@@ -75,7 +77,7 @@ class FuzzyObject {
 
 		// Particle attributes
 		GLuint p_displayList = 0;
-		float p_velRange = 0.025f;
+		float p_velRange = 0.03f;
 		float p_radius = 0.3f;
 		float p_boundaryRadius = 0.05f;
 		float p_mass = 100.0f;
@@ -95,6 +97,8 @@ class FuzzyObject {
 		float shininess = 128.0f;
 		bool particleViewMode = true;
 
+		cgra::vec3 maxFloatVector = cgra::vec3(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+
 		void setupDisplayList();
 		bool stoppingCriteria();
 		bool systemAtRest();
@@ -103,5 +107,5 @@ class FuzzyObject {
 		void applyBoundaryForces();
 		cgra::vec3 forceAtDistance(float, cgra::vec3);
 		bool withinRange(cgra::vec3, cgra::vec3, float);
-		void updateFacingTriangle(particle*);
+		void updateFacingTriangle(int);
 };
