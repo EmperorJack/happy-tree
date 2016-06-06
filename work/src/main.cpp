@@ -370,7 +370,7 @@ void renderGUI() {
 	ImGui::Begin("", nullptr, ImVec2(0, 0), 0.3f,
 				 ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 
-	ImGui::Text(string(fpsString).c_str());
+	ImGui::Text(string(fpsString).c_str());	
 	ImGui::End();
 
 	// Flush components and render

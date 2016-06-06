@@ -134,10 +134,11 @@ float Tree::calculatePressure(branch* branch, float force, int dir){
 	//time is increased steadily to make the effect follow an oscilation pattern - global scope
 	//branch offset is a random value assigned to each branch so they are at a different point in the oscillation
 	float oscillation = (time + branch->offset);
+	//oscillation = (oscillation - floor(oscillation)) - 0.5f;
 
 	//mulitply a radians value by degrees variable to convert it from radians to degrees
 	//not sure if this is needed...
-	float degrees =  ((float)(math::pi()))/180.0f;
+	float degrees = 180.0f / ((float)math::pi()) ;
 
 	//pressure is the final return value
 	float pressure = force * (1 + a * sin(oscillation) );
@@ -155,7 +156,11 @@ float Tree::springConstant(branch* branch){
 	float thickness = branch->baseWidth-branch->topWidth;
 
 	float k = (elasticity * branch->baseWidth *	pow(thickness, 3));
-	k = k/ (4 * pow( branch->length, 3));
+
+	cout << "Spring top: " << k << endl;
+	cout << "Spring bot: " << (4 * pow( branch->length, 3)) << endl;
+
+	k = k / (4 * pow( branch->length, 3));
 
 	return k;
 }
@@ -169,8 +174,8 @@ void Tree::applyWind(branch* b){
 	//increment time (this value is currently has no meaning, just seems to fit at an ok speed)
 
 	//calculates the pressure value for each axis	
-	float pressureX = calculatePressure(b, windForce.x, 'x');
-	float pressureZ = calculatePressure(b, windForce.z, 'z');
+	float pressureX = calculatePressure(b, desiredWindForce.x, 'x');
+	float pressureZ = calculatePressure(b, desiredWindForce.z, 'z');
 
 	//debug info
 	cout << "Name: " << b->name << endl;
@@ -179,18 +184,7 @@ void Tree::applyWind(branch* b){
 
 	//the spring value of this branch
 	float spring = springConstant(b);
-
-	//calculates the displacement value for each axis	
-	float displacementX = pressureX / spring;
-	float displacementZ = pressureZ / spring;
-
-	//debug info
-	cout << "length " << b->length << endl;
-	cout << "Displacement - x: " << displacementX << "  z: " << displacementZ << endl;
-	
-	//mulitply a radians value by degrees variable to convert it from radians to degrees
-	//not sure if this is needed...
-	float degrees =  ( (float)(math::pi()) ) / 180.0f;
+	cout << "Spring Value: " << spring << endl;
 
 	//make sure no division of 0 is occuring 
 	int len = b->length;
@@ -198,23 +192,46 @@ void Tree::applyWind(branch* b){
 		len = 0.00001f;
 	}
 
-	//currently returning NaN, asin() needs a value between [-1, 1] 
-	//but currently getting a value too large
-	float motionAngleX = asin(displacementX/float(len));
-	float motionAngleZ = asin(displacementZ/float(len));
+	//calculates the displacement value for each axis	
+	float displacementX = pressureX / spring / float(len);
+	float displacementZ = pressureZ / spring / float(len);
+
+	//debug info
+	cout << "length " << b->length << endl;
+	cout << "Displacement - x: " << displacementX << "  z: " << displacementZ << endl;
+
+	//clamp values to be within [-1,1]
+	if (displacementX > 1){
+		displacementX = 1.0f;
+	} else if (displacementX < -1){
+		displacementX = -1.0f;
+	}
+
+	if (displacementZ > 1){
+		displacementZ = 1.0f;
+	} else if (displacementZ < -1){
+		displacementZ = -1.0f;
+	}
+
+	float motionAngleX = asin(displacementX);
+	float motionAngleZ = asin(displacementZ);
 
 	cout << "Motion Angle - x: " << motionAngleX << "  z: " << motionAngleZ << endl;
 
-	b->rotation.x = motionAngleX;
-	b->rotation.z = motionAngleZ;
+	//mulitply a radians value by degrees variable to convert it from radians to degrees
+	//not sure if this is needed...
+	float degrees = 180.0f / ((float)math::pi()) ;
+
+	b->rotation.x = motionAngleX * degrees;
+	b->rotation.z = motionAngleZ * degrees;
 
 	//temporarily just rotating by displacement value because motionAngle is NaN
 	//attempt to restrict the rotation by converting it to degrees, and then limit it to 20degrees
-	b->rotation.x = ((displacementX*degrees) / 180 ) * 20;
-	b->rotation.z = ((displacementZ*degrees) / 180 ) * 20;
+	//b->rotation.x = ((displacementX*degrees) / 180 ) * 20;
+	//b->rotation.z = ((displacementZ*degrees) / 180 ) * 20;
 
 	//debug info
-	cout << "Restricted Angle - x: " << b->rotation.x << "  z: " << b->rotation.z << endl;
+	cout << "Final Angle - x: " << b->rotation.x << "  z: " << b->rotation.z << endl;
 	cout << endl;
 
 	// if(b->rotation.x > 20){
@@ -249,25 +266,25 @@ void Tree::setPosition(vec3 position) {
 	sets the wind force
 */
 void Tree::setWindForce(vec3 wind){
-	windForce = wind;
+	desiredWindForce = wind;
 }
 
 void Tree::adjustWind(int axis, int dir){
-	float wIncrease = 0.05f;
+	float wIncrease = 0.00005f;
 	float aIncrease = 0.1f;
 	float tIncrease = 0.002f;
 
 	if (axis == 'x'){
 		if (dir == 1){
-			windForce.x += wIncrease;
+			desiredWindForce.x += wIncrease;
 		} else if (dir == -1){
-			windForce.x -= wIncrease;
+			desiredWindForce.x -= wIncrease;
 		}
 	} else if (axis == 'z'){
 		if (dir == 1){
-			windForce.z += wIncrease;
+			desiredWindForce.z += wIncrease;
 		} else if (dir == -1){
-			windForce.z -= wIncrease;
+			desiredWindForce.z -= wIncrease;
 		}
 	}  else if (axis == 'a'){
 		if (dir == 1){
