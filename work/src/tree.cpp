@@ -14,17 +14,17 @@ using namespace cgra;
 
 
 Tree::Tree(){
-	treeHeight = 30.0f;
-	trunkHeight = 2.0f;
+	treeHeight = 10.0f;
+	trunkHeight = 0.6f;
 
-	param_branchLength = 1.3f;
+	param_branchLength = 0.6f;
 	param_radiusOfInfluence = 8 * param_branchLength;
 	param_killDistance = param_branchLength;
-	param_branchTipWidth = 0.01;
-	param_branchMinWidth = 0.03;
+	param_branchTipWidth = 0.03;
+	param_branchMinWidth = 0.04;
 
 	generateEnvelope(20);
-	generateAttractionPointsVolumetric(1000);
+	generateAttractionPointsVolumetric(200);
 	root = generateTree();
 }
 
@@ -36,20 +36,20 @@ branch* Tree::generateTree(){
 	branch *curNode = root;
 	curNode->position = vec3(0,0,0);
 	curNode->direction = vec3(0,1,0);
-	curNode->length = d;
+	curNode->length = trunkHeight;
 	treeNodes.push_back(curNode);
 
-	while(curNode->position.y + d < trunkHeight){
-		curNode = new branch();
-		curNode->position = parent->position + (parent->direction * parent->length);
-		curNode->direction = vec3(0,1,0);
-		curNode->length = d;
-		curNode->parent = parent;
-		parent->children.push_back(curNode);
-		treeNodes.push_back(curNode);
+	// while(curNode->position.y + d < trunkHeight){
+	// 	curNode = new branch();
+	// 	curNode->position = parent->position + (parent->direction * parent->length);
+	// 	curNode->direction = vec3(0,1,0);
+	// 	curNode->length = d;
+	// 	curNode->parent = parent;
+	// 	parent->children.push_back(curNode);
+	// 	treeNodes.push_back(curNode);
 
-		parent = curNode;
-	}
+	// 	parent = curNode;
+	// }
 
 	//Generate branches from attraction points
 	// int prevSize = attractionPoints.size() + 1;
@@ -69,7 +69,7 @@ branch* Tree::generateTree(){
 					int ind = closestSet[t][j];
 					newDir += normalize(attractionPoints[ind] - v);
 				}
-				newDir = normalize(newDir);
+				newDir = normalize(newDir + vec3(0,-0.1,0));
 
 				branch* newNode = new branch();
 				newNode->position = v;
@@ -379,9 +379,9 @@ void Tree::renderBranch(branch *b, int depth, vec3 pos) {
 			vec3 axis = cross(normalize(dir),vec3(0,0,1));
 			glRotatef(-degrees(angle),axis.x,axis.y,axis.z);
 
-			cgraCylinder(b->baseWidth, b->topWidth, b->length);
+			cgraCylinder(b->baseWidth, b->topWidth, b->length,4,4,true);
 
-			//cgraSphere(b->baseWidth);
+			// cgraSphere(b->baseWidth,5,5,true);
 
 		}glPopMatrix();
 		
