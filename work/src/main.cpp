@@ -51,7 +51,7 @@ Tree* g_tree = nullptr;
 
 // Toggle fields
 bool drawAxes = true;
-bool treeMode = true;
+bool treeMode = false;
 bool partyMode = false;
 
 // Mouse Position callback
@@ -99,6 +99,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 	if (key == 'F' && action == 1) {
 		g_tree->toggleWind();
+	}
+
+	if (key == 'C' && action == 1) {
+		g_tree->toggleTreeType();
 	}
 
 	// increase wind on X axis
@@ -311,13 +315,16 @@ void renderScene() {
 	renderPlane(20);
 
 	if (treeMode){
-		//Render Tree
 		glDisable(GL_LIGHTING);
-		g_tree->renderTree();
+		//Render Tree
+		g_tree->renderStick();
+		g_tree->drawEnvelope();
+		// g_tree->renderAttractionPoints();
 		glEnable(GL_LIGHTING);
 	} else {
 		// Render geometry
-		g_model->renderGeometry();
+		// g_model->renderGeometry();
+		g_tree->renderTree();
 	}
 }
 
