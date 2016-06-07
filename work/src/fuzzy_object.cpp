@@ -82,7 +82,7 @@ void FuzzyObject::buildSystem(bool incremental) {
 bool FuzzyObject::stoppingCriteria() {
 	if (particles.size() >= particleLimit) return true;
 
-	if (collisionCount == particles.size() && particles.size() > 1) {
+	if (collisionCount == particles.size() && particles.size() > 10) {
 
 		for (int i = 0; i < stabilityUpdates; i++) {
 			updateBuildingSystem();
@@ -351,11 +351,11 @@ vector<vec3> FuzzyObject::getSystem() {
 void FuzzyObject::explode() {
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].acc = vec3(0.0f, -0.00981f, 0.0f);
-		particles[i].vel = vec3(math::random(-1.0f, 1.0f) * p_velRange / 2.0f,
-			                      math::random(-0.01f, 0.0f),
-			                      math::random(-1.0f, 1.0f) * p_velRange / 2.0f);
-		//particles[i].vel = vec3(math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
-		//	                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
-		//	                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f);
+		//particles[i].vel = vec3(math::random(-1.0f, 1.0f) * p_velRange / 2.0f,
+		//	                      math::random(-0.01f, 0.0f),
+		//	                      math::random(-1.0f, 1.0f) * p_velRange / 2.0f);
+		particles[i].vel = vec3(math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
+			                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
+			                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f);
 	}
 }
