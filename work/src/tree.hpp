@@ -17,6 +17,11 @@ struct branch{
 
 	std::string name;				// helpful with debug info
 
+	float maxX = 0.0f;
+	float minX = 0.0f;
+	float maxZ = 0.0f;
+	float minZ = 0.0f;
+
 	float length;					// length of the branch
 	float baseWidth;				// width of the base of the branch
 	float topWidth;					// width of the top of the branch

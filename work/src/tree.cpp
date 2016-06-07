@@ -84,6 +84,7 @@ branch* Tree::generateTree(){
 				newNode->direction = newDir;
 				newNode->length = d;
 				newNode->parent = treeNodes[t];
+				newNode->offset = math::random(0.0f,1.0f);
 				treeNodes[t]->children.push_back(newNode);
 				
 				toBeAdded.push_back(newNode);
@@ -487,11 +488,11 @@ float Tree::calculatePressure(branch* branch, float force, int dir){
 	float a = windCoefficent; //change to a small number derived from the current angle of the branch
 	
 	//attempt at making the small value use the current angle of the branch
-	if (dir == 'x'){ //x axis
-		//a = branch->rotation.x;
-	} else if (dir == 'z'){ //z axis
-		//a = branch->rotation.z;
-	}
+	// if (dir == 'x'){ //x axis
+	// 	a = sin(branch->rotation.z);
+	// } else if (dir == 'z'){ //z axis
+	// 	a = sin(branch->rotation.x);
+	// }
 
 	//oscillation is plugged into a sine function. 
 	//time is increased steadily to make the effect follow an oscilation pattern - global scope
@@ -582,6 +583,20 @@ void Tree::applyWind(branch* b){
 	float motionAngleX = asin(displacementX);
 	float motionAngleZ = asin(displacementZ);
 
+	if(motionAngleX > b->maxX){
+		b->maxX = motionAngleX;
+	} else if (motionAngleX < b->minX){
+		b->minX = motionAngleX;
+	}
+	if(motionAngleZ > b->maxZ){
+		b->maxZ = motionAngleZ;
+	} else if (motionAngleZ < b->minZ){
+		b->minZ = motionAngleZ;
+	}
+
+	// cout << "Min Angle - x: " << b->minX << "  z: " << b->minX << endl;
+	// cout << "Max Angle - x: " << b->maxZ << "  z: " << b->maxZ << endl;
+	
 	// cout << "Motion Angle - x: " << motionAngleX << "  z: " << motionAngleZ << endl;
 
 	//mulitply a radians value by degrees variable to convert it from radians to degrees
@@ -591,6 +606,17 @@ void Tree::applyWind(branch* b){
 	b->rotation.z = motionAngleX * degrees;
 	b->rotation.x = motionAngleZ * degrees;
 
+	if (b->rotation.z > 20){
+		b->rotation.z = 20.0f;
+	} else if (b->rotation.z < -20){
+		b->rotation.z = -20.0f;
+	}
+
+	if (b->rotation.x > 20){
+		b->rotation.x = 20.0f;
+	} else if (b->rotation.x < -20){
+		b->rotation.x = -20.0f;
+	}
 	//temporarily just rotating by displacement value because motionAngle is NaN
 	//attempt to restrict the rotation by converting it to degrees, and then limit it to 20degrees
 	//b->rotation.x = ((displacementX*degrees) / 180 ) * 20;
@@ -693,7 +719,7 @@ branch* Tree::makeDummyTree(int numBranches){
 	branch* b = new branch();
 	b->name = "trunk"+to_string(numBranches);
 	b->direction = vec3(0,1,0);
-	b->offset = math::random(0.0f,0.1f);
+	b->offset = math::random(0.0f,1.0f);
 	b->length = length;
 	b->baseWidth = width * numBranches;
 	b->topWidth = (width * (numBranches - 1));
