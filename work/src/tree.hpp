@@ -15,21 +15,21 @@ struct branch{
 	cgra::vec3 direction = cgra::vec3(0,0,0);
 	cgra::vec3 basisRot = cgra::vec3(0,0,0);// Euler angle rotations for the branch basis
 
-	float length;
+	std::string name;				// helpful with debug info
 
-	float baseWidth;
-	float topWidth;
+	float length;					// length of the branch
+	float baseWidth;				// width of the base of the branch
+	float topWidth;					// width of the top of the branch
+	float offset;					// used to offset the branches sway in the wind
+
+	branch* parent;
+	std::vector<branch *> children = std::vector<branch*>();	// all child branches of this branch
 
 	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
-
-	std::vector<branch *> children = std::vector<branch*>();
-	branch* parent;
 };
 
 class Tree{
 	public:
-		branch *root;
-
 		Tree();
 
 		void drawEnvelope();
@@ -38,8 +38,18 @@ class Tree{
 		void renderAttractionPoints();
 		
 		void setPosition(cgra::vec3);
-
+		void toggleWind();
+		void toggleTreeType();
+		void adjustWind(int, int);	
+		
 	private:
+		branch *root = nullptr; 	//the root section of the tree (first piece of trunk)
+		branch *generatedTreeRoot = nullptr; 	//the root section of the tree (first piece of trunk)
+		branch *dummyTreeRoot = nullptr; 	//the root section of the tree (first piece of trunk)
+
+		//the position this tree will exist in world space
+		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);	
+
 		float param_branchLength;
 		float param_radiusOfInfluence;
 		float param_killDistance;
@@ -55,15 +65,12 @@ class Tree{
 
 		float yStep;
 		float thetaStep = 1.0f;
-		
-		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
-		float width = 0.3f;
-		float length = 5.0f;
 
 		std::vector<branch *> treeNodes;
 		std::vector<std::vector<cgra::vec3>> envelope;
 		std::vector<cgra::vec3> attractionPoints;
 
+		//Tree generation Methods Start <<<<
 		branch* generateTree();
 		float setWidth(branch*);
 		std::vector<std::vector<int>> getAssociatedPoints();
@@ -74,12 +81,31 @@ class Tree{
 		float envelopeFunction(float u,float theta);
 
 		bool inEnvelope(cgra::vec3);
+		branch* makeDummyTree(int);
+		//Tree generation Methods STOP <<<<
 
 		//drawing
-		void renderBranch(branch *b, int depth=0, cgra::vec3=cgra::vec3());
+		void renderBranch(branch *b, int depth=0);
 		void drawBranch(branch*);
-		void drawJoint();
+		void drawJoint(branch*);
 		void drawAxis(branch*);
-
 		void renderStick(branch *b, int depth=0);
+		// BELLOW HERE - wind variables and methods
+
+		// the elasticity value of this tree, used for calculating spring value of branches
+		//hard coded right now, as number increases tree sway decreases
+		//make skinnier trees have higher elasticity to prevent them from going crazy...
+		float elasticity = 2000.0f;	
+		float time = 0.0f;			// time value used for moving along a sine curve 		
+		bool windEnabled = false;
+		bool dummyTree = false;
+		float windCoefficent = 1.2f;
+		float timeIncrement = 0.004f;
+		//the wind acting upon this tree
+		cgra::vec3 desiredWindForce = cgra::vec3(0.0f, 0.0f, 0.0f);
+		void setWindForce(cgra::vec3);
+		
+		float calculatePressure(branch*, float, int);
+		float springConstant(branch*);
+		void applyWind(branch*);
 };

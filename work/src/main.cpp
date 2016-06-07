@@ -50,8 +50,8 @@ Geometry* g_model = nullptr;
 Tree* g_tree = nullptr;
 
 // Toggle fields
-bool drawAxes = false;
-bool treeMode = true;
+bool drawAxes = true;
+bool treeMode = false;
 bool partyMode = false;
 
 // Mouse Position callback
@@ -95,6 +95,54 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 	if (key == 'T' && action == 1) {
 		treeMode = !treeMode;
+	}
+
+	if (key == 'F' && action == 1) {
+		g_tree->toggleWind();
+	}
+
+	if (key == 'C' && action == 1) {
+		g_tree->toggleTreeType();
+	}
+
+	// increase wind on X axis
+	if (key == 'J' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('x', 1);
+	}
+
+	// decrease wind on X axis
+	if (key == 'N' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('x', -1);
+	}
+
+	// increase wind on Z axis
+	if (key == 'K' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('z', 1);
+	}
+
+	// decrease wind on Z axis
+	if (key == 'M' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('z', -1);
+	}
+
+	// increase a coefficient in wind calculation
+	if (key == 'H' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('a', 1);
+	}
+
+	// decrease a coefficient in wind calculation
+	if (key == 'B' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('a', -1);
+	}
+
+	// increase a coefficient in wind calculation
+	if (key == 'G' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('t', 1);
+	}
+
+	// decrease a coefficient in wind calculation
+	if (key == 'V' && (action == 1 || action == 2)) {
+		g_tree->adjustWind('t', -1);
 	}
 
 	// 'p' key pressed
@@ -329,7 +377,7 @@ void renderGUI() {
 	ImGui::Begin("", nullptr, ImVec2(0, 0), 0.3f,
 				 ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 
-	ImGui::Text(string(fpsString).c_str());
+	ImGui::Text(string(fpsString).c_str());	
 	ImGui::End();
 
 	// Flush components and render
@@ -414,10 +462,10 @@ int main(int argc, char **argv) {
 		double currentTime = glfwGetTime();
 		framesThisSecond++;
 		if (currentTime - lastTime >= 1.0) {
-    	frameRate = 1.0 / double(framesThisSecond);
-    	framesThisSecond = 0;
-    	lastTime += 1.0;
-    }
+	    	frameRate = 1.0 / double(framesThisSecond);
+	    	framesThisSecond = 0;
+	    	lastTime += 1.0;
+	    }
 
 		int width, height;
 		glfwGetFramebufferSize(g_window, &width, &height);
