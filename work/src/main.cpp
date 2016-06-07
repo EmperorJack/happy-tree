@@ -46,6 +46,8 @@ GLuint g_shader = 0;
 
 // Geometry draw lists
 Geometry* g_model = nullptr;
+Geometry* sphere = nullptr;
+vector<vec3> points;
 
 // Tree to animate
 Tree* g_tree = nullptr;
@@ -347,6 +349,13 @@ void renderScene() {
 
 	// Render particle system
 	g_fuzzy_system->renderSystem();
+
+	glBegin(GL_POINTS);
+	glNormal3f(0, 1, 0);
+	for (int i = 0; i < points.size(); i++) {
+		glVertex3f(points[i].x, points[i].y, points[i].z);
+	}
+	glEnd();
 }
 
 // Draw the scene
@@ -475,6 +484,9 @@ int main(int argc, char **argv) {
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 
 	g_fuzzy_system = new FuzzyObject(g_model);
+
+	points = generateCylinderPoints(1.0f, 1.0f, 5.0f);
+	//sphere = new Geometry();
 
 	double lastTime = glfwGetTime();
 	int framesThisSecond = 0;

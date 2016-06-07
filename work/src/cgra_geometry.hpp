@@ -171,4 +171,85 @@ namespace cgra {
 	inline void cgraCone(float base_radius, float height, int slices = 10, int stacks = 10, bool wire = false) {
 		cgraCylinder(base_radius, 0, height, slices, stacks, wire);
 	}
+
+	inline std::vector<vec3> generateSpherePoints(float radius, int slices = 10, int stacks = 10) {
+		assert(slices > 0 && stacks > 0 && radius > 0);
+
+		int dualslices = slices * 2;
+
+		// precompute sin/cos values for the range of phi
+		std::vector<float> sin_phi_vector;
+		std::vector<float> cos_phi_vector;
+
+		for (int slice_count = 0; slice_count <= dualslices; ++slice_count) {
+			float phi = 2 * math::pi() * float(slice_count) / dualslices;
+			sin_phi_vector.push_back(std::sin(phi));
+			cos_phi_vector.push_back(std::cos(phi));
+		}
+
+		// precompute the normalized coordinates of sphere
+		std::vector<vec3> verts;
+
+		for (int stack_count = 0; stack_count <= stacks; ++stack_count) {
+			float theta = math::pi() * float(stack_count) / stacks;
+			float sin_theta = std::sin(theta);
+			float cos_theta = std::cos(theta);
+
+			for (int slice_count = 0; slice_count <= dualslices; ++slice_count) {
+
+				verts.push_back(vec3(
+					sin_theta*cos_phi_vector[slice_count],
+					sin_theta*sin_phi_vector[slice_count],
+					cos_theta));
+			}
+		}
+
+		return verts;
+	}
+
+	inline std::vector<vec3> generateCylinderPoints(float base_radius, float top_radius, float height, int slices = 10, int stacks = 10) {
+		assert(slices > 0 && stacks > 0 && (base_radius > 0 || base_radius > 0) && height > 0);
+
+		int dualslices = slices * 2;
+
+		// precompute sin/cos values for the range of phi
+		std::vector<float> sin_phi_vector;
+		std::vector<float> cos_phi_vector;
+
+		for (int slice_count = 0; slice_count <= dualslices; ++slice_count) {
+			float phi = 2 * math::pi() * float(slice_count) / dualslices;
+			sin_phi_vector.push_back(std::sin(phi));
+			cos_phi_vector.push_back(std::cos(phi));
+		}
+
+		// precompute the coordinates and normals of cylinder
+		std::vector<vec3> verts;
+		std::vector<vec3> norms;
+
+		// thanks ben, you shall forever be immortalized
+		float bens_theta = math::pi() / 2 * std::atan((base_radius - top_radius) / height);
+		float sin_bens_theta = std::sin(bens_theta);
+		float cos_bens_theta = std::cos(bens_theta);
+
+		for (int stack_count = 0; stack_count <= stacks; ++stack_count) {
+			float t = float(stack_count) / stacks;
+			float z = height * t;
+			float width = base_radius + (top_radius - base_radius) * t;
+
+			for (int slice_count = 0; slice_count <= dualslices; ++slice_count) {
+				verts.push_back(vec3(
+					width * cos_phi_vector[slice_count],
+					width * sin_phi_vector[slice_count],
+					z));
+
+				norms.push_back(vec3(
+					cos_bens_theta * cos_phi_vector[slice_count],
+					cos_bens_theta * sin_phi_vector[slice_count],
+					sin_bens_theta));
+
+			}
+		}
+
+		return verts;
+	}
 }
