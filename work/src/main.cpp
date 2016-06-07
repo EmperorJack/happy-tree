@@ -105,6 +105,16 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 		g_tree->toggleTreeType();
 	}
 
+	if (key == 'Z' && action == 1) {
+		g_tree->generateNewTree();
+	}
+
+	if (key == 'X' && action == 1) {
+		::delete g_tree;
+		g_tree = new Tree();
+		g_tree->setPosition(vec3(0, 0, 0));
+	}
+
 	// increase wind on X axis
 	if (key == 'J' && (action == 1 || action == 2)) {
 		g_tree->adjustWind('x', 1);

@@ -44,6 +44,7 @@ class Tree{
 		
 		void setPosition(cgra::vec3);
 		void toggleWind();
+		void generateNewTree();
 		void toggleTreeType();
 		void adjustWind(int, int);	
 		
@@ -102,7 +103,7 @@ class Tree{
 		//make skinnier trees have higher elasticity to prevent them from going crazy...
 		float elasticity = 2000.0f;	
 		float time = 0.0f;			// time value used for moving along a sine curve 		
-		bool windEnabled = false;
+		bool windEnabled = true;
 		bool dummyTree = false;
 		float windCoefficent = 1.2f;
 		float timeIncrement = 0.004f;

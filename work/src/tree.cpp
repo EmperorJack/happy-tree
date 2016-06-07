@@ -669,6 +669,31 @@ void Tree::toggleTreeType(){
 	}
 }
 
+/*
+	public method for generating a new tree
+*/
+void Tree::generateNewTree(){
+	treeHeight = 20.0f;
+	trunkHeight = 2.0f;
+
+	param_branchLength = 2.0f;
+	param_radiusOfInfluence = 8 * param_branchLength;
+	param_killDistance = param_branchLength;
+	param_branchTipWidth = 0.06;
+	param_branchMinWidth = 0.08;
+	
+	generateEnvelope(20);
+	generateAttractionPointsVolumetric(200);
+
+	generatedTreeRoot = generateTree();
+
+	if(dummyTree){
+		root = dummyTreeRoot;
+	} else {
+		root = generatedTreeRoot;
+	}
+}
+
 /* 
 	sets the wind force
 */
