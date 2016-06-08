@@ -511,6 +511,8 @@ float Tree::calculatePressure(branch* branch, float force, int dir){
 	// } else if (dir == 'z'){ //z axis
 	// 	a = sin(branch->rotation.x);
 	// }
+	float dotProd = dot(normalize(b->worldDir), normalize(desiredWindForce)); 
+	float angle = acos(dotProd); // the angle to rotate by
 
 	//force = sin(diffVec);
 
@@ -525,7 +527,7 @@ float Tree::calculatePressure(branch* branch, float force, int dir){
 	float degrees = 180.0f / ((float)math::pi()) ;
 
 	//pressure is the final return value
-	float pressure = force * (1 + a * sin(oscillation) );
+	float pressure = force * (1 + angle * sin(oscillation) );
 	//float pressure = sin(oscillation);
 
 	return pressure;
@@ -583,8 +585,8 @@ void Tree::applyWind(branch* b){
 	}
 
 	//calculates the displacement value for each axis	
-	float displacementX = angle / spring / float(len);
-	float displacementZ = angle / spring / float(len);
+	float displacementX = pressureX / spring / float(len);
+	float displacementZ = pressureZ / spring / float(len);
 
 	//debug info
 	// cout << "length " << b->length << endl;
