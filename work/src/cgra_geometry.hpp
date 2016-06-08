@@ -240,7 +240,10 @@ namespace cgra {
 
 		// use triangle strips to display each stack of the sphere
 		for (int stack_count = 0; stack_count < stacks; ++stack_count) {
-			
+
+			totalPointCount += pointCount;
+			pointCount = 0;
+
 			// This section is a triangle strip
 
 			for (int slice_count = 0; slice_count <= dualslices; ++slice_count) {
@@ -253,17 +256,17 @@ namespace cgra {
 
 				normals.push_back(vec3(h.x, h.y, h.z)); //glNormal3f(h.x, h.y, h.z);
 				points.push_back(vec3(ph.x, ph.y, ph.z)); //glVertex3f(ph.x, ph.y, ph.z);
-				
+
 				pointCount++;
 				if (pointCount >= 3) {
-					createTriangle(&triangles, totalPointCount + pointCount - 1, totalPointCount + pointCount - 2, totalPointCount + pointCount);
+					createTriangle(&triangles, totalPointCount + pointCount - 2, totalPointCount + pointCount - 1, totalPointCount + pointCount);
 				}
 
 				normals.push_back(vec3(l.x, l.y, l.z)); //glNormal3f(l.x, l.y, l.z);
 				points.push_back(vec3(pl.x, pl.y, pl.z)); //glVertex3f(pl.x, pl.y, pl.z);
 
 				pointCount++;
-				if (pointCount >= 3) {
+				if (pointCount >= 3 && stack_count != stacks - 1) {
 					createTriangle(&triangles, totalPointCount + pointCount - 1, totalPointCount + pointCount - 2, totalPointCount + pointCount);
 				}
 			}
@@ -332,7 +335,7 @@ namespace cgra {
 
 			totalPointCount += pointCount;
 			pointCount = 0;
-			
+
 			// This section is a triangle strip
 
 			for (int slice_count = 0; slice_count <= dualslices; ++slice_count) {
@@ -345,7 +348,7 @@ namespace cgra {
 
 				normals.push_back(vec3(nh.x, nh.y, nh.z)); //glNormal3f(nh.x, nh.y, nh.z);
 				points.push_back(vec3(ph.x, ph.y, ph.z)); //glVertex3f(ph.x, ph.y, ph.z);
-				
+
 				pointCount++;
 				if (pointCount >= 3) {
 					createTriangle(&triangles, totalPointCount + pointCount - 1, totalPointCount + pointCount - 2, totalPointCount + pointCount);
@@ -353,7 +356,7 @@ namespace cgra {
 
 				normals.push_back(vec3(nl.x, nl.y, nl.z)); //glNormal3f(nl.x, nl.y, nl.z);
 				points.push_back(vec3(pl.x, pl.y, pl.z)); //glVertex3f(pl.x, pl.y, pl.z);
-				
+
 				pointCount++;
 				if (pointCount >= 3) {
 					createTriangle(&triangles, totalPointCount + pointCount - 2, totalPointCount + pointCount - 1, totalPointCount + pointCount);

@@ -196,7 +196,7 @@ void initGeometry() {
 	cylinder = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
 	cylinder->setPosition(vec3(0, 3, 0));
 
-	sphere = generateSphereGeometry(3.0f);
+	sphere = generateSphereGeometry(2.0f, 4, 4);
 	sphere->setPosition(vec3(0, 3, 0));
 }
 
@@ -208,7 +208,7 @@ void initMaterials() {
 
 	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 
-	//cylinder->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
+	cylinder->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 	sphere->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 }
 
@@ -491,7 +491,7 @@ int main(int argc, char **argv) {
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 
-	g_fuzzy_system = new FuzzyObject(cylinder);
+	g_fuzzy_system = new FuzzyObject(sphere);
 
 	double lastTime = glfwGetTime();
 	int framesThisSecond = 0;
