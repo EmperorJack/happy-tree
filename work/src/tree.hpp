@@ -35,7 +35,8 @@ struct branch{
 
 class Tree{
 	public:
-		Tree();
+		Tree(float height = 20.0f , float trunk = 0.0f, float branchLength = 2.0f ,float influenceRatio = 8.0f, float killRatio = 1.0f, float prm_branchTipWidth = 0.03f,float prm_branchMinWidth = 0.04f);
+		~Tree();
 
 		void drawEnvelope();
 		void renderTree();
@@ -55,11 +56,11 @@ class Tree{
 		//the position this tree will exist in world space
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);	
 
-		float param_branchLength;
-		float param_radiusOfInfluence;
-		float param_killDistance;
-		float param_branchTipWidth;
-		float param_branchMinWidth;
+		float prm_branchLength;
+		float prm_radiusOfInfluence;
+		float prm_killDistance;
+		float prm_branchTipWidth;
+		float prm_branchMinWidth;
 
 		float treeHeight;
 		float trunkHeight;
@@ -69,13 +70,13 @@ class Tree{
 		float minZ = -3.0f;
 
 		float yStep;
-		float thetaStep = 1.0f;
+		float thetaStep = 10.0f;
 
 		std::vector<branch *> treeNodes;
 		std::vector<std::vector<cgra::vec3>> envelope;
 		std::vector<cgra::vec3> attractionPoints;
 
-		//Tree generation Methods Start <<<<
+		//Tree Generation Methods
 		branch* generateTree();
 		float setWidth(branch*);
 		std::vector<std::vector<int>> getAssociatedPoints();
@@ -87,15 +88,15 @@ class Tree{
 
 		bool inEnvelope(cgra::vec3);
 		branch* makeDummyTree(int);
-		//Tree generation Methods STOP <<<<
 
-		//drawing
+		//Drawing Methods
 		void renderBranch(branch *b, int depth=0);
 		void drawBranch(branch*);
 		void drawJoint(branch*);
 		void drawAxis(branch*);
 		void renderStick(branch *b, int depth=0);
-		// BELLOW HERE - wind variables and methods
+
+		//Wind Simulation
 
 		// the elasticity value of this tree, used for calculating spring value of branches
 		//hard coded right now, as number increases tree sway decreases

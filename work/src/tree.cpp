@@ -13,18 +13,18 @@ using namespace std;
 using namespace cgra;
 
 
-Tree::Tree(){
-	treeHeight = 20.0f;
-	trunkHeight = 2.0f;
+Tree::Tree(float height, float trunk, float branchLength, float influenceRatio, float killRatio, float branchTipWidth, float branchMinWidth){
+	treeHeight = height;
+	trunkHeight = trunk;
 
-	param_branchLength = 2.0f;
-	param_radiusOfInfluence = 8 * param_branchLength;
-	param_killDistance = param_branchLength;
-	param_branchTipWidth = 0.06;
-	param_branchMinWidth = 0.08;
+	prm_branchLength = branchLength;
+	prm_radiusOfInfluence = influenceRatio * prm_branchLength;
+	prm_killDistance = killRatio * prm_branchLength;
+	prm_branchTipWidth = branchTipWidth;
+	prm_branchMinWidth = branchMinWidth;
 
 	generateEnvelope(20);
-	generateAttractionPointsVolumetric(200);
+	generateAttractionPointsVolumetric(300);
 
 	generatedTreeRoot = generateTree();
 	dummyTreeRoot = makeDummyTree(4); // make dummy tree to work with
@@ -36,28 +36,22 @@ Tree::Tree(){
 	}
 }
 
+Tree::~Tree() {
+	for (branch* b : treeNodes) {
+		delete(b);
+	}
+}
+
 branch* Tree::generateTree(){
-	float d = param_branchLength;
+	float d = prm_branchLength;
 	
 	branch *root = new branch();
 	branch *parent = root;
 	branch *curNode = root;
 	curNode->position = vec3(0,0,0);
 	curNode->direction = vec3(0,1,0);
-	curNode->length = trunkHeight;
+	curNode->length = trunkHeight < d ? d : trunkHeight;
 	treeNodes.push_back(curNode);
-
-	// while(curNode->position.y + d < trunkHeight){
-	// 	curNode = new branch();
-	// 	curNode->position = parent->position + (parent->direction * parent->length);
-	// 	curNode->direction = vec3(0,1,0);
-	// 	curNode->length = d;
-	// 	curNode->parent = parent;
-	// 	parent->children.push_back(curNode);
-	// 	treeNodes.push_back(curNode);
-
-	// 	parent = curNode;
-	// }
 
 	//Generate branches from attraction points
 	// int prevSize = attractionPoints.size() + 1;
@@ -77,7 +71,7 @@ branch* Tree::generateTree(){
 					int ind = closestSet[t][j];
 					newDir += normalize(attractionPoints[ind] - v);
 				}
-				newDir = normalize(newDir + vec3(0,-0.1,0));
+				newDir = normalize(newDir + vec3(0,-0.2,0));
 
 				branch* newNode = new branch();
 				newNode->position = v;
@@ -102,7 +96,7 @@ branch* Tree::generateTree(){
 
 float Tree::setWidth(branch *b){
 	float width = 0.0;
-	float maxW = param_branchTipWidth;
+	float maxW = prm_branchTipWidth;
 
 	//cout << "branch with children: " << b->children.size() << endl;
 
@@ -112,7 +106,7 @@ float Tree::setWidth(branch *b){
 		maxW = (cw > maxW) ? cw : maxW;
 	}
 
-	width = (width == 0) ? param_branchMinWidth : sqrt(width);
+	width = (width == 0) ? prm_branchMinWidth : sqrt(width);
 
 	b->topWidth = maxW;
 	b->baseWidth = width;
@@ -149,7 +143,7 @@ vector<vector<int>> Tree::getAssociatedPoints(){
 		}
 
 		//Only assign to the set if it is within the radius of influence
-		if(minDist <= param_radiusOfInfluence){
+		if(minDist <= prm_radiusOfInfluence){
 			closestNodes[closest].push_back(i);
 		}
 	}
@@ -166,7 +160,7 @@ void Tree::cullAttractionPoints(){
 		for(int j=0; j<treeNodes.size(); j++){
 			branch* t = treeNodes[j];
 			vec3 p = t->position + (t->direction * t->length);
-			if(distance(aPoint,p) < param_killDistance){
+			if(distance(aPoint,p) < prm_killDistance){
 				toRemove = true;
 				break;
 			}

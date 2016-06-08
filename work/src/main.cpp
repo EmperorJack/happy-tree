@@ -49,6 +49,14 @@ Geometry* g_model = nullptr;
 // Tree to animate
 Tree* g_tree = nullptr;
 
+float tree_h = 20.0f;
+float tree_t = 1.0f;
+float tree_bL = 2.0f;
+float tree_inf = 8.0f;
+float tree_kill = 1.0f;
+float tree_tW = 0.04;
+float tree_mW = 0.08;
+
 // Toggle fields
 bool drawAxes = true;
 bool treeMode = false;
@@ -85,16 +93,46 @@ void initLight();
 
 // Keyboard callback
 void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
-	// cout << "Key Callback :: key=" << key << "scancode=" << scancode
-	// 	<< "action=" << action << "mods=" << mods << endl;
+	//cout << "Key Callback :: key=" << key << "scancode=" << scancode	<< "action=" << action << "mods=" << mods << endl;
 
 	// 'a' key pressed
 	if (key == 'A' && action == 1) {
 		drawAxes = !drawAxes;
 	}
 
-	if (key == 'T' && action == 1) {
-		treeMode = !treeMode;
+	//Tree Gen Stuff
+	if (mods == 2) {
+		if (key == 'R' && action == 1) {
+			delete(g_tree);
+			g_tree = new Tree(tree_h, tree_t, tree_bL, tree_inf, tree_kill, tree_tW, tree_mW);
+		}
+		if (key == 'T' && action == 1) {
+			treeMode = !treeMode;
+		}
+
+		if (key == 'W' && action == 1) {
+			tree_h += 1.0f;
+		}
+		if (key == 'S' && action == 1) {
+			tree_h -= 1.0f;
+			tree_h = tree_h < 1.0 ? 1.0 : tree_h;
+		}
+
+		if (key == 'D' && action == 1) {
+			tree_bL += 0.1f;
+		}
+		if (key == 'A' && action == 1) {
+			tree_bL -= 0.1f;
+			tree_bL = tree_bL < 1.0 ? 1.0 : tree_bL;
+		}
+
+		if (key == 'E' && action == 1) {
+			tree_mW += 0.01f;
+		}
+		if (key == 'Q' && action == 1) {
+			tree_mW -= 0.01f;
+			tree_mW = tree_mW <= 0 ? 0.01 : tree_mW;
+		}
 	}
 
 	if (key == 'F' && action == 1) {
@@ -324,7 +362,9 @@ void renderScene() {
 	} else {
 		// Render geometry
 		// g_model->renderGeometry();
+		//glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 		g_tree->renderTree();
+		//glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 	}
 }
 
@@ -451,6 +491,7 @@ int main(int argc, char **argv) {
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
+	initTexture("./work/res/textures/wood.jpg");
 
 	double lastTime = glfwGetTime();
 	int framesThisSecond = 0;
