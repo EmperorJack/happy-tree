@@ -344,6 +344,7 @@ void Tree::renderTree() {
 	glTranslatef(m_position.x, m_position.y, m_position.z);
 
 	//Actually draw the tree
+	updateWorldWindDirection(root, vec3(0,0,0));
 	renderBranch(root);
 
 	//increment wind "time"
@@ -479,6 +480,21 @@ void Tree::drawBranch(branch* b){
 	glPopMatrix();
 }
 
+void Tree::updateWorldWindDirection(branch* b, vec3 wind){	
+	if(b == NULL){
+		return;
+	}
+
+	vec3 deg = degrees(b->direction);
+	vec3 total = wind + deg;
+
+	b->worldDir = total;
+
+	for(branch* c : b->children){
+		updateWorldWindDirection(c, total);
+	}
+}
+
 /*
 	Calculates the pressure the wind will apply to a given branch
 	force is the float value of the wind in the windforce vector for a given axis (x or z)
@@ -487,12 +503,19 @@ void Tree::drawBranch(branch* b){
 float Tree::calculatePressure(branch* branch, float force, int dir){
 	float a = windCoefficent; //change to a small number derived from the current angle of the branch
 	
+	float xdiff = b->worldDir.x % 360;
+	float ydiff = b->worldDir.y % 360;
+	float zdiff = b->worldDir.z % 360;
+	vec3 diffVec = vec3(xdiff, ydiff, zdiff) - force;
+
 	//attempt at making the small value use the current angle of the branch
 	// if (dir == 'x'){ //x axis
 	// 	a = sin(branch->rotation.z);
 	// } else if (dir == 'z'){ //z axis
 	// 	a = sin(branch->rotation.x);
 	// }
+
+	//force = sin(diffVec);
 
 	//oscillation is plugged into a sine function. 
 	//time is increased steadily to make the effect follow an oscilation pattern - global scope

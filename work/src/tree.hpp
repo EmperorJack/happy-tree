@@ -30,6 +30,7 @@ struct branch{
 	branch* parent;
 	std::vector<branch *> children = std::vector<branch*>();	// all child branches of this branch
 
+	cgra::vec3 worldDir = cgra::vec3(0,0,0);
 	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
 };
 
@@ -114,4 +115,6 @@ class Tree{
 		float calculatePressure(branch*, float, int);
 		float springConstant(branch*);
 		void applyWind(branch*);
+
+		void updateWorldWindDirection(branch*, cgra::vec3);
 };
