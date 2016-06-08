@@ -193,6 +193,85 @@ namespace cgra {
 		triangles->push_back(tri);
 	}
 
+	inline Geometry* generateSphereGeometry(float radius, int slices = 10, int stacks = 10) {
+		assert(slices > 0 && stacks > 0 && radius > 0);
+
+		int dualslices = slices * 2;
+
+		// precompute sin/cos values for the range of phi
+		std::vector<float> sin_phi_vector;
+		std::vector<float> cos_phi_vector;
+
+		for (int slice_count = 0; slice_count <= dualslices; ++slice_count) {
+			float phi = 2 * math::pi() * float(slice_count) / dualslices;
+			sin_phi_vector.push_back(std::sin(phi));
+			cos_phi_vector.push_back(std::cos(phi));
+		}
+
+		// precompute the normalized coordinates of sphere
+		std::vector<vec3> verts;
+
+		// The vectors that will make up the geometry object
+		std::vector<vec3> points;
+		std::vector<vec3> normals;
+		std::vector<triangle> triangles;
+
+		// Load dummy points
+		points.push_back(vec3(0,0,0));
+		normals.push_back(vec3(0,0,1));
+
+		// Counting fields
+		int totalPointCount = 0;
+		int pointCount = 0;
+
+		for (int stack_count = 0; stack_count <= stacks; ++stack_count) {
+			float theta = math::pi() * float(stack_count) / stacks;
+			float sin_theta = std::sin(theta);
+			float cos_theta = std::cos(theta);
+
+			for (int slice_count = 0; slice_count <= dualslices; ++slice_count) {
+
+				verts.push_back(vec3(
+					sin_theta*cos_phi_vector[slice_count],
+					sin_theta*sin_phi_vector[slice_count],
+					cos_theta));
+			}
+		}
+
+		// use triangle strips to display each stack of the sphere
+		for (int stack_count = 0; stack_count < stacks; ++stack_count) {
+			
+			// This section is a triangle strip
+
+			for (int slice_count = 0; slice_count <= dualslices; ++slice_count) {
+
+				vec3 &h = verts[slice_count + stack_count*(dualslices + 1)];
+				vec3 &l = verts[slice_count + (stack_count + 1)*(dualslices + 1)];
+
+				vec3 ph = h*radius;
+				vec3 pl = l*radius;
+
+				normals.push_back(vec3(h.x, h.y, h.z)); //glNormal3f(h.x, h.y, h.z);
+				points.push_back(vec3(ph.x, ph.y, ph.z)); //glVertex3f(ph.x, ph.y, ph.z);
+				
+				pointCount++;
+				if (pointCount >= 3) {
+					createTriangle(&triangles, totalPointCount + pointCount - 1, totalPointCount + pointCount - 2, totalPointCount + pointCount);
+				}
+
+				normals.push_back(vec3(l.x, l.y, l.z)); //glNormal3f(l.x, l.y, l.z);
+				points.push_back(vec3(pl.x, pl.y, pl.z)); //glVertex3f(pl.x, pl.y, pl.z);
+
+				pointCount++;
+				if (pointCount >= 3) {
+					createTriangle(&triangles, totalPointCount + pointCount - 1, totalPointCount + pointCount - 2, totalPointCount + pointCount);
+				}
+			}
+		}
+
+		return new Geometry(points, normals, triangles);
+	}
+
 	inline Geometry* generateCylinderGeometry(float base_radius, float top_radius, float height, int slices = 10, int stacks = 10) {
 		assert(slices > 0 && stacks > 0 && (base_radius > 0 || base_radius > 0) && height > 0);
 

@@ -128,6 +128,7 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	if (key == 'W' && action == 1) {
 		g_model->toggleWireframe();
 		cylinder->toggleWireframe();
+		sphere->toggleWireframe();
 	}
 
 	// 'space' key pressed
@@ -192,7 +193,11 @@ void initGeometry() {
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
 
-	cylinder = generateCylinderGeometry(1.0f, 1.0f, 5.0f);
+	cylinder = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
+	cylinder->setPosition(vec3(0, 3, 0));
+
+	sphere = generateSphereGeometry(3.0f);
+	sphere->setPosition(vec3(0, 3, 0));
 }
 
 // Setup the materials per geometric object
@@ -203,7 +208,8 @@ void initMaterials() {
 
 	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 
-	cylinder->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
+	//cylinder->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
+	sphere->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 }
 
 // Loads in a texture from the given location
@@ -336,7 +342,7 @@ void renderScene() {
 	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
 
 	// Render plane
-	//renderPlane(20);
+	renderPlane(20);
 
 	if (treeMode){
 		//Render Tree
@@ -356,7 +362,8 @@ void renderScene() {
 	// Render particle system
 	g_fuzzy_system->renderSystem();
 
-	cylinder->renderGeometry();
+	//cylinder->renderGeometry();
+	sphere->renderGeometry();
 }
 
 // Draw the scene
@@ -484,7 +491,7 @@ int main(int argc, char **argv) {
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 
-	g_fuzzy_system = new FuzzyObject(g_model);
+	g_fuzzy_system = new FuzzyObject(cylinder);
 
 	double lastTime = glfwGetTime();
 	int framesThisSecond = 0;
