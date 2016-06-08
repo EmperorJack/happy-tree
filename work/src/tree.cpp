@@ -751,6 +751,23 @@ void Tree::adjustWind(int axis, int dir){
 	}
 }
 
+vector<Geometry*> Tree::getGeometries() {
+	vector<Geometry*> geometries;
+
+	getBranchGeometry(root, &geometries);
+
+	return geometries;
+}
+
+void Tree::getBranchGeometry(branch* b, vector<Geometry*>* geometries) {
+	geometries->push_back(b->jointModel);
+	geometries->push_back(b->branchModel);
+
+	for (branch* c : b->children) {
+		getBranchGeometry(b, geometries);
+	}
+}
+
 /* Builds a test tree to work with for simulating wind animation.
 	Trees is 'numBranches' segments tall, with 4 branches inbetween each segment.
 */

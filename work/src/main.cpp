@@ -52,6 +52,7 @@ Tree* g_tree = nullptr;
 
 // Particle system fields
 FuzzyObject* g_fuzzy_system = nullptr;
+vector<FuzzyObject*> g_tree_fuzzy_system;
 float spawnPointShiftAmount = 0.1f;
 bool explodingSystem = false;
 

@@ -53,6 +53,8 @@ class Tree{
 		void toggleTreeType();
 		void adjustWind(int, int);
 
+		std::vector<Geometry*> getGeometries();
+
 	private:
 		branch *root = nullptr; 	//the root section of the tree (first piece of trunk)
 		branch *generatedTreeRoot = nullptr; 	//the root section of the tree (first piece of trunk)
@@ -91,6 +93,8 @@ class Tree{
 		void generateAttractionPointsVolumetric(int num);
 		void generateEnvelope(int steps);
 		float envelopeFunction(float u,float theta);
+
+		void getBranchGeometry(branch*, std::vector<Geometry*>*);
 
 		bool inEnvelope(cgra::vec3);
 		branch* makeDummyTree(int);
