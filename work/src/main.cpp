@@ -46,8 +46,6 @@ GLuint g_shader = 0;
 
 // Geometry draw lists
 Geometry* g_model = nullptr;
-Geometry* sphere = nullptr;
-Geometry* cylinder = nullptr;
 
 // Tree to animate
 Tree* g_tree = nullptr;
@@ -185,8 +183,6 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	// 'w' key pressed
 	if (key == 'W' && action == 1) {
 		g_model->toggleWireframe();
-		cylinder->toggleWireframe();
-		sphere->toggleWireframe();
 	}
 
 	// 'space' key pressed
@@ -246,16 +242,10 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 // Load and setup the 3D geometry models
 void initGeometry() {
 	g_model = new Geometry("./work/res/assets/bunny-reduced.obj");
-	g_model->setPosition(vec3(0, 3, 0));
+	g_model->setPosition(vec3(5, 1, 5));
 
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
-
-	cylinder = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
-	cylinder->setPosition(vec3(0, 3, 0));
-
-	sphere = generateSphereGeometry(2.0f, 4, 4);
-	sphere->setPosition(vec3(0, 3, 0));
 }
 
 // Setup the materials per geometric object
@@ -265,9 +255,6 @@ void initMaterials() {
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
 
 	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
-
-	cylinder->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
-	sphere->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 }
 
 // Loads in a texture from the given location
@@ -423,9 +410,6 @@ void renderScene() {
 
 	// Render particle system
 	g_fuzzy_system->renderSystem();
-
-	//cylinder->renderGeometry();
-	//sphere->renderGeometry();
 }
 
 // Draw the scene

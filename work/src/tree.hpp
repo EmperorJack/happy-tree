@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "geometry.hpp"
+
 struct branch{
 	//Position is at the end of the parent branch
 	cgra::vec3 position = cgra::vec3(0,0,0); //Only used while generating the tree
@@ -31,6 +33,9 @@ struct branch{
 	std::vector<branch *> children = std::vector<branch*>();	// all child branches of this branch
 
 	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
+
+	Geometry* jointModel = nullptr;
+	Geometry* branchModel = nullptr;
 };
 
 class Tree{
@@ -41,20 +46,20 @@ class Tree{
 		void renderTree();
 		void renderStick();
 		void renderAttractionPoints();
-		
+
 		void setPosition(cgra::vec3);
 		void toggleWind();
 		void generateNewTree();
 		void toggleTreeType();
-		void adjustWind(int, int);	
-		
+		void adjustWind(int, int);
+
 	private:
 		branch *root = nullptr; 	//the root section of the tree (first piece of trunk)
 		branch *generatedTreeRoot = nullptr; 	//the root section of the tree (first piece of trunk)
 		branch *dummyTreeRoot = nullptr; 	//the root section of the tree (first piece of trunk)
 
 		//the position this tree will exist in world space
-		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);	
+		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 
 		float param_branchLength;
 		float param_radiusOfInfluence;
@@ -79,6 +84,7 @@ class Tree{
 		//Tree generation Methods Start <<<<
 		branch* generateTree();
 		float setWidth(branch*);
+		void generateGeometry(branch*);
 		std::vector<std::vector<int>> getAssociatedPoints();
 		void cullAttractionPoints();
 		void generateAttractionPoints(int num);
@@ -101,8 +107,8 @@ class Tree{
 		// the elasticity value of this tree, used for calculating spring value of branches
 		//hard coded right now, as number increases tree sway decreases
 		//make skinnier trees have higher elasticity to prevent them from going crazy...
-		float elasticity = 2000.0f;	
-		float time = 0.0f;			// time value used for moving along a sine curve 		
+		float elasticity = 2000.0f;
+		float time = 0.0f;			// time value used for moving along a sine curve
 		bool windEnabled = true;
 		bool dummyTree = false;
 		float windCoefficent = 1.2f;
@@ -110,7 +116,7 @@ class Tree{
 		//the wind acting upon this tree
 		cgra::vec3 desiredWindForce = cgra::vec3(0.0f, 0.0f, 0.0f);
 		void setWindForce(cgra::vec3);
-		
+
 		float calculatePressure(branch*, float, int);
 		float springConstant(branch*);
 		void applyWind(branch*);

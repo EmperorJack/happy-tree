@@ -27,6 +27,7 @@ Tree::Tree(){
 	generateAttractionPointsVolumetric(200);
 
 	generatedTreeRoot = generateTree();
+	generateGeometry(generatedTreeRoot);
 	dummyTreeRoot = makeDummyTree(4); // make dummy tree to work with
 
 	if(dummyTree){
@@ -38,7 +39,7 @@ Tree::Tree(){
 
 branch* Tree::generateTree(){
 	float d = param_branchLength;
-	
+
 	branch *root = new branch();
 	branch *parent = root;
 	branch *curNode = root;
@@ -63,7 +64,7 @@ branch* Tree::generateTree(){
 	// int prevSize = attractionPoints.size() + 1;
 	while(attractionPoints.size() > 0){
 		// cout << "treeSize " << treeNodes.size() << " attPoints " << attractionPoints.size() << endl;
-		
+
 		vector<vector<int>> closestSet = getAssociatedPoints();
 		vector<branch *> toBeAdded;
 		//Loop for all treeNodes
@@ -85,8 +86,9 @@ branch* Tree::generateTree(){
 				newNode->length = d;
 				newNode->parent = treeNodes[t];
 				newNode->offset = math::random(0.0f,1.0f);
+
 				treeNodes[t]->children.push_back(newNode);
-				
+
 				toBeAdded.push_back(newNode);
 			}
 		}
@@ -117,11 +119,25 @@ float Tree::setWidth(branch *b){
 	b->topWidth = maxW;
 	b->baseWidth = width;
 
+
+
 	// for(int i=0; i<b->children.size(); i++){
 	// 	(b->children[i])->baseWidth = width;
 	// }
 
 	return width;
+}
+
+void Tree::generateGeometry(branch *b) {
+	b->jointModel = generateSphereGeometry(b->baseWidth);
+	b->branchModel = generateCylinderGeometry(b->baseWidth, b->topWidth, b->length);
+
+	b->jointModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
+	b->branchModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
+
+	for (branch* c : b->children) {
+		generateGeometry(c);
+	}
 }
 
 vector<vector<int>> Tree::getAssociatedPoints(){
@@ -247,7 +263,7 @@ void Tree::generateEnvelope(int steps){
 
 			float x = d * sin(radians(theta));
 			float z = d * cos(radians(theta));
-			
+
 			//Assign bounding values for volumetric filling
 			minZ = z < minZ ? z : minZ;
 			maxZ = z > maxZ ? z : maxZ;
@@ -369,7 +385,7 @@ void Tree::renderBranch(branch *b, int depth) {
 	glPushMatrix();
 		//only draw branch info if it has a length
 		if(b->length > 0){
-		
+
 			vec3 rot = b->basisRot;
 			glRotatef(rot.z, 0, 0, 1);
 			glRotatef(rot.y, 0, 1, 0);
@@ -384,7 +400,7 @@ void Tree::renderBranch(branch *b, int depth) {
 			//perform rotation as updated by wind
 			glRotatef(b->rotation.z, 0, 0, 1);
 			glRotatef(b->rotation.x, 1, 0, 0);
-	
+
 			glRotatef(-rot.x, 1, 0, 0);
 			glRotatef(-rot.y, 0, 1, 0);
 			glRotatef(-rot.z, 0, 0, 1);
@@ -408,7 +424,7 @@ void Tree::renderBranch(branch *b, int depth) {
 
 		for(branch* c : b->children){
 			renderBranch(c, depth+1);
-		}	
+		}
 
 	glPopMatrix();
 }
@@ -451,7 +467,7 @@ void Tree::renderStick(branch *b, int depth){
 
 		for(branch* child : b->children){
 			renderStick(child, depth+1);
-		}	
+		}
 	}glPopMatrix();
 }
 
@@ -460,22 +476,24 @@ void Tree::renderStick(branch *b, int depth){
 */
 void Tree::drawJoint(branch* b){
 	glPushMatrix();
-		cgraSphere(b->baseWidth);
+		//cgraSphere(b->baseWidth);
+		b->jointModel->renderGeometry();
 	glPopMatrix();
 }
 
 /* draws the branch to the screen
 */
 void Tree::drawBranch(branch* b){
-	vec3 norm = normalize(b->direction); 
-	float dotProd = dot(norm, vec3(0,0,1)); 
+	vec3 norm = normalize(b->direction);
+	float dotProd = dot(norm, vec3(0,0,1));
 
 	float angle = acos(dotProd); // the angle to rotate by
-	vec3 crossProd = cross(b->direction, vec3(0,0,1)); 
-	
+	vec3 crossProd = cross(b->direction, vec3(0,0,1));
+
 	glPushMatrix();
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
-		cgraCylinder(b->baseWidth, b->topWidth, b->length);
+		//cgraCylinder(b->baseWidth, b->topWidth, b->length);
+		b->branchModel->renderGeometry();
 	glPopMatrix();
 }
 
@@ -486,7 +504,7 @@ void Tree::drawBranch(branch* b){
 */
 float Tree::calculatePressure(branch* branch, float force, int dir){
 	float a = windCoefficent; //change to a small number derived from the current angle of the branch
-	
+
 	//attempt at making the small value use the current angle of the branch
 	// if (dir == 'x'){ //x axis
 	// 	a = sin(branch->rotation.z);
@@ -494,7 +512,7 @@ float Tree::calculatePressure(branch* branch, float force, int dir){
 	// 	a = sin(branch->rotation.x);
 	// }
 
-	//oscillation is plugged into a sine function. 
+	//oscillation is plugged into a sine function.
 	//time is increased steadily to make the effect follow an oscilation pattern - global scope
 	//branch offset is a random value assigned to each branch so they are at a different point in the oscillation
 	float oscillation = (time + branch->offset);
@@ -537,7 +555,7 @@ float Tree::springConstant(branch* branch){
 void Tree::applyWind(branch* b){
 	//increment time (this value is currently has no meaning, just seems to fit at an ok speed)
 
-	//calculates the pressure value for each axis	
+	//calculates the pressure value for each axis
 	float pressureX = calculatePressure(b, desiredWindForce.x, 'x');
 	float pressureZ = calculatePressure(b, desiredWindForce.z, 'z');
 
@@ -550,7 +568,7 @@ void Tree::applyWind(branch* b){
 	float spring = springConstant(b);
 	// cout << "Spring Value: " << spring << endl;
 
-	//make sure no division of 0 is occuring 
+	//make sure no division of 0 is occuring
 	int len = b->length;
 	if(len == 0){
 		len = 0.00001f;
@@ -559,7 +577,7 @@ void Tree::applyWind(branch* b){
 		spring = 0.00001f;
 	}
 
-	//calculates the displacement value for each axis	
+	//calculates the displacement value for each axis
 	float displacementX = pressureX / spring / float(len);
 	float displacementZ = pressureZ / spring / float(len);
 
@@ -596,7 +614,7 @@ void Tree::applyWind(branch* b){
 
 	// cout << "Min Angle - x: " << b->minX << "  z: " << b->minX << endl;
 	// cout << "Max Angle - x: " << b->maxZ << "  z: " << b->maxZ << endl;
-	
+
 	// cout << "Motion Angle - x: " << motionAngleX << "  z: " << motionAngleZ << endl;
 
 	//mulitply a radians value by degrees variable to convert it from radians to degrees
@@ -643,7 +661,7 @@ void Tree::applyWind(branch* b){
 //------------------------------------------------//
 //   Miscellaneous Functions                      //
 //------------------------------------------------//
-/* 
+/*
 	sets the position we want to draw the tree at
 */
 void Tree::setPosition(vec3 position) {
@@ -681,7 +699,7 @@ void Tree::generateNewTree(){
 	param_killDistance = param_branchLength;
 	param_branchTipWidth = 0.06;
 	param_branchMinWidth = 0.08;
-	
+
 	generateEnvelope(20);
 	generateAttractionPointsVolumetric(200);
 
@@ -694,7 +712,7 @@ void Tree::generateNewTree(){
 	}
 }
 
-/* 
+/*
 	sets the wind force
 */
 void Tree::setWindForce(vec3 wind){
@@ -730,7 +748,7 @@ void Tree::adjustWind(int axis, int dir){
 		} else if (dir == -1){
 			timeIncrement -= tIncrease;
 		}
-	} 
+	}
 }
 
 /* Builds a test tree to work with for simulating wind animation.
@@ -781,7 +799,7 @@ branch* Tree::makeDummyTree(int numBranches){
 
 		b->children.push_back(makeDummyTree(numBranches - 1));
 
-		
+
 	}
 	return b;
 }
