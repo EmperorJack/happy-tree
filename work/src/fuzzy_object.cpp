@@ -27,6 +27,8 @@ FuzzyObject::FuzzyObject(Geometry *geometry) {
 
 	setupDisplayList();
 
+	spawnPoint = geometry->getOrigin();
+
 	//buildSystem(false);
 }
 
@@ -82,7 +84,7 @@ void FuzzyObject::buildSystem(bool incremental) {
 bool FuzzyObject::stoppingCriteria() {
 	if (particles.size() >= particleLimit) return true;
 
-	if (collisionCount == particles.size() && particles.size() > 10) {
+	if (collisionCount == particles.size() && particles.size() > minParticleCount) {
 
 		for (int i = 0; i < stabilityUpdates; i++) {
 			updateBuildingSystem();
@@ -106,9 +108,9 @@ void FuzzyObject::addParticle() {
 	if (particles.size() >= particleLimit) return;
 
 	particle p;
-	p.pos = vec3(spawnPoint.x + math::random(-0.1f, 0.1f),
-							 spawnPoint.y + math::random(-0.1f, 0.1f),
-							 spawnPoint.z + math::random(-0.1f, 0.1f));
+	p.pos = vec3(spawnPoint.x + math::random(-0.01f, 0.01f),
+							 spawnPoint.y + math::random(-0.01f, 0.01f),
+							 spawnPoint.z + math::random(-0.01f, 0.01f));
 
 	p.acc = vec3(0.0f, 0.0f, 0.0f);
 
@@ -132,8 +134,9 @@ void FuzzyObject::updateBuildingSystem() {
 		particles[i].inCollision = false;
 
 		// Check if the particle left the mesh
-		float d = dot(particles[i].pos - particles[i].triangleIntersectionPos, -g_geometry->getSurfaceNormal(particles[i].triangleIndex));
-		if (d < 0.0f || d == maxFloatVector.x) {
+		if (!g_geometry->pointInsideMesh(particles[i].pos)) {
+		//float d = dot(particles[i].pos - particles[i].triangleIntersectionPos, -g_geometry->getSurfaceNormal(particles[i].triangleIndex));
+		//if (d < 0.0f || d == maxFloatVector.x) {
 
 			// Mark it for deletion
 			particles[i].col = vec3(0.0f, 1.0f, 0.0f);
@@ -148,10 +151,18 @@ void FuzzyObject::updateBuildingSystem() {
 	applyBoundaryForces();
 
 	// Delete any particles marked for deletion
-	for (int i = 0; i < particlesForDeletion.size(); i++) {
-		particles.erase(particles.begin() + particlesForDeletion[i]);
+	if (particlesForDeletion.size() > 0) {
+		vector<particle> newParticles;
+
+		for (int i = 0; i < particles.size(); i++) {
+			if (find(particlesForDeletion.begin(), particlesForDeletion.end(), i) == particlesForDeletion.end()) {
+				newParticles.push_back(particles[i]);
+			}
+		}
+
+		particlesForDeletion.clear();
+		particles = newParticles;
 	}
-	particlesForDeletion.clear();
 
 	// Update the particle positions and velocities
 	for (int i = 0; i < particles.size(); i++) {

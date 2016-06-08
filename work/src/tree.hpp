@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "geometry.hpp"
+#include "fuzzy_object.hpp"
 
 struct branch{
 	//Position is at the end of the parent branch
@@ -36,6 +37,7 @@ struct branch{
 
 	Geometry* jointModel = nullptr;
 	Geometry* branchModel = nullptr;
+	FuzzyObject* branchFuzzySystem = nullptr;
 };
 
 class Tree{
@@ -54,6 +56,7 @@ class Tree{
 		void adjustWind(int, int);
 
 		std::vector<Geometry*> getGeometries();
+		void buildFuzzySystems(bool);
 
 	private:
 		branch *root = nullptr; 	//the root section of the tree (first piece of trunk)
@@ -95,6 +98,7 @@ class Tree{
 		float envelopeFunction(float u,float theta);
 
 		void getBranchGeometry(branch*, std::vector<Geometry*>*);
+		void buildBranchFuzzySystem(branch*, bool);
 
 		bool inEnvelope(cgra::vec3);
 		branch* makeDummyTree(int);

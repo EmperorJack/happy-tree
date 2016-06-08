@@ -62,6 +62,7 @@ class FuzzyObject {
 		// Particle system fields
 		std::vector<particle> particles;
 		int particleLimit = 3000;
+		int minParticleCount = 10;
 		std::vector<int> particlesForDeletion;
 
 		// State fields

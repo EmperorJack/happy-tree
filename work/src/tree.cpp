@@ -130,10 +130,14 @@ float Tree::setWidth(branch *b){
 
 void Tree::generateGeometry(branch *b) {
 	b->jointModel = generateSphereGeometry(b->baseWidth);
-	b->branchModel = generateCylinderGeometry(b->baseWidth, b->topWidth, b->length);
+	b->branchModel = generateCylinderGeometry(b->baseWidth, b->topWidth, b->length, 10, 2);
 
 	b->jointModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
+	//b->jointModel->setPosition(b->position);
 	b->branchModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
+	//b->branchModel->setPosition(b->position);
+
+	b->branchFuzzySystem = new FuzzyObject(b->branchModel);
 
 	for (branch* c : b->children) {
 		generateGeometry(c);
@@ -494,6 +498,7 @@ void Tree::drawBranch(branch* b, bool wireframe){
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
 		//cgraCylinder(b->baseWidth, b->topWidth, b->length);
 		b->branchModel->renderGeometry(wireframe);
+		b->branchFuzzySystem->renderSystem();
 	glPopMatrix();
 }
 
@@ -760,11 +765,22 @@ vector<Geometry*> Tree::getGeometries() {
 }
 
 void Tree::getBranchGeometry(branch* b, vector<Geometry*>* geometries) {
-	geometries->push_back(b->jointModel);
 	geometries->push_back(b->branchModel);
 
 	for (branch* c : b->children) {
-		getBranchGeometry(b, geometries);
+		getBranchGeometry(c, geometries);
+	}
+}
+
+void Tree::buildFuzzySystems(bool increment) {
+	buildBranchFuzzySystem(root, increment);
+}
+
+void Tree::buildBranchFuzzySystem(branch* b, bool increment) {
+	b->branchFuzzySystem->buildSystem(increment);
+
+	for (branch* c : b->children) {
+		buildBranchFuzzySystem(c, increment);
 	}
 }
 

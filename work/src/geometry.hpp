@@ -56,6 +56,7 @@ class Geometry {
 		void renderGeometry(bool);
 		int triangleCount();
 		cgra::vec3 getSurfaceNormal(int);
+		cgra::vec3 getOrigin();
 
 	private:
 		std::string m_filename;

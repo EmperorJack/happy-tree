@@ -52,7 +52,7 @@ Tree* g_tree = nullptr;
 
 // Particle system fields
 FuzzyObject* g_fuzzy_system = nullptr;
-vector<FuzzyObject*> g_tree_fuzzy_system;
+//vector<FuzzyObject*> g_tree_fuzzy_systems;
 float spawnPointShiftAmount = 0.1f;
 bool explodingSystem = false;
 
@@ -84,6 +84,7 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 		g_rightMouseDown = (action == GLFW_PRESS);
 		if (g_rightMouseDown) {
 			g_fuzzy_system->buildSystemIncrement();
+			g_tree->buildFuzzySystems(true);
 		}
 	}
 
@@ -399,14 +400,19 @@ void renderScene() {
 		// g_tree->renderAttractionPoints();
 		glEnable(GL_LIGHTING);
 	} else {
+		// Update tree particle system building
+		if (realtimeBuild) {
+			g_tree->buildFuzzySystems(true);
+		}
+
 		// Render geometry
 		g_tree->renderTree(wireframeMode);
 
 		if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry(wireframeMode);
 	}
 
-	// Update building particle system
-	if (realtimeBuild && !g_fuzzy_system->finishedBuilding()) g_fuzzy_system->buildSystemIncrement();
+	// Update building particle systems
+	//if (realtimeBuild && !g_fuzzy_system->finishedBuilding()) g_fuzzy_system->buildSystemIncrement();
 
 	if (explodingSystem && g_fuzzy_system->finishedBuilding()) g_fuzzy_system->updateSystem();
 

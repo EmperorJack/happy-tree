@@ -378,3 +378,11 @@ int Geometry::triangleCount() {
 vec3 Geometry::getSurfaceNormal(int index) {
 	return m_surfaceNormals[index];
 }
+
+vec3 Geometry::getOrigin() {
+	vec3 average = vec3(0.0f, 0.0f, 0.0f);
+	for (int i = 0; i < m_points.size(); i++) {
+		average += m_points[i];
+	}
+	return average / m_points.size();
+}
