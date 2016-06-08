@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 // COMP308 Final Project
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #include <cmath>
 #include <cstdlib>
@@ -16,6 +16,7 @@
 #include "opengl.hpp"
 #include "geometry.hpp"
 #include "tree.hpp"
+#include "fuzzy_object.hpp"
 
 using namespace std;
 using namespace cgra;
@@ -45,13 +46,21 @@ GLuint g_shader = 0;
 
 // Geometry draw lists
 Geometry* g_model = nullptr;
+Geometry* sphere = nullptr;
+Geometry* cylinder = nullptr;
 
 // Tree to animate
 Tree* g_tree = nullptr;
 
+// Particle system fields
+FuzzyObject* g_fuzzy_system = nullptr;
+float spawnPointShiftAmount = 0.1f;
+bool explodingSystem = false;
+
 // Toggle fields
 bool drawAxes = true;
 bool treeMode = false;
+bool realtimeBuild = false;
 bool partyMode = false;
 
 // Mouse Position callback
@@ -70,8 +79,18 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
 		g_leftMouseDown = (action == GLFW_PRESS);
 	}
+
 	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 		g_rightMouseDown = (action == GLFW_PRESS);
+		if (g_rightMouseDown) {
+			g_fuzzy_system->buildSystemIncrement();
+		}
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+		if (action == GLFW_PRESS) {
+			for (int i = 0; i < 100; i++) g_fuzzy_system->buildSystemIncrement();
+		}
 	}
 }
 
@@ -166,22 +185,77 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	// 'w' key pressed
 	if (key == 'W' && action == 1) {
 		g_model->toggleWireframe();
+		cylinder->toggleWireframe();
+		sphere->toggleWireframe();
+	}
+
+	// 'space' key pressed
+	if (key == 32 && action == 1) {
+		if (g_fuzzy_system->finishedBuilding()) {
+			g_fuzzy_system->explode();
+			explodingSystem = true;
+		}
+	}
+
+	// 'up' key pressed
+	if (key == 265 && (action == 1 || action == 2)) {
+		g_fuzzy_system->spawnPoint.z += spawnPointShiftAmount;
+	}
+
+	// 'left' key pressed
+	if (key == 263 && (action == 1 || action == 2)) {
+		g_fuzzy_system->spawnPoint.x += spawnPointShiftAmount;
+	}
+
+	// 'right' key pressed
+	if (key == 262 && (action == 1 || action == 2)) {
+		g_fuzzy_system->spawnPoint.x -= spawnPointShiftAmount;
+	}
+
+	// 'down' key pressed
+	if (key == 264 && (action == 1 || action == 2)) {
+		g_fuzzy_system->spawnPoint.z -= spawnPointShiftAmount;
+	}
+
+	// 'e' key pressed
+	if (key == 'E' && (action == 1 || action == 2)) {
+		g_fuzzy_system->spawnPoint.y -= spawnPointShiftAmount;
+	}
+
+	// 'r' key pressed
+	if (key == 'R' && (action == 1 || action == 2)) {
+		g_fuzzy_system->spawnPoint.y += spawnPointShiftAmount;
+	}
+
+	// 'q' key pressed
+	if (key == 'Q' && action == 1) {
+		realtimeBuild = !realtimeBuild;
+	}
+
+	// 'v' key pressed
+	if (key == 'L' && action == 1) {
+		g_fuzzy_system->toggleParticleViewMode();
 	}
 }
 
 // Character callback
 void charCallback(GLFWwindow *win, unsigned int c) {
 	// cout << "Char Callback :: c=" << char(c) << endl;
-	// Not needed for this assignment, but useful to have later on
 }
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	g_model = new Geometry("./work/res/assets/teapot.obj");
-	g_model->setPosition(vec3(0, 0, 0));
+	g_model = new Geometry("./work/res/assets/bunny-reduced.obj");
+	g_model->setPosition(vec3(0, 3, 0));
 
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
+
+	cylinder = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
+	cylinder->setPosition(vec3(0, 3, 0));
+
+	sphere = generateSphereGeometry(2.0f, 4, 4);
+	sphere->setPosition(vec3(0, 3, 0));
 }
 
 // Setup the materials per geometric object
@@ -189,7 +263,11 @@ void initMaterials() {
 	vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4 grey = vec4(0.2, 0.2, 0.2, 1.0);
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
-	g_model->setMaterial(grey, vec4(0.75, 0.75, 0.75, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
+
+	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
+
+	cylinder->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
+	sphere->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 }
 
 // Loads in a texture from the given location
@@ -333,9 +411,21 @@ void renderScene() {
 		glEnable(GL_LIGHTING);
 	} else {
 		// Render geometry
-		// g_model->renderGeometry();
 		g_tree->renderTree();
+
+		if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry();
 	}
+
+	// Update building particle system
+	if (realtimeBuild && !g_fuzzy_system->finishedBuilding()) g_fuzzy_system->buildSystemIncrement();
+
+	if (explodingSystem && g_fuzzy_system->finishedBuilding()) g_fuzzy_system->updateSystem();
+
+	// Render particle system
+	g_fuzzy_system->renderSystem();
+
+	//cylinder->renderGeometry();
+	//sphere->renderGeometry();
 }
 
 // Draw the scene
@@ -383,11 +473,12 @@ void renderGUI() {
 	sprintf(fpsString, "FPS: %.2f", 1 / frameRate);
 
 	ImGui::SetNextWindowPos(ImVec2(10, 10));
-
 	ImGui::Begin("", nullptr, ImVec2(0, 0), 0.3f,
 				 ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 
-	ImGui::Text(string(fpsString).c_str());	
+	ImGui::Text(string(fpsString).c_str());
+	ImGui::Text(("Particle Count: " + to_string(g_fuzzy_system->getParticleCount())).c_str());
+
 	ImGui::End();
 
 	// Flush components and render
@@ -461,6 +552,8 @@ int main(int argc, char **argv) {
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
+
+	g_fuzzy_system = new FuzzyObject(g_model);
 
 	double lastTime = glfwGetTime();
 	int framesThisSecond = 0;

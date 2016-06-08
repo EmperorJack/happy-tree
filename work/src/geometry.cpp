@@ -43,6 +43,30 @@ Geometry::Geometry(string filename) {
 	m_material.emission = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
+Geometry::Geometry(vector<vec3> points, vector<vec3> normals, vector<triangle> triangles) {
+	m_points = points;
+	m_normals = normals;
+	m_triangles = triangles;
+
+	// Load a dummy point for the UV's
+	m_uvs.push_back(vec2(0,0));
+
+	// Create the surface normals for every triangle
+	createSurfaceNormals();
+
+	if (m_triangles.size() > 0) {
+		createDisplayListPoly();
+		createDisplayListWire();
+	}
+
+	// Default material setting
+	m_material.ambient = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	m_material.diffuse = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	m_material.specular = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	m_material.shininess = 0.0f;
+	m_material.emission = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+}
+
 Geometry::~Geometry() { }
 
 void Geometry::readOBJ(string filename) {
@@ -134,14 +158,17 @@ void Geometry::readOBJ(string filename) {
 		}
 	}
 
+	// Create the surface normals for every triangle
+	createSurfaceNormals();
+
+	// If we didn't have any vertex normals, create them
+	if (m_normals.size() <= 1) createNormals();
+
 	cout << "Reading OBJ file is DONE." << endl;
 	cout << m_points.size()-1 << " points" << endl;
 	cout << m_uvs.size()-1 << " uv coords" << endl;
 	cout << m_normals.size()-1 << " normals" << endl;
 	cout << m_triangles.size() << " faces" << endl;
-
-	// If we didn't have any normals, create them
-	if (m_normals.size() <= 1) createNormals();
 }
 
 void Geometry::createNormals() {
@@ -154,7 +181,7 @@ void Geometry::createNormals() {
 		vec3 v3 = m_points[m_triangles[i].v[2].p];
 
 		// Compute the surface normal from the triangle vertices
-		vec3 n = cgra::cross(v2 - v1, v3 - v1);
+		vec3 n = cross(v2 - v1, v3 - v1);
 
 		// Add the surface normal to each associated vertex normal
 		for (int j = 0; j < 3; j++) {
@@ -166,11 +193,19 @@ void Geometry::createNormals() {
 		for (int j = 0; j < 3; j++) {
 			// Push the normalized vertex normal to the model normals
 			vec3 v_normal = vertex_normals[m_triangles[i].v[j].p];
-			m_normals.push_back(cgra::normalize(v_normal));
+			m_normals.push_back(normalize(v_normal));
 
 			// Associate the current vertex with the new vertex normal
 			m_triangles[i].v[j].n = m_normals.size() - 1;
 		}
+	}
+}
+
+void Geometry::createSurfaceNormals() {
+	// Compute the surface normal of each triangle
+	for (int i = 0; i < m_triangles.size(); i++) {
+		m_surfaceNormals.push_back(normalize(cross(m_points[m_triangles[i].v[1].p] - m_points[m_triangles[i].v[0].p],
+			 																					m_points[m_triangles[i].v[2].p] - m_points[m_triangles[i].v[0].p])));
 	}
 }
 
@@ -179,14 +214,14 @@ void Geometry::createDisplayListPoly() {
 	if (m_displayListPoly) glDeleteLists(m_displayListPoly, 1);
 
 	// Create a new list
-	cout << "Creating Poly Geometry" << endl;
+	//cout << "Creating Poly Geometry" << endl;
 	m_displayListPoly = glGenLists(1);
 	glNewList(m_displayListPoly, GL_COMPILE);
 
 	displayTriangles();
 
 	glEndList();
-	cout << "Finished creating Poly Geometry" << endl;
+	//cout << "Finished creating Poly Geometry" << endl;
 }
 
 void Geometry::createDisplayListWire() {
@@ -194,14 +229,14 @@ void Geometry::createDisplayListWire() {
 	if (m_displayListWire) glDeleteLists(m_displayListWire, 1);
 
 	// Create a new list
-	cout << "Creating Wire Geometry" << endl;
+	//cout << "Creating Wire Geometry" << endl;
 	m_displayListWire = glGenLists(1);
 	glNewList(m_displayListWire, GL_COMPILE);
 
 	displayTriangles();
 
 	glEndList();
-	cout << "Finished creating Wire Geometry" << endl;
+	//cout << "Finished creating Wire Geometry" << endl;
 }
 
 void Geometry::displayTriangles() {
@@ -220,6 +255,10 @@ void Geometry::displayTriangles() {
 	glEnd();
 }
 
+vec3 Geometry::getPosition() {
+	return m_position;
+}
+
 void Geometry::setPosition(vec3 position) {
 	m_position = position;
 }
@@ -230,6 +269,62 @@ void Geometry::setMaterial(vec4 ambient, vec4 diffuse, vec4 specular, float shin
 	m_material.specular = specular;
 	m_material.shininess = shininess;
 	m_material.emission = emission;
+}
+
+vec3 Geometry::rayIntersectsTriangle(vec3 p, vec3 d, int triIndex) {
+	// https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+
+	triangle tri = m_triangles[triIndex];
+	vec3 v0 = m_points[tri.v[0].p];
+	vec3 v1 = m_points[tri.v[1].p];
+	vec3 v2 = m_points[tri.v[2].p];
+
+	vec3 e1, e2, h, s, q;
+	float a,f,u,v;
+	e1 = v1 - v0;
+	e2 = v2 - v0;
+
+	h = cross(d, e2);
+	a = dot(e1, h);
+
+	if (a > -0.00001f && a < 0.00001f) return noIntersectionVector;
+
+	f = 1/a;
+	s = p - v0;
+	u = f * (dot(s,h));
+
+	if (u < 0.0f || u > 1.0f) return noIntersectionVector;
+
+	q = cross(s, e1);
+	v = f * dot(d,q);
+
+	if (v < 0.0f || u + v > 1.0f) return noIntersectionVector;
+
+	// Compute t to find out where the intersection point is on the line
+	float t = f * dot(e2,q);
+
+	// Ray intersection occured
+	if (t > 0.00001f) {
+		return vec3(((1 - u - v) * v0) + (u * v1) + (v * v2));
+	}
+
+	// Line intersection occured but not a ray intersection
+	return noIntersectionVector;
+}
+
+bool Geometry::pointInsideMesh(vec3 point) {
+	int intersectionCount = 0;
+
+	vec3 direction = vec3(0, 0, 1);
+
+	for (int i = 0; i < m_triangles.size(); i++) {
+		if (rayIntersectsTriangle(point, direction, i).x != noIntersectionVector.x) {
+			intersectionCount++;
+		}
+	}
+
+	// An odd number of intersections means the point is inside the mesh
+	return intersectionCount % 2;
 }
 
 void Geometry::renderGeometry() {
@@ -247,6 +342,7 @@ void Geometry::renderGeometry() {
 	glShadeModel(GL_SMOOTH);
 
 	if (wireframe) {
+		glLineWidth(1);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glCallList(m_displayListWire);
 	} else {
@@ -254,9 +350,35 @@ void Geometry::renderGeometry() {
 		glCallList(m_displayListPoly);
 	}
 
+	// Debug code for drawing the surface normals
+	// for (int i = 0; i < m_surfaceNormals.size(); i++) {
+	// 	glPushMatrix();
+	// 	vec3 triPos = (m_points[m_triangles[i].v[0].p] + m_points[m_triangles[i].v[1].p] + m_points[m_triangles[i].v[2].p]) / 3.0f;
+	// 	glTranslatef(triPos.x, triPos.y, triPos.z);
+
+	// 	glBegin(GL_LINES);
+	// 	glVertex3f(0.0f, 0.0f, 0.0f);
+	// 	glVertex3f(m_surfaceNormals[i].x * 0.5f, m_surfaceNormals[i].y * 0.5f, m_surfaceNormals[i].z * 0.5f);
+	// 	glEnd();
+
+	// 	glBegin(GL_POINTS);
+	// 	glVertex3f(m_surfaceNormals[i].x * 0.5f, m_surfaceNormals[i].y * 0.5f, m_surfaceNormals[i].z * 0.5f);
+	// 	glEnd();
+
+	// 	glPopMatrix();
+	// }
+
 	glPopMatrix();
 }
 
 void Geometry::toggleWireframe() {
 	wireframe = !wireframe;
+}
+
+int Geometry::triangleCount() {
+  return m_triangles.size();
+}
+
+vec3 Geometry::getSurfaceNormal(int index) {
+	return m_surfaceNormals[index];
 }

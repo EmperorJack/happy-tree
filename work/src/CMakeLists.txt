@@ -13,6 +13,7 @@ SET(headers
 	"simple_gui.hpp"
 	"geometry.hpp"
 	"tree.hpp"
+	"fuzzy_object.hpp"
 )
 
 
@@ -22,6 +23,7 @@ SET(sources
 	"simple_gui.cpp"
 	"geometry.cpp"
 	"tree.cpp"
+	"fuzzy_object.cpp"
 )
 
 # Add executable target and link libraries
