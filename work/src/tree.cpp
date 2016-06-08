@@ -352,7 +352,7 @@ void Tree::renderAttractionPoints(){
 /* public method for drawing the tree to the screen.
 	draws the tree by calling renderbranch() on the root node.
 */
-void Tree::renderTree() {
+void Tree::renderTree(bool wireframe) {
 	//glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
@@ -360,7 +360,7 @@ void Tree::renderTree() {
 	glTranslatef(m_position.x, m_position.y, m_position.z);
 
 	//Actually draw the tree
-	renderBranch(root);
+	renderBranch(root, wireframe);
 
 	//increment wind "time"
 	time += timeIncrement;
@@ -372,7 +372,7 @@ void Tree::renderTree() {
 /* performs the logic for drawing any given branch at its position and rotation.
 	then recursively calls renderBranch() on all of its child branches.
 */
-void Tree::renderBranch(branch *b, int depth) {
+void Tree::renderBranch(branch *b, bool wireframe, int depth) {
 	if(b == NULL){
 		return;
 	}
@@ -406,9 +406,9 @@ void Tree::renderBranch(branch *b, int depth) {
 			glRotatef(-rot.z, 0, 0, 1);
 
 			//draw the joint of this branch
-			drawJoint(b);
+			drawJoint(b, wireframe);
 
-			drawBranch(b);
+			drawBranch(b, wireframe);
 
 			//translate to the end of the branch based off length and direction
 			vec3 offset = b->direction * b->length;
@@ -423,7 +423,7 @@ void Tree::renderBranch(branch *b, int depth) {
 		//loop through all child branches and render them too
 
 		for(branch* c : b->children){
-			renderBranch(c, depth+1);
+			renderBranch(c, wireframe, depth+1);
 		}
 
 	glPopMatrix();
@@ -474,16 +474,16 @@ void Tree::renderStick(branch *b, int depth){
 /* draws a joint at the base of every branch the size of the width at the base of the branch
 	this prevents a tree breaking visual issue when rotating branches.
 */
-void Tree::drawJoint(branch* b){
+void Tree::drawJoint(branch* b, bool wireframe){
 	glPushMatrix();
 		//cgraSphere(b->baseWidth);
-		b->jointModel->renderGeometry();
+		b->jointModel->renderGeometry(wireframe);
 	glPopMatrix();
 }
 
 /* draws the branch to the screen
 */
-void Tree::drawBranch(branch* b){
+void Tree::drawBranch(branch* b, bool wireframe){
 	vec3 norm = normalize(b->direction);
 	float dotProd = dot(norm, vec3(0,0,1));
 
@@ -493,7 +493,7 @@ void Tree::drawBranch(branch* b){
 	glPushMatrix();
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
 		//cgraCylinder(b->baseWidth, b->topWidth, b->length);
-		b->branchModel->renderGeometry();
+		b->branchModel->renderGeometry(wireframe);
 	glPopMatrix();
 }
 

@@ -53,8 +53,7 @@ class Geometry {
 		void setMaterial(cgra::vec4, cgra::vec4, cgra::vec4, float, cgra::vec4);
 		cgra::vec3 rayIntersectsTriangle(cgra::vec3, cgra::vec3, int);
 		bool pointInsideMesh(cgra::vec3);
-		void renderGeometry();
-		void toggleWireframe();
+		void renderGeometry(bool);
 		int triangleCount();
 		cgra::vec3 getSurfaceNormal(int);
 
@@ -70,7 +69,6 @@ class Geometry {
 
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 		material m_material;
-		bool wireframe = false;
 
 		// The vector to return if no ray intersection is found
 		cgra::vec3 noIntersectionVector = cgra::vec3(std::numeric_limits<float>::max(), 0.0f, 0.0f);

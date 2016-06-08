@@ -59,6 +59,7 @@ bool explodingSystem = false;
 // Toggle fields
 bool drawAxes = true;
 bool treeMode = false;
+bool wireframeMode = false;
 bool realtimeBuild = false;
 bool partyMode = false;
 
@@ -183,7 +184,7 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 	// 'w' key pressed
 	if (key == 'W' && action == 1) {
-		g_model->toggleWireframe();
+		wireframeMode = !wireframeMode;
 	}
 
 	// 'space' key pressed
@@ -399,9 +400,9 @@ void renderScene() {
 		glEnable(GL_LIGHTING);
 	} else {
 		// Render geometry
-		g_tree->renderTree();
+		g_tree->renderTree(wireframeMode);
 
-		if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry();
+		if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry(wireframeMode);
 	}
 
 	// Update building particle system

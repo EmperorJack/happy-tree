@@ -327,7 +327,7 @@ bool Geometry::pointInsideMesh(vec3 point) {
 	return intersectionCount % 2;
 }
 
-void Geometry::renderGeometry() {
+void Geometry::renderGeometry(bool wireframe) {
 	glPushMatrix();
 
 	// Translate to the object position
@@ -369,10 +369,6 @@ void Geometry::renderGeometry() {
 	// }
 
 	glPopMatrix();
-}
-
-void Geometry::toggleWireframe() {
-	wireframe = !wireframe;
 }
 
 int Geometry::triangleCount() {
