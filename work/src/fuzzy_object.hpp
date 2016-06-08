@@ -76,7 +76,7 @@ class FuzzyObject {
 		GLuint p_displayList = 0;
 		float p_velRange = 0.03f;
 		float p_radius = 0.2f;
-		float p_boundaryRadius = 0.05f;
+		float p_boundaryRadius = 0.25f;
 		float p_mass = 100.0f;
 
 		// LJ potential energy fields

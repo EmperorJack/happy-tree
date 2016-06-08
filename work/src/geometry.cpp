@@ -43,6 +43,30 @@ Geometry::Geometry(string filename) {
 	m_material.emission = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
+Geometry::Geometry(vector<vec3> points, vector<vec3> normals, vector<triangle> triangles) {
+	m_points = points;
+	m_normals = normals;
+	m_triangles = triangles;
+
+	// Load a dummy point for the UV's
+	m_uvs.push_back(vec2(0,0));
+
+	// Create the surface normals for every triangle
+	createSurfaceNormals();
+
+	if (m_triangles.size() > 0) {
+		createDisplayListPoly();
+		createDisplayListWire();
+	}
+
+	// Default material setting
+	m_material.ambient = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	m_material.diffuse = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	m_material.specular = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	m_material.shininess = 0.0f;
+	m_material.emission = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+}
+
 Geometry::~Geometry() { }
 
 void Geometry::readOBJ(string filename) {
@@ -190,14 +214,14 @@ void Geometry::createDisplayListPoly() {
 	if (m_displayListPoly) glDeleteLists(m_displayListPoly, 1);
 
 	// Create a new list
-	cout << "Creating Poly Geometry" << endl;
+	//cout << "Creating Poly Geometry" << endl;
 	m_displayListPoly = glGenLists(1);
 	glNewList(m_displayListPoly, GL_COMPILE);
 
 	displayTriangles();
 
 	glEndList();
-	cout << "Finished creating Poly Geometry" << endl;
+	//cout << "Finished creating Poly Geometry" << endl;
 }
 
 void Geometry::createDisplayListWire() {
@@ -205,14 +229,14 @@ void Geometry::createDisplayListWire() {
 	if (m_displayListWire) glDeleteLists(m_displayListWire, 1);
 
 	// Create a new list
-	cout << "Creating Wire Geometry" << endl;
+	//cout << "Creating Wire Geometry" << endl;
 	m_displayListWire = glGenLists(1);
 	glNewList(m_displayListWire, GL_COMPILE);
 
 	displayTriangles();
 
 	glEndList();
-	cout << "Finished creating Wire Geometry" << endl;
+	//cout << "Finished creating Wire Geometry" << endl;
 }
 
 void Geometry::displayTriangles() {
@@ -327,6 +351,24 @@ void Geometry::renderGeometry() {
 	}
 
 	glPopMatrix();
+
+	// Debug code for drawing the surface normals
+	for (int i = 0; i < m_surfaceNormals.size(); i++) {
+		glPushMatrix();
+		vec3 triPos = (m_points[m_triangles[i].v[0].p] + m_points[m_triangles[i].v[1].p] + m_points[m_triangles[i].v[2].p]) / 3.0f;
+		glTranslatef(triPos.x, triPos.y, triPos.z);
+
+		glBegin(GL_LINES);
+		glVertex3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(m_surfaceNormals[i].x * 0.5f, m_surfaceNormals[i].y * 0.5f, m_surfaceNormals[i].z * 0.5f);
+		glEnd();
+
+		glBegin(GL_POINTS);
+		glVertex3f(m_surfaceNormals[i].x * 0.5f, m_surfaceNormals[i].y * 0.5f, m_surfaceNormals[i].z * 0.5f);
+		glEnd();
+
+		glPopMatrix();
+	}
 }
 
 void Geometry::toggleWireframe() {

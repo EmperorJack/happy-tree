@@ -43,6 +43,9 @@ class Geometry {
 
 	public:
 		Geometry(std::string);
+		Geometry(std::vector<cgra::vec3> points,
+					   std::vector<cgra::vec3> normals,
+					   std::vector<triangle> triangles);
 		~Geometry();
 
 		cgra::vec3 getPosition();
@@ -67,7 +70,7 @@ class Geometry {
 
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 		material m_material;
-		bool wireframe = true;
+		bool wireframe = false;
 
 		// The vector to return if no ray intersection is found
 		cgra::vec3 noIntersectionVector = cgra::vec3(std::numeric_limits<float>::max(), 0.0f, 0.0f);
