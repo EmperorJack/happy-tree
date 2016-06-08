@@ -367,6 +367,7 @@ void Tree::renderBranch(branch *b, int depth) {
 	}
 
 	static int i_k =0;
+
 	glPushMatrix();
 		//only draw branch info if it has a length
 		if(b->length > 0){
@@ -480,13 +481,13 @@ void Tree::drawBranch(branch* b){
 	glPopMatrix();
 }
 
-void Tree::updateWorldWindDirection(branch* b, vec3 wind){	
+void Tree::updateWorldWindDirection(branch* b, vec3 previousVector){	
 	if(b == NULL){
 		return;
 	}
 
-	vec3 deg = degrees(b->direction);
-	vec3 total = wind + deg;
+	vec3 currentVector = b->direction * b->length;
+	vec3 total = currentVector + previousVector;
 
 	b->worldDir = total;
 
@@ -503,10 +504,6 @@ void Tree::updateWorldWindDirection(branch* b, vec3 wind){
 float Tree::calculatePressure(branch* branch, float force, int dir){
 	float a = windCoefficent; //change to a small number derived from the current angle of the branch
 	
-	float xdiff = b->worldDir.x % 360;
-	float ydiff = b->worldDir.y % 360;
-	float zdiff = b->worldDir.z % 360;
-	vec3 diffVec = vec3(xdiff, ydiff, zdiff) - force;
 
 	//attempt at making the small value use the current angle of the branch
 	// if (dir == 'x'){ //x axis
@@ -564,6 +561,9 @@ void Tree::applyWind(branch* b){
 	float pressureX = calculatePressure(b, desiredWindForce.x, 'x');
 	float pressureZ = calculatePressure(b, desiredWindForce.z, 'z');
 
+	float dotProd = dot(normalize(b->worldDir), normalize(desiredWindForce)); 
+	float angle = acos(dotProd); // the angle to rotate by
+
 	//debug info
 	// cout << "Name: " << b->name << endl;
 	// cout << "Pressure X: " << pressureX << endl;
@@ -583,8 +583,8 @@ void Tree::applyWind(branch* b){
 	}
 
 	//calculates the displacement value for each axis	
-	float displacementX = pressureX / spring / float(len);
-	float displacementZ = pressureZ / spring / float(len);
+	float displacementX = angle / spring / float(len);
+	float displacementZ = angle / spring / float(len);
 
 	//debug info
 	// cout << "length " << b->length << endl;
