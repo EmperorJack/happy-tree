@@ -44,7 +44,6 @@ class FuzzyObject {
 
 		// Misc methods
 		int getParticleCount();
-		void toggleParticleViewMode();
 
 		// Methods for utilizing the built system
 		bool finishedBuilding();
@@ -70,31 +69,30 @@ class FuzzyObject {
 
 		// Stopping criteria
 		bool firstPassFinished = false;
-		float stabilityUpdates = 20;
+		float stabilityUpdates = 10;
 		int collisionCount = 0;
 
 		// Particle attributes
 		GLuint p_displayList = 0;
-		float p_velRange = 0.03f;
+		float p_velRange = 0.032f;
 		float p_radius = 0.2f;
 		float p_boundaryRadius = 0.15f;
 		float p_mass = 100.0f;
-		float p_spawnOffset = 0.02f;
+		float p_spawnOffset = 0.018f;
 
 		// LJ potential energy fields
 		float e_strength = 0.01f;
-		float e_lengthScale = 0.3f;
+		float e_lengthScale = 0.26f;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
 		// Physics fields
-		float meshCollisionFriction = 0.998f;
-		float particleCollisionFriction = 0.998f;
+		float meshCollisionFriction = 0.995f;
+		float particleCollisionFriction = 0.995f;
 
 		// Drawing properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
 		cgra::vec4 specular = cgra::vec4(0.8, 0.8, 0.8, 1.0);
-		float shininess = 128.0f;
-		bool particleViewMode = true;
+		float shininess = 64.0f;
 
 		cgra::vec3 maxFloatVector = cgra::vec3(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 

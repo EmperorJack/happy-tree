@@ -137,7 +137,7 @@ void Tree::generateGeometry(branch *b) {
 	float minWidth = prm_branchTipWidth;
 
 	float maxDensity = 1.0f;
-	float minDensity = 0.4f;
+	float minDensity = 0.5f;
 
 	float amount = (b->baseWidth - minWidth) / (maxWidth - minWidth) * (maxDensity - minDensity) + minDensity;
 	b->branchFuzzySystem->scaleDensity(amount);
@@ -769,6 +769,10 @@ void Tree::adjustWind(int axis, int dir){
 			timeIncrement -= tIncrease;
 		}
 	}
+}
+
+vec3 Tree::getWindForce() {
+	return desiredWindForce;
 }
 
 void Tree::buildFuzzySystems(bool increment) {

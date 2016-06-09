@@ -56,7 +56,7 @@ class Tree{
 		void toggleTreeType();
 		void adjustWind(int, int);
 
-		std::vector<Geometry*> getGeometries();
+		cgra::vec3 getWindForce();
 
 		void setMaterial(cgra::vec4, cgra::vec4, cgra::vec4, float, cgra::vec4);
 

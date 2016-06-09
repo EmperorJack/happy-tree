@@ -66,8 +66,8 @@ std::vector<Tree*> g_treeList;
 FuzzyObject* g_fuzzy_system = nullptr;
 ParticleSystem* g_treeParticleSystem = nullptr;
 bool treeFuzzySystemFinishedBuilding = false;
+bool treeParticlesAnimating = false;
 float spawnPointShiftAmount = 0.1f;
-bool explodingSystem = false;
 
 // Toggle fields
 bool drawAxes = false;
@@ -131,9 +131,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 			delete(g_tree);
 			g_tree = new Tree(tree_h, tree_t, tree_bL, tree_inf, tree_kill, tree_tW, tree_mW);
 
-			delete(g_treeParticleSystem);
 			treeFuzzySystemFinishedBuilding = false;
 			realtimeBuild = false;
+			treeParticlesAnimating = false;
+			delete(g_treeParticleSystem);
 		}
 		if (key == 'T' && action == 1) {
 			treeMode = !treeMode;
@@ -260,19 +261,20 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 		// 'space' key pressed
 		if (key == 32 && action == 1) {
-			explodingSystem = !explodingSystem;
 
 			// Check if the tree finished building it's particle systems
 			if (g_tree->finishedBuildingFuzzySystems()) {
 				g_treeParticleSystem = new ParticleSystem(g_tree->getFuzzySystemPoints());
 				treeFuzzySystemFinishedBuilding = true;
-			 	g_treeParticleSystem->drop();
+
+				treeParticlesAnimating = true;
+			 	g_treeParticleSystem->explode();
 			}
 		}
 
 		// 'r' key pressed
 		if (key == 'R' && (action == 1)) {
-			explodingSystem = false;
+			treeParticlesAnimating = false;
 			if (treeFuzzySystemFinishedBuilding) g_treeParticleSystem->resetParticles();
 		}
 
@@ -361,8 +363,8 @@ GLuint initTexture(string path) {
 	glBindTexture(GL_TEXTURE_2D, g_texture); // Bind it as a 2D texture
 
 	// Setup sampling strategies
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// Enable repeating of the texture
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -488,6 +490,7 @@ void drawQuad(float l) {
 void renderSkybox(float dist) {
 	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), false);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec3(1.0, 1.0, 1.0).dataPointer());
 
 	glPushMatrix();
 	glTranslatef(0, 50, 0);
@@ -568,27 +571,31 @@ void update() {
 		if (!g_tree->finishedBuildingFuzzySystems() && realtimeBuild) {
 			g_tree->buildFuzzySystems(true);
 		}
-	} else {
+	} else if (treeParticlesAnimating) {
 		g_treeParticleSystem->update();
 	}
 }
 
 // Render the geometry of the scene
 void renderScene() {
-	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
+	if (partyMode) glRotatef(frameCount * -1.0f, 0, 1, 0);
 
 	glPushMatrix();
-	//glScalef(2, 2, 2);
 	glTranslatef(0, -tree_h / 2, 0);
 
 	// Render skybox
 	renderSkybox(500);
 
 	// Render terrain
+	glPushMatrix();
+	glScalef(1, 0.75f, 1);
+
 	glBindTexture(GL_TEXTURE_2D, t_grass);
 	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 	g_terrain->renderGeometry(false);
-	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
+	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
+
+	glPopMatrix();
 
 	if (treeMode){
 		glDisable(GL_LIGHTING);
@@ -611,9 +618,11 @@ void renderScene() {
 	}
 
 	// Render complete fuzzy particle system
+	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), false);
 	if (treeFuzzySystemFinishedBuilding) {
 		g_treeParticleSystem->render();
 	}
+	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), true);
 
 	glPopMatrix();
 }

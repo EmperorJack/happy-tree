@@ -56,10 +56,16 @@ namespace cgra {
 				vec3 ph = h*radius;
 				vec3 pl = l*radius;
 
+				float uh = slice_count / float(dualslices);
+				float vh = stack_count / float(stacks);
+				float vl = (stack_count+1) / float(stacks);
+
 				glNormal3f(h.x, h.y, h.z);
+				glTexCoord2f(vh, uh);
 				glVertex3f(ph.x, ph.y, ph.z);
 
 				glNormal3f(l.x, l.y, l.z);
+				glTexCoord2f(vl, uh);
 				glVertex3f(pl.x, pl.y, pl.z);
 			}
 

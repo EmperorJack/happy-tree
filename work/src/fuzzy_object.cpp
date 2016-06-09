@@ -81,7 +81,7 @@ bool FuzzyObject::stoppingCriteria() {
 			updateBuildingSystem();
 		}
 
-		if (collisionCount == particles.size()) {
+		if (collisionCount == particles.size() && particles.size() > minParticleCount) {
 			firstPassFinished = true;
 			return true;
 		}
@@ -111,6 +111,8 @@ void FuzzyObject::addParticle() {
 							 math::random(-1.0f, 1.0f) * p_velRange,
 							 math::random(-1.0f, 1.0f) * p_velRange);
 
+	p.col = vec3(1.0f, 1.0f, 1.0f);
+
 	particles.push_back(p);
 
 	updateFacingTriangle(particles.size() - 1);
@@ -122,7 +124,6 @@ void FuzzyObject::updateBuildingSystem() {
 	// Reset required fields on each particle for the next update
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
-		particles[i].col = vec3(0.0f, 0.0f, 1.0f);
 		particles[i].inCollision = false;
 
 		// Check if the particle left the mesh
@@ -131,7 +132,6 @@ void FuzzyObject::updateBuildingSystem() {
 		if (d < 0.0f || d >= maxFloatVector.x) {
 
 			// Mark it for deletion
-			particles[i].col = vec3(0.0f, 1.0f, 0.0f);
 			particlesForDeletion.push_back(i);
 		}
 	}
@@ -256,7 +256,6 @@ void FuzzyObject::updateFacingTriangle(int index) {
 	particles[index].triangleIntersectionPos = newIntersectionPoint;
 	particles[index].triangleIndex = triangleIndex;
 
-	particles[index].col = vec3(1.0f, 0.0f, 0.0f);
 	particles[index].inCollision = true;
 }
 
@@ -293,19 +292,7 @@ void FuzzyObject::renderSystem() {
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, p.col.dataPointer());
 
 		// Draw the particle
-		if (particleViewMode) {
-			glCallList(p_displayList);
-		} else {
-			glBegin(GL_POINTS);
-			glVertex3f(0, 0, 0);
-			glEnd();
-
-			// Draw the particle velocity as a line
-			glBegin(GL_LINES);
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(p.vel.x * 3, p.vel.y * 3, p.vel.z * 3);
-			glEnd();
-		}
+		glCallList(p_displayList);
 
 		glPopMatrix();
 	}
@@ -317,10 +304,6 @@ void FuzzyObject::renderSystem() {
 
 int FuzzyObject::getParticleCount() {
 	return particles.size();
-}
-
-void FuzzyObject::toggleParticleViewMode() {
-	particleViewMode = !particleViewMode;
 }
 
 bool FuzzyObject::finishedBuilding() {
@@ -342,6 +325,9 @@ void FuzzyObject::clearParticles() {
 }
 
 void FuzzyObject::scaleDensity(float amount) {
+	p_radius *= amount;
 	p_boundaryRadius *= amount;
 	p_spawnOffset *= amount;
+
+	setupDisplayList();
 }
