@@ -136,9 +136,6 @@ void FuzzyObject::updateBuildingSystem() {
 		// Check if the particle left the mesh
 		//if (!g_geometry->pointInsideMesh(particles[i].pos)) {
 		float d = dot(particles[i].pos - particles[i].triangleIntersectionPos, -g_geometry->getSurfaceNormal(particles[i].triangleIndex));
-		
-		if (!g_geometry->pointInsideMesh(particles[i].pos)) cout << d << endl;
-
 		if (d < 0.0f || d >= maxFloatVector.x) {
 
 			// Mark it for deletion
