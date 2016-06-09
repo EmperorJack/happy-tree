@@ -342,6 +342,6 @@ void FuzzyObject::clearParticles() {
 }
 
 void FuzzyObject::scaleDensity(float amount) {
-	p_radius *= amount;
 	p_boundaryRadius *= amount;
+	p_spawnOffset *= amount;
 }

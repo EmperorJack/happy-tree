@@ -137,7 +137,7 @@ void Tree::generateGeometry(branch *b) {
 	float minWidth = prm_branchTipWidth;
 
 	float maxDensity = 1.0f;
-	float minDensity = 0.5f;
+	float minDensity = 0.4f;
 
 	float amount = (b->baseWidth - minWidth) / (maxWidth - minWidth) * (maxDensity - minDensity) + minDensity;
 	b->branchFuzzySystem->scaleDensity(amount);

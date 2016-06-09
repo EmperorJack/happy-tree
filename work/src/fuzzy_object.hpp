@@ -62,7 +62,7 @@ class FuzzyObject {
 		// Particle system fields
 		std::vector<fuzzyParticle> particles;
 		int particleLimit = 3000;
-		int minParticleCount = 20;
+		int minParticleCount = 10;
 		std::vector<int> particlesForDeletion;
 
 		// State fields
@@ -70,7 +70,7 @@ class FuzzyObject {
 
 		// Stopping criteria
 		bool firstPassFinished = false;
-		float stabilityUpdates = 10;
+		float stabilityUpdates = 20;
 		int collisionCount = 0;
 
 		// Particle attributes
@@ -82,13 +82,13 @@ class FuzzyObject {
 		float p_spawnOffset = 0.02f;
 
 		// LJ potential energy fields
-		float e_strength = 0.005f;
-		float e_lengthScale = 0.35f;
+		float e_strength = 0.01f;
+		float e_lengthScale = 0.3f;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
 		// Physics fields
-		float meshCollisionFriction = 0.995f;
-		float particleCollisionFriction = 0.995f;
+		float meshCollisionFriction = 0.998f;
+		float particleCollisionFriction = 0.998f;
 
 		// Drawing properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
