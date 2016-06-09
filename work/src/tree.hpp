@@ -43,7 +43,7 @@ struct branch{
 
 class Tree{
 	public:
-		Tree(float height = 20.0f , float trunk = 0.0f, float branchLength = 2.0f ,float influenceRatio = 8.0f, float killRatio = 1.0f, float prm_branchTipWidth = 0.03f,float prm_branchMinWidth = 0.04f);
+		Tree(float height = 20.0f , float trunk = 0.0f, float branchLength = 2.0f ,float influenceRatio = 8.0f, float killRatio = 1.0f, float prm_branchTipWidth = 0.06f,float prm_branchMinWidth = 0.08f);
 		~Tree();
 
 		void drawEnvelope();

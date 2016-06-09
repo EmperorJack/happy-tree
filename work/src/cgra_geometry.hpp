@@ -130,17 +130,17 @@ namespace cgra {
 				vec3 &nh = norms[slice_count + stack_count*(dualslices + 1)];
 				vec3 &nl = norms[slice_count + (stack_count + 1)*(dualslices + 1)];
 
-				// float sh = stack_count / float(stacks);
-				// float th = slice_count / float(slices);
-				// float t1 = (slice_count+1) / float(slices);
+				float sh = stack_count / float(stacks);
+				float th = slice_count / float(slices);
+				float t1 = (slice_count+1) / float(slices);
 
 				glNormal3f(nh.x, nh.y, nh.z);
 				glVertex3f(ph.x, ph.y, ph.z);
-				// glTexCoord2f(th, sh);
+				glTexCoord2f(th, sh);
 
 				glNormal3f(nl.x, nl.y, nl.z);
 				glVertex3f(pl.x, pl.y, pl.z);
-				// glTexCoord2f(t1, sh);
+				glTexCoord2f(t1, sh);
 			}
 
 			glEnd();
@@ -185,16 +185,19 @@ namespace cgra {
 		vertex v0;
 		v0.p = index0;
 		v0.n = index0;
+		v0.t = index0;
 		tri.v[0] = v0;
 
 		vertex v1;
 		v1.p = index1;
 		v1.n = index1;
+		v1.t = index1;
 		tri.v[1] = v1;
 
 		vertex v2;
 		v2.p = index2;
 		v2.n = index2;
+		v2.t = index2;
 		tri.v[2] = v2;
 		triangles->push_back(tri);
 	}
@@ -220,11 +223,13 @@ namespace cgra {
 		// The vectors that will make up the geometry object
 		std::vector<vec3> points;
 		std::vector<vec3> normals;
+		std::vector<vec2> uvs;
 		std::vector<triangle> triangles;
 
 		// Load dummy points
 		points.push_back(vec3(0,0,0));
 		normals.push_back(vec3(0,0,1));
+		uvs.push_back(vec2(0,0));
 
 		// Counting fields
 		int totalPointCount = 0;
@@ -260,8 +265,13 @@ namespace cgra {
 				vec3 ph = h*radius;
 				vec3 pl = l*radius;
 
+				float uh = slice_count / float(slice_count / dualslices);
+				float vh = stack_count / float(stacks);
+				float vl = (stack_count+1) / float(stacks);
+
 				normals.push_back(vec3(h.x, h.y, h.z)); //glNormal3f(h.x, h.y, h.z);
 				points.push_back(vec3(ph.x, ph.y, ph.z)); //glVertex3f(ph.x, ph.y, ph.z);
+				uvs.push_back(vec2(uh,vh));
 
 				pointCount++;
 				if (pointCount >= 3) {
@@ -270,6 +280,7 @@ namespace cgra {
 
 				normals.push_back(vec3(l.x, l.y, l.z)); //glNormal3f(l.x, l.y, l.z);
 				points.push_back(vec3(pl.x, pl.y, pl.z)); //glVertex3f(pl.x, pl.y, pl.z);
+				uvs.push_back(vec2(uh,vl));
 
 				pointCount++;
 				if (pointCount >= 3 && stack_count != stacks - 1) {
@@ -278,7 +289,7 @@ namespace cgra {
 			}
 		}
 
-		return new Geometry(points, normals, triangles, false);
+		return new Geometry(points, normals, uvs, triangles, false);
 	}
 
 	inline Geometry* generateCylinderGeometry(float base_radius, float top_radius, float height, int slices = 10, int stacks = 10) {
@@ -303,11 +314,13 @@ namespace cgra {
 		// The vectors that will make up the geometry object
 		std::vector<vec3> points;
 		std::vector<vec3> normals;
+		std::vector<vec2> uvs;
 		std::vector<triangle> triangles;
 
 		// Load dummy points
 		points.push_back(vec3(0,0,0));
 		normals.push_back(vec3(0,0,1));
+		uvs.push_back(vec2(0,0));
 
 		// Counting fields
 		int totalPointCount = 0;
@@ -352,8 +365,13 @@ namespace cgra {
 				vec3 &nh = norms[slice_count + stack_count*(dualslices + 1)];
 				vec3 &nl = norms[slice_count + (stack_count + 1)*(dualslices + 1)];
 
+				float uh = slice_count / float(dualslices);
+				float vh = stack_count / float(stacks);
+				float vl = (stack_count+1) / float(stacks);
+
 				normals.push_back(vec3(nh.x, nh.y, nh.z)); //glNormal3f(nh.x, nh.y, nh.z);
 				points.push_back(vec3(ph.x, ph.y, ph.z)); //glVertex3f(ph.x, ph.y, ph.z);
+				uvs.push_back(vec2(uh,vh));
 
 				pointCount++;
 				if (pointCount >= 3) {
@@ -362,6 +380,7 @@ namespace cgra {
 
 				normals.push_back(vec3(nl.x, nl.y, nl.z)); //glNormal3f(nl.x, nl.y, nl.z);
 				points.push_back(vec3(pl.x, pl.y, pl.z)); //glVertex3f(pl.x, pl.y, pl.z);
+				uvs.push_back(vec2(uh,vl));
 
 				pointCount++;
 				if (pointCount >= 3) {
@@ -419,6 +438,6 @@ namespace cgra {
 			}
 		}
 
-		return new Geometry(points, normals, triangles, true);
+		return new Geometry(points, normals, uvs, triangles, true);
 	}
 }
