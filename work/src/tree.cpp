@@ -131,6 +131,16 @@ void Tree::generateGeometry(branch *b) {
 	b->branchModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
 
 	b->branchFuzzySystem = new FuzzyObject(b->branchModel);
+	
+	float maxWidth = generatedTreeRoot->baseWidth;
+	float minWidth = prm_branchTipWidth;
+
+	float maxDensity = 1.0f;
+	float minDensity = 0.5f;
+
+	float amount = (b->baseWidth - minWidth) / (maxWidth - minWidth) * (maxDensity - minDensity) + minDensity;
+	b->branchFuzzySystem->scaleDensity(amount);
+
 	fuzzyBranchSystems.push_back(b->branchFuzzySystem);
 
 	for (branch* c : b->children) {
@@ -386,10 +396,10 @@ void Tree::renderBranch(branch *b, bool wireframe, int depth) {
 		//only draw branch info if it has a length
 		if(b->length > 0){
 
-			vec3 rot = b->basisRot;
-			glRotatef(rot.z, 0, 0, 1);
-			glRotatef(rot.y, 0, 1, 0);
-			glRotatef(rot.x, 1, 0, 0);
+			//vec3 rot = b->basisRot;
+			// glRotatef(rot.z, 0, 0, 1);
+			// glRotatef(rot.y, 0, 1, 0);
+			// glRotatef(rot.x, 1, 0, 0);
 
 			//debug info
 			// cout << b->name << endl;
@@ -401,9 +411,9 @@ void Tree::renderBranch(branch *b, bool wireframe, int depth) {
 			glRotatef(b->rotation.z, 0, 0, 1);
 			glRotatef(b->rotation.x, 1, 0, 0);
 
-			glRotatef(-rot.x, 1, 0, 0);
-			glRotatef(-rot.y, 0, 1, 0);
-			glRotatef(-rot.z, 0, 0, 1);
+			// glRotatef(-rot.x, 1, 0, 0);
+			// glRotatef(-rot.y, 0, 1, 0);
+			// glRotatef(-rot.z, 0, 0, 1);
 
 			//draw the joint of this branch
 			drawJoint(b, wireframe);
@@ -475,7 +485,7 @@ void Tree::renderStick(branch *b, int depth){
 	this prevents a tree breaking visual issue when rotating branches.
 */
 void Tree::drawJoint(branch* b, bool wireframe){
-	if (!wireframe) {
+	if (!wireframe && !fuzzySystemFinishedBuilding) {
 		glPushMatrix();
 			b->jointModel->renderGeometry(wireframe);
 		glPopMatrix();
@@ -493,7 +503,7 @@ void Tree::drawBranch(branch* b, bool wireframe){
 
 	glPushMatrix();
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
-		b->branchModel->renderGeometry(wireframe);
+		if (!fuzzySystemFinishedBuilding) b->branchModel->renderGeometry(wireframe);
 		b->branchFuzzySystem->renderSystem();
 	glPopMatrix();
 }
@@ -503,10 +513,10 @@ void Tree::updateWorldWindDirection(branch* b, vec3 previousVector){
 		return;
 	}
 
+	b->worldDir = previousVector;
+
 	vec3 currentVector = b->direction * b->length;
 	vec3 total = currentVector + previousVector;
-
-	b->worldDir = total;
 
 	for(branch* c : b->children){
 		updateWorldWindDirection(c, total);
@@ -752,48 +762,93 @@ void Tree::adjustWind(int axis, int dir){
 	}
 }
 
-vector<Geometry*> Tree::getGeometries() {
-	vector<Geometry*> geometries;
-
-	getBranchGeometry(root, &geometries);
-
-	return geometries;
-}
-
-void Tree::getBranchGeometry(branch* b, vector<Geometry*>* geometries) {
-	geometries->push_back(b->branchModel);
-
-	for (branch* c : b->children) {
-		getBranchGeometry(c, geometries);
-	}
-}
-
 void Tree::buildFuzzySystems(bool increment) {
 	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
 		fuzzySystem->buildSystem(increment);
 	}
+
+	// Check if the fuzzy systems have finished building
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		if (!fuzzySystem->finishedBuilding()) {
+			return;
+		}
+	}
+	fuzzySystemFinishedBuilding = true;
 }
 
 bool Tree::finishedBuildingFuzzySystems() {
-	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
-		if (!fuzzySystem->finishedBuilding()) return false;
-	}
-	return true;
+	return fuzzySystemFinishedBuilding;
 }
 
 vector<vec3> Tree::getFuzzySystemPoints() {
 	vector<vec3> points;
 
+	getBranchFuzzySystemPoints(root, &points);
+
+	// Clear the fuzzy systems as they are done
 	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
-
-		vector<vec3> systemPoints = fuzzySystem->getSystem();
-
-		for (int i = 0; i < systemPoints.size(); i++) {
-			points.push_back(systemPoints[i]);
-		}
+		fuzzySystem->clearParticles();
 	}
 
 	return points;
+}
+
+int Tree::getFuzzySystemParticleCount() {
+	int total = 0;
+
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		total += fuzzySystem->getParticleCount();
+	}
+
+	return total;
+}
+
+void Tree::getBranchFuzzySystemPoints(branch* b, vector<vec3>* points) {
+	vector<vec3> systemPoints = b->branchFuzzySystem->getSystem();
+
+	for (int i = 0; i < systemPoints.size(); i++) {
+
+		// Create the vector that will contain the baked particle position
+		vec3 bakedPosition = systemPoints[i];
+
+		// Rotate the vector by the direction vector
+		vec3 axis = cross(b->direction, vec3(0, 0, 1));
+		float dotProd = dot(b->direction, vec3(0, 0, 1));
+		float acosAngle = acos(dotProd);
+		bakedPosition = bakedPosition * angleAxisRotation(acosAngle, axis);
+
+		// mat4 mat;
+		// bakedPosition = vec3(vec4(bakedPosition,1.0f) * mat.rotateZ(b->rotation.z));
+		// bakedPosition = vec3(vec4(bakedPosition,1.0f) * mat.rotateX(b->rotation.x));
+
+		// Translate the vector
+		bakedPosition += b->worldDir;
+
+		points->push_back(vec3(bakedPosition.x, bakedPosition.y, bakedPosition.z));
+	}
+
+
+	for (branch* c : b->children) {
+		getBranchFuzzySystemPoints(c, points);
+	}
+}
+
+mat3 Tree::angleAxisRotation(float angle, vec3 u) {
+	mat3 m;
+
+	m[0][0] = cos(angle) + u.x * u.x * (1 - cos(angle));
+	m[0][1] = u.y * u.x * (1 - cos(angle)) + u.z * sin(angle);
+	m[0][2] = u.z * u.x * (1 - cos(angle)) - u.y * sin(angle);
+
+	m[1][0] = u.x * u.y * (1 - cos(angle)) - u.z * sin(angle);
+	m[1][1] = cos(angle) + u.y * u.y * (1 - cos(angle));
+	m[1][2] = u.z * u.y * (1 - cos(angle)) + u.x * sin(angle);
+
+	m[2][0] = u.x * u.z * (1 - cos(angle)) + u.y * sin(angle);
+	m[2][1] = u.y * u.z * (1 - cos(angle)) - u.x * sin(angle);
+	m[2][2] = cos(angle) + u.z * u.z * (1 - cos(angle));
+
+	return m;
 }
 
 /* Builds a test tree to work with for simulating wind animation.

@@ -62,15 +62,6 @@ void FuzzyObject::buildSystem(bool incremental) {
 		if (incremental) return;
 	}
 
-	// Second pass
-	int maxParticles = particles.size() - 1;
-	while (particles.size() < maxParticles) {
-		addParticle();
-		updateBuildingSystem();
-
-		if (incremental) return;
-	}
-
 	// Final pass
 	while (!systemAtRest()) {
 		updateBuildingSystem();
@@ -100,6 +91,7 @@ bool FuzzyObject::stoppingCriteria() {
 }
 
 bool FuzzyObject::systemAtRest() {
+	// Not currently checking this yet
 	return true;
 }
 
@@ -108,9 +100,9 @@ void FuzzyObject::addParticle() {
 	if (particles.size() >= particleLimit) return;
 
 	fuzzyParticle p;
-	p.pos = vec3(spawnPoint.x + math::random(-0.01f, 0.01f),
-							 spawnPoint.y + math::random(-0.01f, 0.01f),
-							 spawnPoint.z + math::random(-0.01f, 0.01f));
+	p.pos = vec3(spawnPoint.x + math::random(-p_spawnOffset, p_spawnOffset),
+							 spawnPoint.y + math::random(-p_spawnOffset, p_spawnOffset),
+							 spawnPoint.z + math::random(-p_spawnOffset, p_spawnOffset));
 
 	p.acc = vec3(0.0f, 0.0f, 0.0f);
 
@@ -276,13 +268,13 @@ void FuzzyObject::renderSystem() {
 	glTranslatef(geometry_pos.x, geometry_pos.y, geometry_pos.z);
 
 	// Draw the spawn position
-	glDisable(GL_LIGHTING);
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(1.0f, 0.0f, 0.0f, 1.0f).dataPointer());
-	glPointSize(4);
-	glBegin(GL_POINTS);
-	glVertex3f(spawnPoint.x, spawnPoint.y, spawnPoint.z);
-	glEnd();
-	glEnable(GL_LIGHTING);
+	// glDisable(GL_LIGHTING);
+	// glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(1.0f, 0.0f, 0.0f, 1.0f).dataPointer());
+	// glPointSize(4);
+	// glBegin(GL_POINTS);
+	// glVertex3f(spawnPoint.x, spawnPoint.y, spawnPoint.z);
+	// glEnd();
+	// glEnable(GL_LIGHTING);
 
 	// Set particle material properties
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular.dataPointer());
@@ -343,4 +335,13 @@ vector<vec3> FuzzyObject::getSystem() {
 	}
 
 	return points;
+}
+
+void FuzzyObject::clearParticles() {
+	particles.clear();
+}
+
+void FuzzyObject::scaleDensity(float amount) {
+	p_radius *= amount;
+	p_boundaryRadius *= amount;
 }
