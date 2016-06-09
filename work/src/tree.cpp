@@ -136,6 +136,7 @@ void Tree::generateGeometry(branch *b) {
 	b->branchModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
 
 	b->branchFuzzySystem = new FuzzyObject(b->branchModel);
+	fuzzyBranchSystems.push_back(b->branchFuzzySystem);
 
 	for (branch* c : b->children) {
 		generateGeometry(c);
@@ -771,14 +772,27 @@ void Tree::getBranchGeometry(branch* b, vector<Geometry*>* geometries) {
 }
 
 void Tree::buildFuzzySystems(bool increment) {
-	buildBranchFuzzySystem(root, increment);
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		fuzzySystem->buildSystem(increment);
+	}
 }
 
-void Tree::buildBranchFuzzySystem(branch* b, bool increment) {
-	b->branchFuzzySystem->buildSystem(increment);
+bool Tree::finishedBuildingFuzzySystems() {
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		if (!fuzzySystem->finishedBuilding()) return false;
+	}
+	return true;
+}
 
-	for (branch* c : b->children) {
-		buildBranchFuzzySystem(c, increment);
+void Tree::updateFuzzySystemAnimations() {
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		fuzzySystem->updateSystem();
+	}
+}
+
+void Tree::explode() {
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		fuzzySystem->explode();
 	}
 }
 
