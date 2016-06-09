@@ -3,6 +3,7 @@
 // Constant across both shaders
 uniform sampler2D texture0;
 uniform bool useTexture;
+uniform bool useLighting;
 
 // Values to pass to the fragment shader
 varying vec2 vTextureCoord0;

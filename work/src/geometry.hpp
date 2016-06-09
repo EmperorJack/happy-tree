@@ -42,7 +42,7 @@ struct material {
 class Geometry {
 
 	public:
-		Geometry(std::string);
+		Geometry(std::string, float texScale = 1.0f);
 		Geometry(std::vector<cgra::vec3> points,
 				   std::vector<cgra::vec3> normals,
 				   std::vector<cgra::vec2> uvs,
@@ -72,6 +72,7 @@ class Geometry {
 
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);
 		material m_material;
+		float m_textureScale = 1.0f;
 
 		// The vector to return if no ray intersection is found
 		cgra::vec3 noIntersectionVector = cgra::vec3(std::numeric_limits<float>::max(), 0.0f, 0.0f);

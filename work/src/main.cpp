@@ -32,7 +32,7 @@ double frameRate = 0.0;
 // Projection values
 float g_fovy = 20.0;
 float g_znear = 0.1;
-float g_zfar = 1000.0;
+float g_zfar = 2000.0;
 
 // Mouse controlled values
 bool g_leftMouseDown = false;
@@ -70,7 +70,7 @@ float spawnPointShiftAmount = 0.1f;
 bool explodingSystem = false;
 
 // Toggle fields
-bool drawAxes = true;
+bool drawAxes = false;
 bool treeMode = false;
 bool wireframeMode = false;
 bool realtimeBuild = false;
@@ -78,6 +78,7 @@ bool partyMode = false;
 
 // Texture bindings
 GLuint t_bark = 0;
+GLuint t_grass = 0;
 GLuint t_skybox[6];
 
 // Mouse Position callback
@@ -294,7 +295,7 @@ void initGeometry() {
 	g_model = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
 	g_model->setPosition(vec3(5, 1, 5));
 
-	g_terrain = new Geometry("./work/res/assets/plane.obj");
+	g_terrain = new Geometry("./work/res/assets/plane.obj", 30.0f);
 
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
@@ -469,33 +470,82 @@ void drawQuad(float l) {
 
 	glBegin(GL_QUADS);
 		glNormal3f(0, 1, 0);
-		glTexCoord2f(-1, -1);
+
+		glTexCoord2f(0, 0);
 		glVertex3f(-l, 0, -l);
-		glTexCoord2f(-1, 1);
+
+		glTexCoord2f(0, 1);
 		glVertex3f(-l, 0, l);
+
 		glTexCoord2f(1, 1);
 		glVertex3f(l, 0, l);
-		glTexCoord2f(1, -1);
+
+		glTexCoord2f(1, 0);
 		glVertex3f(l, 0, -l);
 	glEnd();
 }
 
 void renderSkybox(float dist) {
 	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
+	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), false);
 
+	glPushMatrix();
+	glTranslatef(0, 50, 0);
+
+	// Floor plane
 	glPushMatrix();
 	glTranslatef(0, -dist, 0);
 	glBindTexture(GL_TEXTURE_2D, t_skybox[5]);
 	drawQuad(dist);
 	glPopMatrix();
 
+	// Top plane
 	glPushMatrix();
 	glTranslatef(0, dist, 0);
-	glRotatef(180, 1, 0, 0);
+	glRotatef(-90, 0, 1, 0);
+	glRotatef(180, 0, 0, 1);
 	glBindTexture(GL_TEXTURE_2D, t_skybox[2]);
 	drawQuad(dist);
 	glPopMatrix();
 
+	// Left plane (-X axis)
+	glPushMatrix();
+	glTranslatef(0, 0, -dist);
+	glRotatef(90, 1, 0, 0);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[0]);
+	drawQuad(dist);
+	glPopMatrix();
+
+	// Right plane (+X axis)
+	glPushMatrix();
+	glTranslatef(0, 0, dist);
+	glRotatef(90, 1, 0, 0);
+	glRotatef(180, 0, 0, 1);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[3]);
+	drawQuad(dist);
+	glPopMatrix();
+
+	// Front plane (+Z axis)
+	glPushMatrix();
+	glTranslatef(dist, 0, 0);
+	glRotatef(90, 0, 0, 1);
+	glRotatef(-90, 0, 1, 0);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[1]);
+	drawQuad(dist);
+	glPopMatrix();
+	
+	// Back plane (-Z axis)
+	glPushMatrix();
+	glTranslatef(-dist, 0, 0);
+	glRotatef(-90, 0, 0, 1);
+	glRotatef(90, 0, 1, 0);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[4]);
+	drawQuad(dist);
+	glPopMatrix();
+
+	glPopMatrix();
+
+	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), true);
 	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 }
 
@@ -527,14 +577,18 @@ void update() {
 void renderScene() {
 	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
 
-	// Render skybox
-	renderSkybox(50);
+	glPushMatrix();
+	//glScalef(2, 2, 2);
+	glTranslatef(0, -tree_h / 2, 0);
 
-	// Render plane
-	//renderPlane(20);
-	
+	// Render skybox
+	renderSkybox(500);
+
 	// Render terrain
+	glBindTexture(GL_TEXTURE_2D, t_grass);
+	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 	g_terrain->renderGeometry(false);
+	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 
 	if (treeMode){
 		glDisable(GL_LIGHTING);
@@ -560,6 +614,8 @@ void renderScene() {
 	if (treeFuzzySystemFinishedBuilding) {
 		g_treeParticleSystem->render();
 	}
+
+	glPopMatrix();
 }
 
 // Draw the scene
@@ -691,6 +747,7 @@ int main(int argc, char **argv) {
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 	t_bark = initTexture("./work/res/textures/bark.png");
+	t_grass = initTexture("./work/res/textures/grass.png");
 
 	// Initialize the skybox textures
 	for (int i = 0; i < 6; i++) {
