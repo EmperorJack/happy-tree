@@ -134,7 +134,6 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 			treeFuzzySystemFinishedBuilding = false;
 			realtimeBuild = false;
 			treeParticlesAnimating = false;
-			delete(g_treeParticleSystem);
 		}
 		if (key == 'T' && action == 1) {
 			treeMode = !treeMode;
@@ -264,6 +263,7 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 			// Check if the tree finished building it's particle systems
 			if (g_tree->finishedBuildingFuzzySystems()) {
+				delete(g_treeParticleSystem);
 				g_treeParticleSystem = new ParticleSystem(g_tree->getFuzzySystemPoints());
 				treeFuzzySystemFinishedBuilding = true;
 
@@ -331,8 +331,8 @@ void initMaterials() {
 	vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4 grey = vec4(0.2, 0.2, 0.2, 1.0);
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
-	
-	
+
+
 	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 
 
@@ -342,7 +342,7 @@ void initMaterials() {
 	float shininess = 64.0f;
 	vec4 emission = vec4(0,0,0,1);
 
-	for (int i = 0; i < g_treeList.size(); i++){		
+	for (int i = 0; i < g_treeList.size(); i++){
 		g_treeList.at(i)->setMaterial(ambient, diffuse, specular, shininess, emission);
 	}
 
@@ -536,7 +536,7 @@ void renderSkybox(float dist) {
 	glBindTexture(GL_TEXTURE_2D, t_skybox[1]);
 	drawQuad(dist);
 	glPopMatrix();
-	
+
 	// Back plane (-Z axis)
 	glPushMatrix();
 	glTranslatef(-dist, 0, 0);

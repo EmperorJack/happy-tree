@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-// General Particle System
+// General Animated Particle System
 //
 // By Jack Purvis
 //
@@ -31,6 +31,7 @@ class ParticleSystem {
 
 		// Constructors
 		ParticleSystem(std::vector<cgra::vec3>);
+		~ParticleSystem();
 
 		// Methods
 		void update();
@@ -44,7 +45,7 @@ class ParticleSystem {
 		void resetParticles();
 
 	private:
-		
+
 		// System fields
 		std::vector<particle> particles;
 		GLuint p_displayList = 0;

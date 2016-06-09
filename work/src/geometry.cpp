@@ -50,9 +50,6 @@ Geometry::Geometry(vector<vec3> points, vector<vec3> normals, vector<vec2> uvs, 
 	m_triangles = triangles;
 	m_uvs = uvs;
 
-	// Load a dummy point for the UV's
-	//m_uvs.push_back(vec2(0,0));
-
 	// Create the surface normals for every triangle
 	if (genSurfaceNormals) createSurfaceNormals();
 
@@ -246,13 +243,24 @@ void Geometry::displayTriangles() {
 	glBegin(GL_TRIANGLES);
 	for (int i = 0; i < m_triangles.size(); i++) {
 		for (int j = 0; j < 3; j++) {
-			vec3 p = m_points[m_triangles[i].v[j].p];
-			vec2 t = m_uvs[m_triangles[i].v[j].t];
-			vec3 n = m_normals[m_triangles[i].v[j].n];
+			int p_index = m_triangles[i].v[j].p;
+			int t_index = m_triangles[i].v[j].t;
+			int n_index = m_triangles[i].v[j].n;
 
-			glNormal3f(n.x, n.y, n.z);
-			glTexCoord2f(t.x * m_textureScale, t.y * m_textureScale);
-			glVertex3f(p.x, p.y, p.z);
+			if (n_index < m_normals.size()) {
+				vec3 n = m_normals[n_index];
+				glNormal3f(n.x, n.y, n.z);
+			}
+
+			if (t_index < m_uvs.size()) {
+				vec2 t = m_uvs[t_index];
+				glTexCoord2f(t.x * m_textureScale, t.y * m_textureScale);
+			}
+
+			if (p_index < m_points.size()) {
+				vec3 p = m_points[p_index];
+				glVertex3f(p.x, p.y, p.z);
+			}
 		}
 	}
 	glEnd();

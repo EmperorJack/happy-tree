@@ -41,12 +41,16 @@ Tree::~Tree() {
 	for (branch* b : treeNodes) {
 		delete(b);
 	}
+
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		delete(fuzzySystem);
+	}
 }
 
 branch* Tree::generateTree(){
 
 	float d = prm_branchLength;
-	
+
 	branch *root = new branch();
 	branch *parent = root;
 	branch *curNode = root;
@@ -132,7 +136,7 @@ void Tree::generateGeometry(branch *b) {
 	b->branchModel->setMaterial(m_ambient, m_diffuse, m_specular, m_shininess, m_emission);
 
 	b->branchFuzzySystem = new FuzzyObject(b->branchModel);
-	
+
 	float maxWidth = generatedTreeRoot->baseWidth;
 	float minWidth = prm_branchTipWidth;
 
@@ -369,7 +373,7 @@ void Tree::renderTree(bool wireframe) {
 	glTranslatef(m_position.x, m_position.y, m_position.z);
 
 	//Actually draw the tree
-	updateWorldWindDirection(root, vec3(0,0,0));	
+	updateWorldWindDirection(root, vec3(0,0,0));
 	renderBranch(root, wireframe);
 
 	//increment wind "time"
@@ -509,7 +513,7 @@ void Tree::drawBranch(branch* b, bool wireframe){
 	glPopMatrix();
 }
 
-void Tree::updateWorldWindDirection(branch* b, vec3 previousVector){	
+void Tree::updateWorldWindDirection(branch* b, vec3 previousVector){
 	if(b == NULL){
 		return;
 	}
@@ -538,7 +542,7 @@ float Tree::calculatePressure(branch* b, float force, int dir){
 	// } else if (dir == 'z'){ //z axis
 	// 	a = sin(branch->rotation.x);
 	// }
-	float dotProd = dot(b->worldDir, desiredWindForce); 
+	float dotProd = dot(b->worldDir, desiredWindForce);
 	float angle = acos(dotProd); // the angle to rotate by
 
 	//force = sin(diffVec);
@@ -592,7 +596,7 @@ void Tree::applyWind(branch* b){
 	float pressureX = calculatePressure(b, desiredWindForce.x, 'x');
 	float pressureZ = calculatePressure(b, desiredWindForce.z, 'z');
 
-	// float dotProd = dot(normalize(b->worldDir), normalize(desiredWindForce)); 
+	// float dotProd = dot(normalize(b->worldDir), normalize(desiredWindForce));
 	// float angle = acos(dotProd); // the angle to rotate by
 
 	//debug info

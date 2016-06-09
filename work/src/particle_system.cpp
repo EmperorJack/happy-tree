@@ -32,6 +32,9 @@ ParticleSystem::ParticleSystem(vector<vec3> points) {
 	setupDisplayList();
 }
 
+ParticleSystem::~ParticleSystem() {}
+
+
 void ParticleSystem::update() {
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
