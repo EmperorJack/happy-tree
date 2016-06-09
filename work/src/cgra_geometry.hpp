@@ -130,11 +130,17 @@ namespace cgra {
 				vec3 &nh = norms[slice_count + stack_count*(dualslices + 1)];
 				vec3 &nl = norms[slice_count + (stack_count + 1)*(dualslices + 1)];
 
+				// float sh = stack_count / float(stacks);
+				// float th = slice_count / float(slices);
+				// float t1 = (slice_count+1) / float(slices);
+
 				glNormal3f(nh.x, nh.y, nh.z);
 				glVertex3f(ph.x, ph.y, ph.z);
+				// glTexCoord2f(th, sh);
 
 				glNormal3f(nl.x, nl.y, nl.z);
 				glVertex3f(pl.x, pl.y, pl.z);
+				// glTexCoord2f(t1, sh);
 			}
 
 			glEnd();

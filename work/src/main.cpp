@@ -49,6 +49,14 @@ Geometry* g_model = nullptr;
 
 // Tree to animate
 Tree* g_tree = nullptr;
+float tree_h = 20.0f;
+float tree_t = 1.0f;
+float tree_bL = 2.0f;
+float tree_inf = 8.0f;
+float tree_kill = 1.0f;
+float tree_tW = 0.04;
+float tree_mW = 0.08;
+
 
 // Particle system fields
 FuzzyObject* g_fuzzy_system = nullptr;
@@ -105,135 +113,153 @@ void initLight();
 
 // Keyboard callback
 void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
-	// cout << "Key Callback :: key=" << key << "scancode=" << scancode
-	// 	<< "action=" << action << "mods=" << mods << endl;
-
-	// 'a' key pressed
-	if (key == 'A' && action == 1) {
-		drawAxes = !drawAxes;
-	}
-
-	if (key == 'T' && action == 1) {
-		treeMode = !treeMode;
-	}
-
-	if (key == 'F' && action == 1) {
-		g_tree->toggleWind();
-	}
-
-	if (key == 'C' && action == 1) {
-		g_tree->toggleTreeType();
-	}
-
-	if (key == 'Z' && action == 1) {
-		g_tree->generateNewTree();
-	}
-
-	if (key == 'X' && action == 1) {
-		::delete g_tree;
-		g_tree = new Tree();
-		g_tree->setPosition(vec3(0, 0, 0));
-	}
-
-	// increase wind on X axis
-	if (key == 'J' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('x', 1);
-	}
-
-	// decrease wind on X axis
-	if (key == 'N' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('x', -1);
-	}
-
-	// increase wind on Z axis
-	if (key == 'K' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('z', 1);
-	}
-
-	// decrease wind on Z axis
-	if (key == 'M' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('z', -1);
-	}
-
-	// increase a coefficient in wind calculation
-	if (key == 'H' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('a', 1);
-	}
-
-	// decrease a coefficient in wind calculation
-	if (key == 'B' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('a', -1);
-	}
-
-	// increase a coefficient in wind calculation
-	if (key == 'G' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('t', 1);
-	}
-
-	// decrease a coefficient in wind calculation
-	if (key == 'V' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('t', -1);
-	}
-
-	// 'p' key pressed
-	if (key == 'P' && action == 1) {
-		partyMode = !partyMode;
-
-		// Reset the light properties
-		initLight();
-	}
-
-	// 'w' key pressed
-	if (key == 'W' && action == 1) {
-		wireframeMode = !wireframeMode;
-	}
-
-	// 'space' key pressed
-	if (key == 32 && action == 1) {
-		if (g_fuzzy_system->finishedBuilding()) {
-			g_fuzzy_system->explode();
-			explodingSystem = true;
+	//cout << "Key Callback :: key=" << key << "scancode=" << scancode	<< "action=" << action << "mods=" << mods << endl;
+	//Tree Gen Stuff
+	if (mods == 2) {
+		if (key == 'R' && action == 1) {
+			delete(g_tree);
+			g_tree = new Tree(tree_h, tree_t, tree_bL, tree_inf, tree_kill, tree_tW, tree_mW);
 		}
-	}
+		if (key == 'T' && action == 1) {
+			treeMode = !treeMode;
+		}
 
-	// 'up' key pressed
-	if (key == 265 && (action == 1 || action == 2)) {
-		g_fuzzy_system->spawnPoint.z += spawnPointShiftAmount;
-	}
+		if (key == 'W' && action == 1) {
+			tree_h += 1.0f;
+		}
+		if (key == 'S' && action == 1) {
+			tree_h -= 1.0f;
+			tree_h = tree_h < 1.0 ? 1.0 : tree_h;
+		}
 
-	// 'left' key pressed
-	if (key == 263 && (action == 1 || action == 2)) {
-		g_fuzzy_system->spawnPoint.x += spawnPointShiftAmount;
-	}
+		if (key == 'D' && action == 1) {
+			tree_bL += 0.1f;
+		}
+		if (key == 'A' && action == 1) {
+			tree_bL -= 0.1f;
+			tree_bL = tree_bL < 1.0 ? 1.0 : tree_bL;
+		}
 
-	// 'right' key pressed
-	if (key == 262 && (action == 1 || action == 2)) {
-		g_fuzzy_system->spawnPoint.x -= spawnPointShiftAmount;
-	}
+		if (key == 'E' && action == 1) {
+			tree_mW += 0.01f;
+		}
+		if (key == 'Q' && action == 1) {
+			tree_mW -= 0.01f;
+			tree_mW = tree_mW <= 0 ? 0.01 : tree_mW;
+		}
+	}else{
+		if (key == 'A' && action == 1) {
+			drawAxes = !drawAxes;
+		}
 
-	// 'down' key pressed
-	if (key == 264 && (action == 1 || action == 2)) {
-		g_fuzzy_system->spawnPoint.z -= spawnPointShiftAmount;
-	}
+		if (key == 'F' && action == 1) {
+			g_tree->toggleWind();
+		}
 
-	// 'e' key pressed
-	if (key == 'E' && (action == 1 || action == 2)) {
-		g_fuzzy_system->spawnPoint.y -= spawnPointShiftAmount;
-	}
+		if (key == 'C' && action == 1) {
+			g_tree->toggleTreeType();
+		}
 
-	// 'r' key pressed
-	if (key == 'R' && (action == 1 || action == 2)) {
-		g_fuzzy_system->spawnPoint.y += spawnPointShiftAmount;
-	}
+		// increase wind on X axis
+		if (key == 'J' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('x', 1);
+		}
 
-	// 'q' key pressed
-	if (key == 'Q' && action == 1) {
-		realtimeBuild = !realtimeBuild;
-	}
+		// decrease wind on X axis
+		if (key == 'N' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('x', -1);
+		}
 
-	// 'v' key pressed
-	if (key == 'L' && action == 1) {
-		g_fuzzy_system->toggleParticleViewMode();
+		// increase wind on Z axis
+		if (key == 'K' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('z', 1);
+		}
+
+		// decrease wind on Z axis
+		if (key == 'M' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('z', -1);
+		}
+
+		// increase a coefficient in wind calculation
+		if (key == 'H' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('a', 1);
+		}
+
+		// decrease a coefficient in wind calculation
+		if (key == 'B' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('a', -1);
+		}
+
+		// increase a coefficient in wind calculation
+		if (key == 'G' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('t', 1);
+		}
+
+		// decrease a coefficient in wind calculation
+		if (key == 'V' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('t', -1);
+		}
+
+		// 'p' key pressed
+		if (key == 'P' && action == 1) {
+			partyMode = !partyMode;
+
+			// Reset the light properties
+			initLight();
+		}
+
+		// 'w' key pressed
+		if (key == 'W' && action == 1) {
+			wireframeMode = !wireframeMode;
+		}
+
+		// 'space' key pressed
+		if (key == 32 && action == 1) {
+			if (g_fuzzy_system->finishedBuilding()) {
+				g_fuzzy_system->explode();
+				explodingSystem = true;
+			}
+		}
+
+		// 'up' key pressed
+		if (key == 265 && (action == 1 || action == 2)) {
+			g_fuzzy_system->spawnPoint.z += spawnPointShiftAmount;
+		}
+
+		// 'left' key pressed
+		if (key == 263 && (action == 1 || action == 2)) {
+			g_fuzzy_system->spawnPoint.x += spawnPointShiftAmount;
+		}
+
+		// 'right' key pressed
+		if (key == 262 && (action == 1 || action == 2)) {
+			g_fuzzy_system->spawnPoint.x -= spawnPointShiftAmount;
+		}
+
+		// 'down' key pressed
+		if (key == 264 && (action == 1 || action == 2)) {
+			g_fuzzy_system->spawnPoint.z -= spawnPointShiftAmount;
+		}
+
+		// 'e' key pressed
+		if (key == 'E' && (action == 1 || action == 2)) {
+			g_fuzzy_system->spawnPoint.y -= spawnPointShiftAmount;
+		}
+
+		// 'r' key pressed
+		if (key == 'R' && (action == 1 || action == 2)) {
+			g_fuzzy_system->spawnPoint.y += spawnPointShiftAmount;
+		}
+
+		// 'q' key pressed
+		if (key == 'Q' && action == 1) {
+			realtimeBuild = !realtimeBuild;
+		}
+
+		// 'v' key pressed
+		if (key == 'L' && action == 1) {
+			g_fuzzy_system->toggleParticleViewMode();
+		}
 	}
 }
 
@@ -546,6 +572,7 @@ int main(int argc, char **argv) {
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
+	initTexture("./work/res/textures/wood.jpg");
 
 	g_fuzzy_system = new FuzzyObject(g_model);
 
