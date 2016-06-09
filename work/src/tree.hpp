@@ -56,12 +56,11 @@ class Tree{
 		void toggleTreeType();
 		void adjustWind(int, int);
 
-		std::vector<Geometry*> getGeometries();
-
 		// Fuzzy particle system methods
 		void buildFuzzySystems(bool);
 		bool finishedBuildingFuzzySystems();
 		std::vector<cgra::vec3> getFuzzySystemPoints();
+		int getFuzzySystemParticleCount();
 
 	private:
 		branch* root = nullptr; 	//the root section of the tree (first piece of trunk)
@@ -105,7 +104,6 @@ class Tree{
 		void generateEnvelope(int steps);
 		float envelopeFunction(float u,float theta);
 
-		void getBranchGeometry(branch*, std::vector<Geometry*>*);
 		void getBranchFuzzySystemPoints(branch*, std::vector<cgra::vec3>*);
 
 		bool inEnvelope(cgra::vec3);

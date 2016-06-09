@@ -493,7 +493,7 @@ void renderGUI() {
 				 ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 
 	ImGui::Text(string(fpsString).c_str());
-	ImGui::Text(("Particle Count: " + to_string(g_fuzzy_system->getParticleCount())).c_str());
+	ImGui::Text(("Particle Count: " + to_string(g_tree->getFuzzySystemParticleCount())).c_str());
 
 	ImGui::End();
 
