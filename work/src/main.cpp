@@ -406,33 +406,82 @@ void drawQuad(float l) {
 
 	glBegin(GL_QUADS);
 		glNormal3f(0, 1, 0);
-		glTexCoord2f(-1, -1);
+
+		glTexCoord2f(0, 0);
 		glVertex3f(-l, 0, -l);
-		glTexCoord2f(-1, 1);
+
+		glTexCoord2f(0, 1);
 		glVertex3f(-l, 0, l);
+
 		glTexCoord2f(1, 1);
 		glVertex3f(l, 0, l);
-		glTexCoord2f(1, -1);
+
+		glTexCoord2f(1, 0);
 		glVertex3f(l, 0, -l);
 	glEnd();
 }
 
 void renderSkybox(float dist) {
 	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
+	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), false);
 
+	glPushMatrix();
+	glTranslatef(0, 50, 0);
+
+	// Floor plane
 	glPushMatrix();
 	glTranslatef(0, -dist, 0);
 	glBindTexture(GL_TEXTURE_2D, t_skybox[5]);
 	drawQuad(dist);
 	glPopMatrix();
 
+	// Top plane
 	glPushMatrix();
 	glTranslatef(0, dist, 0);
-	glRotatef(180, 1, 0, 0);
+	glRotatef(-90, 0, 1, 0);
+	glRotatef(180, 0, 0, 1);
 	glBindTexture(GL_TEXTURE_2D, t_skybox[2]);
 	drawQuad(dist);
 	glPopMatrix();
 
+	// Left plane (-X axis)
+	glPushMatrix();
+	glTranslatef(0, 0, -dist);
+	glRotatef(90, 1, 0, 0);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[0]);
+	drawQuad(dist);
+	glPopMatrix();
+
+	// Right plane (+X axis)
+	glPushMatrix();
+	glTranslatef(0, 0, dist);
+	glRotatef(90, 1, 0, 0);
+	glRotatef(180, 0, 0, 1);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[3]);
+	drawQuad(dist);
+	glPopMatrix();
+
+	// Front plane (+Z axis)
+	glPushMatrix();
+	glTranslatef(dist, 0, 0);
+	glRotatef(90, 0, 0, 1);
+	glRotatef(-90, 0, 1, 0);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[1]);
+	drawQuad(dist);
+	glPopMatrix();
+	
+	// Back plane (-Z axis)
+	glPushMatrix();
+	glTranslatef(-dist, 0, 0);
+	glRotatef(-90, 0, 0, 1);
+	glRotatef(90, 0, 1, 0);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[4]);
+	drawQuad(dist);
+	glPopMatrix();
+
+	glPopMatrix();
+
+	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), true);
 	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 }
 
@@ -465,11 +514,11 @@ void renderScene() {
 	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
 
 	// Render skybox
-	renderSkybox(50);
+	renderSkybox(500);
 
 	// Render plane
 	//renderPlane(20);
-	
+
 	// Render terrain
 	g_terrain->renderGeometry(false);
 

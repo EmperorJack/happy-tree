@@ -3,6 +3,7 @@
 // Constant across both shaders
 uniform sampler2D texture0;
 uniform bool useTexture;
+uniform bool useLighting;
 
 // Values passed in from the vertex shader
 varying vec2 vTextureCoord0;
@@ -15,48 +16,53 @@ bool withinSpotlight(int, vec3, float);
 void main() {
 	vec3 finalColor = vec3(0, 0, 0);
 
-  int spotlightIndex = -1;
+  if(useLighting){
 
-  // Compute the illumination of each light
-  for (int lightIndex = 0; lightIndex < gl_MaxLights; lightIndex++) {
-    vec3 color = vec3(0, 0, 0);
+    int spotlightIndex = -1;
 
-    vec3 l = normalize(gl_LightSource[lightIndex].position.xyz - v);
-    vec3 e = normalize(-v);
-    vec3 r = normalize(reflect(-l, n));
+    // Compute the illumination of each light
+    for (int lightIndex = 0; lightIndex < gl_MaxLights; lightIndex++) {
+      vec3 color = vec3(0, 0, 0);
 
-    float s_dot_n = max(dot(l, n), 0.0);
+      vec3 l = normalize(gl_LightSource[lightIndex].position.xyz - v);
+      vec3 e = normalize(-v);
+      vec3 r = normalize(reflect(-l, n));
 
-    // Ambient
-    vec3 ambient = gl_LightSource[lightIndex].ambient.rgb *
-                  gl_FrontMaterial.ambient.rgb;
+      float s_dot_n = max(dot(l, n), 0.0);
 
-    // Diffuse
-    vec3 diffuse = gl_LightSource[lightIndex].diffuse.rgb *
-                  gl_FrontMaterial.diffuse.rgb *
-                  s_dot_n;
+      // Ambient
+      vec3 ambient = gl_LightSource[lightIndex].ambient.rgb *
+                    gl_FrontMaterial.ambient.rgb;
 
-    // Specular
-    vec3 specular = vec3(0.0, 0.0, 0.0);
-    if (s_dot_n > 0.0) {
-      specular = gl_LightSource[lightIndex].specular.rgb *
-                gl_FrontMaterial.specular.rgb *
-                pow(max(dot(r, normalize(-v)), 0.0), gl_FrontMaterial.shininess);
-    }
+      // Diffuse
+      vec3 diffuse = gl_LightSource[lightIndex].diffuse.rgb *
+                    gl_FrontMaterial.diffuse.rgb *
+                    s_dot_n;
 
-    if (lightIndex == spotlightIndex) {
-      if (withinSpotlight(lightIndex, l, s_dot_n)) {
+      // Specular
+      vec3 specular = vec3(0.0, 0.0, 0.0);
+      if (s_dot_n > 0.0) {
+        specular = gl_LightSource[lightIndex].specular.rgb *
+                  gl_FrontMaterial.specular.rgb *
+                  pow(max(dot(r, normalize(-v)), 0.0), gl_FrontMaterial.shininess);
+      }
+
+      if (lightIndex == spotlightIndex) {
+        if (withinSpotlight(lightIndex, l, s_dot_n)) {
+          color = ambient + diffuse + specular;
+        }
+      } else {
         color = ambient + diffuse + specular;
       }
-    } else {
-      color = ambient + diffuse + specular;
-    }
 
-    if (useTexture) {
-      color *= texture2D(texture0, vTextureCoord0).rgb;
+      finalColor += color;
     }
+  }else{
+    finalColor = vec3(1.0,1.0,1.0);
+  }
 
-    finalColor += color;
+  if (useTexture) {
+    finalColor *= texture2D(texture0, vTextureCoord0).rgb;
   }
 
   gl_FragColor = vec4(finalColor, 1);
