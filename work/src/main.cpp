@@ -275,7 +275,7 @@ void initMaterials() {
 	vec4 grey = vec4(0.2, 0.2, 0.2, 1.0);
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
 	
-	g_terrain->setMaterial(vec4(0.1,0.1,0.1,1.0), vec4(0.9,0.9,0.9,1.0), vec4(0.1,0.1,0.1,1.0), 20.0f,black);
+	g_terrain->setMaterial(vec4(0.5,0.5,0.5,1.0), vec4(0.5,0.5,0.5,1.0), vec4(0.1,0.1,0.1,1.0), 20.0f,black);
 
 	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 }
