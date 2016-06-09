@@ -113,6 +113,10 @@ void FuzzyObject::addParticle() {
 
 	p.col = vec3(1.0f, 1.0f, 1.0f);
 
+	p.id = nextUniqueId++;
+
+	cout << p.id << endl;
+
 	particles.push_back(p);
 
 	updateFacingTriangle(particles.size() - 1);

@@ -26,6 +26,8 @@ struct fuzzyParticle {
 	cgra::vec3 triangleIntersectionPos;
 	int triangleIndex;
 	bool inCollision;
+	int id;
+	std::vector<int> neighbours;
 };
 
 class FuzzyObject {
@@ -63,6 +65,7 @@ class FuzzyObject {
 		int particleLimit = 3000;
 		int minParticleCount = 10;
 		std::vector<int> particlesForDeletion;
+		int nextUniqueId = 0;
 
 		// State fields
 		bool buildFinished = false;
