@@ -59,6 +59,9 @@ float tree_kill = 1.0f;
 float tree_tW = 0.04;
 float tree_mW = 0.08;
 
+int numTrees = 3;
+std::vector<Tree*> g_treeList;
+
 // Particle system fields
 FuzzyObject* g_fuzzy_system = nullptr;
 ParticleSystem* g_treeParticleSystem = nullptr;
@@ -165,50 +168,80 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 		if (key == 'F' && action == 1) {
 			g_tree->toggleWind();
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->toggleWind();
+			}
 		}
 
 		if (key == 'C' && action == 1) {
 			g_tree->toggleTreeType();
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->toggleTreeType();
+			}
 		}
 
 		// increase wind on X axis
 		if (key == 'J' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('x', 1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('x', 1);
+			}
 		}
 
 		// decrease wind on X axis
 		if (key == 'N' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('x', -1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('x', -1);
+			}
 		}
 
 		// increase wind on Z axis
 		if (key == 'K' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('z', 1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('z', 1);
+			}
 		}
 
 		// decrease wind on Z axis
 		if (key == 'M' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('z', -1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('z', -1);
+			}
 		}
 
 		// increase a coefficient in wind calculation
 		if (key == 'H' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('a', 1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('a', 1);
+			}
 		}
 
 		// decrease a coefficient in wind calculation
 		if (key == 'B' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('a', -1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('a', -1);
+			}
 		}
 
 		// increase a coefficient in wind calculation
 		if (key == 'G' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('t', 1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('t', 1);
+			}
 		}
 
 		// decrease a coefficient in wind calculation
 		if (key == 'V' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('t', -1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('t', -1);
+			}
 		}
 
 		// 'p' key pressed
@@ -265,6 +298,29 @@ void initGeometry() {
 
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
+
+	// for (int i = 1; i != numTrees; i++){
+	// 	for (int j = 1; j != numTrees; j++){
+	// 		Tree* tree = new Tree();
+	// 		tree->setPosition(vec3(i*20, 0, j*20));
+	// 		g_treeList.push_back(tree);
+
+
+	// 		Tree* tree2 = new Tree();
+	// 		tree2->setPosition(vec3(i*-20, 0, j*20));
+	// 		g_treeList.push_back(tree2);
+
+
+	// 		Tree* tree3 = new Tree();
+	// 		tree3->setPosition(vec3(i*20, 0, j*-20));
+	// 		g_treeList.push_back(tree3);
+
+
+	// 		Tree* tree4 = new Tree();
+	// 		tree4->setPosition(vec3(i*-20, 0, j*-20));
+	// 		g_treeList.push_back(tree4);
+	// 	}
+	// }
 }
 
 // Setup the materials per geometric object
@@ -282,6 +338,10 @@ void initMaterials() {
 	vec4 specular = vec4(0.05,0.05,0.05,1);
 	float shininess = 64.0f;
 	vec4 emission = vec4(0,0,0,1);
+
+	for (int i = 0; i < g_treeList.size(); i++){		
+		g_treeList.at(i)->setMaterial(ambient, diffuse, specular, shininess, emission);
+	}
 
 	g_tree->setMaterial(ambient, diffuse, specular, shininess, emission);
 	g_terrain->setMaterial(ambient, diffuse, specular, shininess, emission);
@@ -489,6 +549,10 @@ void renderScene() {
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 		glBindTexture(GL_TEXTURE_2D, t_bark);
 		g_tree->renderTree(wireframeMode);
+
+		// for (int i = 0; i < g_treeList.size(); i++){
+		// 	g_treeList.at(i)->renderTree(wireframeMode);
+		// }
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 	}
 
