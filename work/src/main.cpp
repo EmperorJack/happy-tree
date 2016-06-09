@@ -273,6 +273,15 @@ void initMaterials() {
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
 
 	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
+
+
+	vec4 ambient = vec4(0.1,0.1,0.1,1);
+	vec4 diffuse = vec4(1,1,1,1);
+	vec4 specular = vec4(0.05,0.05,0.05,1);
+	float shininess = 64.0f;
+	vec4 emission = vec4(0,0,0,1);
+
+	g_tree->setMaterial(ambient, diffuse, specular, shininess, emission);
 }
 
 // Loads in a texture from the given location
@@ -300,18 +309,31 @@ GLuint initTexture(string path) {
 
 // Sets up the lights and their individual properties
 void initLight() {
-	vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
-	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
+	// vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
+	// vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
 
-	// Point light
-	glLightfv(GL_LIGHT0, GL_AMBIENT, black.dataPointer());
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(0.75, 0.75, 1.0, 1.0).dataPointer());
-	glLightfv(GL_LIGHT0, GL_SPECULAR, white.dataPointer());
+	// // Point light
+	// glLightfv(GL_LIGHT0, GL_AMBIENT, black.dataPointer());
+	// glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(0.75, 0.75, 1.0, 1.0).dataPointer());
+	// glLightfv(GL_LIGHT0, GL_SPECULAR, white.dataPointer());
 
-	// Point light
-	glLightfv(GL_LIGHT1, GL_AMBIENT, black.dataPointer());
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(1.0, 0.75, 0.75, 1.0).dataPointer());
-	glLightfv(GL_LIGHT1, GL_SPECULAR, white.dataPointer());
+	// // Point light
+	// glLightfv(GL_LIGHT1, GL_AMBIENT, black.dataPointer());
+	// glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(1.0, 0.75, 0.75, 1.0).dataPointer());
+	// glLightfv(GL_LIGHT1, GL_SPECULAR, white.dataPointer());
+
+
+	// weak directional light
+	GLfloat diffintensity[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+	GLfloat specular[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	GLfloat ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+
+	GLfloat dir_pos[] = { 15.0f, 20.0f, 2.0f, 0.0f };
+
+	glLightfv(GL_LIGHT0, GL_POSITION, dir_pos);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffintensity);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 }
 
 // Load a shader from a given location
@@ -338,13 +360,13 @@ void setupCamera(int width, int height) {
 // Sets up the lighting of the scene
 void setupLight() {
 	// Set the light positions and directions
-	glLightfv(GL_LIGHT0, GL_POSITION, vec4(5.0, 5.0, 5.0, 1.0).dataPointer());
-	glLightfv(GL_LIGHT1, GL_POSITION, vec4(-5.0, 5.0, -5.0, 1.0).dataPointer());
+	// glLightfv(GL_LIGHT0, GL_POSITION, vec4(5.0, 5.0, 5.0, 1.0).dataPointer());
+	// glLightfv(GL_LIGHT1, GL_POSITION, vec4(-5.0, 5.0, -5.0, 1.0).dataPointer());
 
-	if (frameCount % 20 == 0 && partyMode) {
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
-	}
+	// if (frameCount % 20 == 0 && partyMode) {
+	// 	glLightfv(GL_LIGHT0, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
+	// 	glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), math::random(0.0f, 1.0f), 1.0).dataPointer());
+	// }
 }
 
 // Render the global axes for reference

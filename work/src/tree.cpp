@@ -127,8 +127,9 @@ void Tree::generateGeometry(branch *b) {
 	b->jointModel = generateSphereGeometry(b->baseWidth);
 
 	b->branchModel = generateCylinderGeometry(b->baseWidth, b->topWidth, b->length, 10, 2);
-	b->jointModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
-	b->branchModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
+
+	b->jointModel->setMaterial(m_ambient, m_diffuse, m_specular, m_shininess, m_emission);
+	b->branchModel->setMaterial(m_ambient, m_diffuse, m_specular, m_shininess, m_emission);
 
 	b->branchFuzzySystem = new FuzzyObject(b->branchModel);
 	
@@ -702,6 +703,14 @@ void Tree::applyWind(branch* b){
 */
 void Tree::setPosition(vec3 position) {
 	m_position = position;
+}
+
+void Tree::setMaterial(vec4 ambient, vec4 diffuse, vec4 specular, float shininess, vec4 emission){
+	m_ambient = ambient;
+	m_diffuse = diffuse;
+	m_specular = specular;
+	m_shininess = shininess;
+	m_emission = emission;
 }
 
 /*
