@@ -265,13 +265,13 @@ namespace cgra {
 				vec3 ph = h*radius;
 				vec3 pl = l*radius;
 
-				float uh = slice_count / float(slice_count / dualslices);
+				float uh = slice_count / float(dualslices);
 				float vh = stack_count / float(stacks);
 				float vl = (stack_count+1) / float(stacks);
 
 				normals.push_back(vec3(h.x, h.y, h.z)); //glNormal3f(h.x, h.y, h.z);
 				points.push_back(vec3(ph.x, ph.y, ph.z)); //glVertex3f(ph.x, ph.y, ph.z);
-				uvs.push_back(vec2(uh,vh));
+				uvs.push_back(vec2(vh,uh));
 
 				pointCount++;
 				if (pointCount >= 3) {
@@ -280,7 +280,7 @@ namespace cgra {
 
 				normals.push_back(vec3(l.x, l.y, l.z)); //glNormal3f(l.x, l.y, l.z);
 				points.push_back(vec3(pl.x, pl.y, pl.z)); //glVertex3f(pl.x, pl.y, pl.z);
-				uvs.push_back(vec2(uh,vl));
+				uvs.push_back(vec2(vl,uh));
 
 				pointCount++;
 				if (pointCount >= 3 && stack_count != stacks - 1) {

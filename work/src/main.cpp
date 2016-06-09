@@ -75,6 +75,7 @@ bool partyMode = false;
 
 // Texture bindings
 GLuint t_bark = 0;
+GLuint t_grass = 0;
 GLuint t_skybox[6];
 
 // Mouse Position callback
@@ -261,7 +262,7 @@ void initGeometry() {
 	g_model = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
 	g_model->setPosition(vec3(5, 1, 5));
 
-	g_terrain = new Geometry("./work/res/assets/plane.obj");
+	g_terrain = new Geometry("./work/res/assets/plane.obj", 30.0f);
 
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
@@ -273,8 +274,7 @@ void initMaterials() {
 	vec4 grey = vec4(0.2, 0.2, 0.2, 1.0);
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
 	
-	g_terrain->setMaterial(vec4(0.5,0.5,0.5,1.0), vec4(0.5,0.5,0.5,1.0), vec4(0.1,0.1,0.1,1.0), 20.0f,black);
-
+	
 	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 
 
@@ -285,6 +285,10 @@ void initMaterials() {
 	vec4 emission = vec4(0,0,0,1);
 
 	g_tree->setMaterial(ambient, diffuse, specular, shininess, emission);
+	g_terrain->setMaterial(ambient, diffuse, specular, shininess, emission);
+
+	//g_terrain->setMaterial(vec4(0.5,0.5,0.5,1.0), vec4(0.5,0.5,0.5,1.0), vec4(0.1,0.1,0.1,1.0), 20.0f,black);
+
 }
 
 // Loads in a texture from the given location
@@ -520,7 +524,10 @@ void renderScene() {
 	//renderPlane(20);
 
 	// Render terrain
+	glBindTexture(GL_TEXTURE_2D, t_grass);
+	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 	g_terrain->renderGeometry(false);
+	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 
 	if (treeMode){
 		glDisable(GL_LIGHTING);
@@ -673,6 +680,7 @@ int main(int argc, char **argv) {
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 	t_bark = initTexture("./work/res/textures/bark.png");
+	t_grass = initTexture("./work/res/textures/grass.png");
 
 	// Initialize the skybox textures
 	for (int i = 0; i < 6; i++) {
