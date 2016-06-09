@@ -49,6 +49,7 @@ class FuzzyObject {
 		// Methods for utilizing the built system
 		bool finishedBuilding();
 		std::vector<cgra::vec3> getSystem();
+		void clearParticles();
 
 		// Methods rendering the system
 		void renderSystem();

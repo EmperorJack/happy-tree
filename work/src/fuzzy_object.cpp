@@ -344,3 +344,7 @@ vector<vec3> FuzzyObject::getSystem() {
 
 	return points;
 }
+
+void FuzzyObject::clearParticles() {
+	particles.clear();
+}

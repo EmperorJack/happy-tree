@@ -475,7 +475,7 @@ void Tree::renderStick(branch *b, int depth){
 	this prevents a tree breaking visual issue when rotating branches.
 */
 void Tree::drawJoint(branch* b, bool wireframe){
-	if (!wireframe) {
+	if (!wireframe && !fuzzySystemFinishedBuilding) {
 		glPushMatrix();
 			b->jointModel->renderGeometry(wireframe);
 		glPopMatrix();
@@ -493,7 +493,7 @@ void Tree::drawBranch(branch* b, bool wireframe){
 
 	glPushMatrix();
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
-		b->branchModel->renderGeometry(wireframe);
+		if (!fuzzySystemFinishedBuilding) b->branchModel->renderGeometry(wireframe);
 		b->branchFuzzySystem->renderSystem();
 	glPopMatrix();
 }
@@ -791,6 +791,11 @@ vector<vec3> Tree::getFuzzySystemPoints() {
 
 	getBranchFuzzySystemPoints(root, &points);
 
+	// Clear the fuzzy systems as they are done
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		fuzzySystem->clearParticles();
+	}
+
 	return points;
 }
 
@@ -800,7 +805,7 @@ void Tree::getBranchFuzzySystemPoints(branch* b, vector<vec3>* points) {
 	for (int i = 0; i < systemPoints.size(); i++) {
 
 		// Create the vector that will contain the baked particle position
-		vec3 bakedPosition = vec3(systemPoints[i]);
+		vec3 bakedPosition = systemPoints[i];
 
 		// Rotate the vector by the direction vector
 		vec3 axis = cross(b->direction, vec3(0, 0, 1));
@@ -808,10 +813,14 @@ void Tree::getBranchFuzzySystemPoints(branch* b, vector<vec3>* points) {
 		float acosAngle = acos(dotProd);
 		bakedPosition = bakedPosition * angleAxisRotation(acosAngle, axis);
 
-		// Translate the vector
-		bakedPosition += vec3(b->worldDir);
+		// mat4 mat;
+		// bakedPosition = vec3(vec4(bakedPosition,1.0f) * mat.rotateZ(b->rotation.z));
+		// bakedPosition = vec3(vec4(bakedPosition,1.0f) * mat.rotateX(b->rotation.x));
 
-		points->push_back(bakedPosition);
+		// Translate the vector
+		bakedPosition += b->worldDir;
+
+		points->push_back(vec3(bakedPosition.x, bakedPosition.y, bakedPosition.z));
 	}
 
 
