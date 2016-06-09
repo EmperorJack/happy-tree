@@ -56,6 +56,10 @@ class Tree{
 		void toggleTreeType();
 		void adjustWind(int, int);
 
+		std::vector<Geometry*> getGeometries();
+
+		void setMaterial(cgra::vec4, cgra::vec4, cgra::vec4, float, cgra::vec4);
+
 		// Fuzzy particle system methods
 		void buildFuzzySystems(bool);
 		bool finishedBuildingFuzzySystems();
@@ -82,6 +86,14 @@ class Tree{
 		float maxZ = 3.0f;
 		float minX = -3.0f;
 		float minZ = -3.0f;
+
+		cgra::vec4 white = cgra::vec4(1,1,1,1);
+
+		cgra::vec4 m_ambient = white;
+		cgra::vec4 m_diffuse = white;
+		cgra::vec4 m_specular = white;
+		float m_shininess = 1.0f;
+		cgra::vec4 m_emission = white;
 
 		float yStep;
 		float thetaStep = 10.0f;
