@@ -43,13 +43,14 @@ Geometry::Geometry(string filename) {
 	m_material.emission = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-Geometry::Geometry(vector<vec3> points, vector<vec3> normals, vector<triangle> triangles, bool genSurfaceNormals) {
+Geometry::Geometry(vector<vec3> points, vector<vec3> normals, vector<vec2> uvs, vector<triangle> triangles, bool genSurfaceNormals) {
 	m_points = points;
 	m_normals = normals;
 	m_triangles = triangles;
+	m_uvs = uvs;
 
 	// Load a dummy point for the UV's
-	m_uvs.push_back(vec2(0,0));
+	//m_uvs.push_back(vec2(0,0));
 
 	// Create the surface normals for every triangle
 	if (genSurfaceNormals) createSurfaceNormals();
@@ -249,7 +250,7 @@ void Geometry::displayTriangles() {
 			vec3 n = m_normals[m_triangles[i].v[j].n];
 
 			glNormal3f(n.x, n.y, n.z);
-			glTexCoord2f(t.x * 4.0f, t.y * 4.0f);
+			glTexCoord2f(t.x, t.y);
 			glVertex3f(p.x, p.y, p.z);
 		}
 	}

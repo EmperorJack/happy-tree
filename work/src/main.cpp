@@ -433,8 +433,11 @@ void renderScene() {
 			g_tree->buildFuzzySystems(true);
 		}
 
+
 		// Render geometry
+		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 		g_tree->renderTree(wireframeMode);
+		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 
 		if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry(wireframeMode);
 	}
@@ -572,7 +575,7 @@ int main(int argc, char **argv) {
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
-	initTexture("./work/res/textures/wood.jpg");
+	initTexture("./work/res/textures/bark.png");
 
 	g_fuzzy_system = new FuzzyObject(g_model);
 

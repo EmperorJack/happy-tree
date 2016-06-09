@@ -44,9 +44,10 @@ class Geometry {
 	public:
 		Geometry(std::string);
 		Geometry(std::vector<cgra::vec3> points,
-					   std::vector<cgra::vec3> normals,
-					   std::vector<triangle> triangles,
-					   bool);
+				   std::vector<cgra::vec3> normals,
+				   std::vector<cgra::vec2> uvs,
+				   std::vector<triangle> triangles,
+				   bool);
 		~Geometry();
 
 		cgra::vec3 getPosition();
