@@ -49,9 +49,9 @@ class Tree{
 		void adjustWind(int, int);	
 		
 	private:
-		branch *root = nullptr; 	//the root section of the tree (first piece of trunk)
-		branch *generatedTreeRoot = nullptr; 	//the root section of the tree (first piece of trunk)
-		branch *dummyTreeRoot = nullptr; 	//the root section of the tree (first piece of trunk)
+		branch* root = nullptr; 	//the root section of the tree (first piece of trunk)
+		branch* generatedTreeRoot = nullptr; 	//the root section of the tree (first piece of trunk)
+		branch* dummyTreeRoot = nullptr; 	//the root section of the tree (first piece of trunk)
 
 		//the position this tree will exist in world space
 		cgra::vec3 m_position = cgra::vec3(0.0f, 0.0f, 0.0f);	

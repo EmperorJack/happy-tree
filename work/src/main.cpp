@@ -94,12 +94,6 @@ void initLight();
 // Keyboard callback
 void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	//cout << "Key Callback :: key=" << key << "scancode=" << scancode	<< "action=" << action << "mods=" << mods << endl;
-
-	// 'a' key pressed
-	if (key == 'A' && action == 1) {
-		drawAxes = !drawAxes;
-	}
-
 	//Tree Gen Stuff
 	if (mods == 2) {
 		if (key == 'R' && action == 1) {
@@ -133,67 +127,72 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 			tree_mW -= 0.01f;
 			tree_mW = tree_mW <= 0 ? 0.01 : tree_mW;
 		}
-	}
+	}else{
+		// 'a' key pressed
+		if (key == 'A' && action == 1) {
+			drawAxes = !drawAxes;
+		}
 
-	if (key == 'F' && action == 1) {
-		g_tree->toggleWind();
-	}
+		if (key == 'F' && action == 1) {
+			g_tree->toggleWind();
+		}
 
-	if (key == 'C' && action == 1) {
-		g_tree->toggleTreeType();
-	}
+		if (key == 'C' && action == 1) {
+			g_tree->toggleTreeType();
+		}
 
-	// increase wind on X axis
-	if (key == 'J' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('x', 1);
-	}
+		// increase wind on X axis
+		if (key == 'J' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('x', 1);
+		}
 
-	// decrease wind on X axis
-	if (key == 'N' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('x', -1);
-	}
+		// decrease wind on X axis
+		if (key == 'N' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('x', -1);
+		}
 
-	// increase wind on Z axis
-	if (key == 'K' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('z', 1);
-	}
+		// increase wind on Z axis
+		if (key == 'K' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('z', 1);
+		}
 
-	// decrease wind on Z axis
-	if (key == 'M' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('z', -1);
-	}
+		// decrease wind on Z axis
+		if (key == 'M' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('z', -1);
+		}
 
-	// increase a coefficient in wind calculation
-	if (key == 'H' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('a', 1);
-	}
+		// increase a coefficient in wind calculation
+		if (key == 'H' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('a', 1);
+		}
 
-	// decrease a coefficient in wind calculation
-	if (key == 'B' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('a', -1);
-	}
+		// decrease a coefficient in wind calculation
+		if (key == 'B' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('a', -1);
+		}
 
-	// increase a coefficient in wind calculation
-	if (key == 'G' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('t', 1);
-	}
+		// increase a coefficient in wind calculation
+		if (key == 'G' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('t', 1);
+		}
 
-	// decrease a coefficient in wind calculation
-	if (key == 'V' && (action == 1 || action == 2)) {
-		g_tree->adjustWind('t', -1);
-	}
+		// decrease a coefficient in wind calculation
+		if (key == 'V' && (action == 1 || action == 2)) {
+			g_tree->adjustWind('t', -1);
+		}
 
-	// 'p' key pressed
-	if (key == 'P' && action == 1) {
-		partyMode = !partyMode;
+		// 'p' key pressed
+		if (key == 'P' && action == 1) {
+			partyMode = !partyMode;
 
-		// Reset the light properties
-		initLight();
-	}
+			// Reset the light properties
+			initLight();
+		}
 
-	// 'w' key pressed
-	if (key == 'W' && action == 1) {
-		g_model->toggleWireframe();
+		// 'w' key pressed
+		if (key == 'W' && action == 1) {
+			g_model->toggleWireframe();
+		}
 	}
 }
 
