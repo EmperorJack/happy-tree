@@ -50,6 +50,7 @@ class FuzzyObject {
 		bool finishedBuilding();
 		std::vector<cgra::vec3> getSystem();
 		void clearParticles();
+		void scaleDensity(float);
 
 		// Methods rendering the system
 		void renderSystem();
@@ -61,7 +62,7 @@ class FuzzyObject {
 		// Particle system fields
 		std::vector<fuzzyParticle> particles;
 		int particleLimit = 3000;
-		int minParticleCount = 10;
+		int minParticleCount = 20;
 		std::vector<int> particlesForDeletion;
 
 		// State fields

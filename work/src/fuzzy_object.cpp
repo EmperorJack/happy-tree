@@ -62,15 +62,6 @@ void FuzzyObject::buildSystem(bool incremental) {
 		if (incremental) return;
 	}
 
-	// Second pass
-	int maxParticles = particles.size() - 1;
-	while (particles.size() < maxParticles) {
-		addParticle();
-		updateBuildingSystem();
-
-		if (incremental) return;
-	}
-
 	// Final pass
 	while (!systemAtRest()) {
 		updateBuildingSystem();
@@ -100,6 +91,7 @@ bool FuzzyObject::stoppingCriteria() {
 }
 
 bool FuzzyObject::systemAtRest() {
+	// Not currently checking this yet
 	return true;
 }
 
@@ -347,4 +339,9 @@ vector<vec3> FuzzyObject::getSystem() {
 
 void FuzzyObject::clearParticles() {
 	particles.clear();
+}
+
+void FuzzyObject::scaleDensity(float amount) {
+	p_radius *= amount;
+	p_boundaryRadius *= amount;
 }

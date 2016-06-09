@@ -228,7 +228,7 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 			if (g_tree->finishedBuildingFuzzySystems()) {
 				g_treeParticleSystem = new ParticleSystem(g_tree->getFuzzySystemPoints());
 				treeFuzzySystemFinishedBuilding = true;
-			 	//g_treeParticleSystem->drop();
+			 	g_treeParticleSystem->explode();
 			}
 		}
 

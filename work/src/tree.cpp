@@ -131,6 +131,16 @@ void Tree::generateGeometry(branch *b) {
 	b->branchModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
 
 	b->branchFuzzySystem = new FuzzyObject(b->branchModel);
+	
+	float maxWidth = generatedTreeRoot->baseWidth;
+	float minWidth = prm_branchTipWidth;
+
+	float maxDensity = 1.0f;
+	float minDensity = 0.5f;
+
+	float amount = (b->baseWidth - minWidth) / (maxWidth - minWidth) * (maxDensity - minDensity) + minDensity;
+	b->branchFuzzySystem->scaleDensity(amount);
+
 	fuzzyBranchSystems.push_back(b->branchFuzzySystem);
 
 	for (branch* c : b->children) {
