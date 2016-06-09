@@ -24,6 +24,7 @@ ParticleSystem::ParticleSystem(vector<vec3> points) {
 		p.pos = points[i];
 		p.vel = vec3(0.0f, 0.0f, 0.0f);
 		p.acc = vec3(0.0f, 0.0f, 0.0f);
+		p.col = vec3(1.0f, 1.0f, 0.0f);
 		particles.push_back(p);
 	}
 
@@ -47,7 +48,7 @@ void ParticleSystem::update() {
 
 void ParticleSystem::render() {
 	glPushMatrix();
-	
+
 	// Set particle material properties
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular.dataPointer());
 	glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);

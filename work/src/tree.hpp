@@ -105,6 +105,7 @@ class Tree{
 		float envelopeFunction(float u,float theta);
 
 		void getBranchGeometry(branch*, std::vector<Geometry*>*);
+		void getBranchFuzzySystemPoints(branch*, std::vector<cgra::vec3>*);
 
 		bool inEnvelope(cgra::vec3);
 		branch* makeDummyTree(int);
@@ -135,6 +136,7 @@ class Tree{
 		float springConstant(branch*);
 		void applyWind(branch*);
 
-
 		void updateWorldWindDirection(branch*, cgra::vec3);
+
+		cgra::mat3 angleAxisRotation(float, cgra::vec3);
 };

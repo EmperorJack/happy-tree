@@ -453,7 +453,7 @@ void renderScene() {
 	//if (realtimeBuild && !g_fuzzy_system->finishedBuilding()) g_fuzzy_system->buildSystemIncrement();
 
 	if (explodingSystem && treeParticleSystem != nullptr) {
-		treeParticleSystem->update();
+		//treeParticleSystem->update();
 		//if (g_fuzzy_system->finishedBuilding()) g_fuzzy_system->updateSystem();
 	}
 

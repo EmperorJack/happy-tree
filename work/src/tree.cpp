@@ -386,10 +386,10 @@ void Tree::renderBranch(branch *b, bool wireframe, int depth) {
 		//only draw branch info if it has a length
 		if(b->length > 0){
 
-			vec3 rot = b->basisRot;
-			glRotatef(rot.z, 0, 0, 1);
-			glRotatef(rot.y, 0, 1, 0);
-			glRotatef(rot.x, 1, 0, 0);
+			//vec3 rot = b->basisRot;
+			// glRotatef(rot.z, 0, 0, 1);
+			// glRotatef(rot.y, 0, 1, 0);
+			// glRotatef(rot.x, 1, 0, 0);
 
 			//debug info
 			// cout << b->name << endl;
@@ -401,9 +401,9 @@ void Tree::renderBranch(branch *b, bool wireframe, int depth) {
 			glRotatef(b->rotation.z, 0, 0, 1);
 			glRotatef(b->rotation.x, 1, 0, 0);
 
-			glRotatef(-rot.x, 1, 0, 0);
-			glRotatef(-rot.y, 0, 1, 0);
-			glRotatef(-rot.z, 0, 0, 1);
+			// glRotatef(-rot.x, 1, 0, 0);
+			// glRotatef(-rot.y, 0, 1, 0);
+			// glRotatef(-rot.z, 0, 0, 1);
 
 			//draw the joint of this branch
 			drawJoint(b, wireframe);
@@ -503,10 +503,10 @@ void Tree::updateWorldWindDirection(branch* b, vec3 previousVector){
 		return;
 	}
 
+	b->worldDir = previousVector;
+
 	vec3 currentVector = b->direction * b->length;
 	vec3 total = currentVector + previousVector;
-
-	b->worldDir = total;
 
 	for(branch* c : b->children){
 		updateWorldWindDirection(c, total);
@@ -784,16 +784,53 @@ bool Tree::finishedBuildingFuzzySystems() {
 vector<vec3> Tree::getFuzzySystemPoints() {
 	vector<vec3> points;
 
-	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
-
-		vector<vec3> systemPoints = fuzzySystem->getSystem();
-
-		for (int i = 0; i < systemPoints.size(); i++) {
-			points.push_back(systemPoints[i]);
-		}
-	}
+	getBranchFuzzySystemPoints(root, &points);
 
 	return points;
+}
+
+void Tree::getBranchFuzzySystemPoints(branch* b, vector<vec3>* points) {
+	vector<vec3> systemPoints = b->branchFuzzySystem->getSystem();
+
+	for (int i = 0; i < systemPoints.size(); i++) {
+
+		// Create the vector that will contain the baked particle position
+		vec3 bakedPosition = vec3(systemPoints[i]);
+
+		// Rotate the vector by the direction vector
+		vec3 axis = cross(b->direction, vec3(0, 0, 1));
+		float dotProd = dot(b->direction, vec3(0, 0, 1));
+		float acosAngle = acos(dotProd);
+		bakedPosition = bakedPosition * angleAxisRotation(acosAngle, axis);
+
+		// Translate the vector
+		bakedPosition += vec3(b->worldDir);
+
+		points->push_back(bakedPosition);
+	}
+
+
+	for (branch* c : b->children) {
+		getBranchFuzzySystemPoints(c, points);
+	}
+}
+
+mat3 Tree::angleAxisRotation(float angle, vec3 u) {
+	mat3 m;
+
+	m[0][0] = cos(angle) + u.x * u.x * (1 - cos(angle));
+	m[0][1] = u.y * u.x * (1 - cos(angle)) + u.z * sin(angle);
+	m[0][2] = u.z * u.x * (1 - cos(angle)) - u.y * sin(angle);
+
+	m[1][0] = u.x * u.y * (1 - cos(angle)) - u.z * sin(angle);
+	m[1][1] = cos(angle) + u.y * u.y * (1 - cos(angle));
+	m[1][2] = u.z * u.y * (1 - cos(angle)) + u.x * sin(angle);
+
+	m[2][0] = u.x * u.z * (1 - cos(angle)) + u.y * sin(angle);
+	m[2][1] = u.y * u.z * (1 - cos(angle)) - u.x * sin(angle);
+	m[2][2] = cos(angle) + u.z * u.z * (1 - cos(angle));
+
+	return m;
 }
 
 /* Builds a test tree to work with for simulating wind animation.
