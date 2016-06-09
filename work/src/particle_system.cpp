@@ -21,6 +21,7 @@ ParticleSystem::ParticleSystem(vector<vec3> points) {
 	// Create a particle system out of given points
 	for (int i = 0; i < points.size(); i++) {
 		particle p;
+		p.original_pos = vec3(points[i]);
 		p.pos = points[i];
 		p.vel = vec3(0.0f, 0.0f, 0.0f);
 		p.acc = vec3(0.0f, 0.0f, 0.0f);
@@ -100,8 +101,17 @@ void ParticleSystem::drop() {
 
 void ParticleSystem::explode() {
 	for (int i = 0; i < particles.size(); i++) {
+		particles[i].acc = vec3(0.0f, -0.00981f, 0.0f);
 		particles[i].vel = vec3(math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
 			                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
 			                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f);
+	}
+}
+
+void ParticleSystem::resetParticles() {
+	for (int i = 0; i < particles.size(); i++) {
+		particles[i].pos = particles[i].original_pos;
+		particles[i].vel = vec3(0.0f, 0.0f, 0.0f);
+		particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
 	}
 }

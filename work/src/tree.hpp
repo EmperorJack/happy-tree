@@ -92,6 +92,7 @@ class Tree{
 		std::vector<cgra::vec3> attractionPoints;
 
 		std::vector<FuzzyObject*> fuzzyBranchSystems;
+		bool fuzzySystemFinishedBuilding = false;
 
 		//Tree Generation Methods
 		branch* generateTree();

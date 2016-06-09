@@ -18,6 +18,7 @@
 #include "opengl.hpp"
 
 struct particle {
+	cgra::vec3 original_pos;
 	cgra::vec3 pos;
 	cgra::vec3 vel;
 	cgra::vec3 acc;
@@ -38,6 +39,8 @@ class ParticleSystem {
 		// Animation triggers
 		void drop();
 		void explode();
+
+		void resetParticles();
 
 	private:
 		

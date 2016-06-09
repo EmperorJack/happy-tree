@@ -77,6 +77,7 @@ class FuzzyObject {
 		float p_radius = 0.2f;
 		float p_boundaryRadius = 0.15f;
 		float p_mass = 100.0f;
+		float p_spawnOffset = 0.02f;
 
 		// LJ potential energy fields
 		float e_strength = 0.005f;

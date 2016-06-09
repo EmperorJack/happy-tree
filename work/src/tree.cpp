@@ -772,13 +772,18 @@ void Tree::buildFuzzySystems(bool increment) {
 	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
 		fuzzySystem->buildSystem(increment);
 	}
+
+	// Check if the fuzzy systems have finished building
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		if (!fuzzySystem->finishedBuilding()) {
+			return;
+		}
+	}
+	fuzzySystemFinishedBuilding = true;
 }
 
 bool Tree::finishedBuildingFuzzySystems() {
-	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
-		if (!fuzzySystem->finishedBuilding()) return false;
-	}
-	return true;
+	return fuzzySystemFinishedBuilding;
 }
 
 vector<vec3> Tree::getFuzzySystemPoints() {
