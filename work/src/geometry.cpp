@@ -43,7 +43,7 @@ Geometry::Geometry(string filename) {
 	m_material.emission = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-Geometry::Geometry(vector<vec3> points, vector<vec3> normals, vector<triangle> triangles) {
+Geometry::Geometry(vector<vec3> points, vector<vec3> normals, vector<triangle> triangles, bool genSurfaceNormals) {
 	m_points = points;
 	m_normals = normals;
 	m_triangles = triangles;
@@ -52,7 +52,7 @@ Geometry::Geometry(vector<vec3> points, vector<vec3> normals, vector<triangle> t
 	m_uvs.push_back(vec2(0,0));
 
 	// Create the surface normals for every triangle
-	createSurfaceNormals();
+	if (genSurfaceNormals) createSurfaceNormals();
 
 	if (m_triangles.size() > 0) {
 		createDisplayListPoly();
@@ -204,8 +204,9 @@ void Geometry::createNormals() {
 void Geometry::createSurfaceNormals() {
 	// Compute the surface normal of each triangle
 	for (int i = 0; i < m_triangles.size(); i++) {
-		m_surfaceNormals.push_back(normalize(cross(m_points[m_triangles[i].v[1].p] - m_points[m_triangles[i].v[0].p],
-			 																					m_points[m_triangles[i].v[2].p] - m_points[m_triangles[i].v[0].p])));
+		vec3 surfaceNormal = cross(m_points[m_triangles[i].v[1].p] - m_points[m_triangles[i].v[0].p],
+			 																	m_points[m_triangles[i].v[2].p] - m_points[m_triangles[i].v[0].p]);
+		m_surfaceNormals.push_back(normalize(surfaceNormal));
 	}
 }
 
@@ -350,7 +351,7 @@ void Geometry::renderGeometry(bool wireframe) {
 		glCallList(m_displayListPoly);
 	}
 
-	// Debug code for drawing the surface normals
+	//Debug code for drawing the surface normals
 	// for (int i = 0; i < m_surfaceNormals.size(); i++) {
 	// 	glPushMatrix();
 	// 	vec3 triPos = (m_points[m_triangles[i].v[0].p] + m_points[m_triangles[i].v[1].p] + m_points[m_triangles[i].v[2].p]) / 3.0f;

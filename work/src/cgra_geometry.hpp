@@ -272,7 +272,7 @@ namespace cgra {
 			}
 		}
 
-		return new Geometry(points, normals, triangles);
+		return new Geometry(points, normals, triangles, false);
 	}
 
 	inline Geometry* generateCylinderGeometry(float base_radius, float top_radius, float height, int slices = 10, int stacks = 10) {
@@ -413,6 +413,6 @@ namespace cgra {
 			}
 		}
 
-		return new Geometry(points, normals, triangles);
+		return new Geometry(points, normals, triangles, true);
 	}
 }

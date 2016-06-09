@@ -130,12 +130,10 @@ float Tree::setWidth(branch *b){
 
 void Tree::generateGeometry(branch *b) {
 	b->jointModel = generateSphereGeometry(b->baseWidth);
-	b->branchModel = generateCylinderGeometry(b->baseWidth, b->topWidth, b->length, 10, 2);
 
+	b->branchModel = generateCylinderGeometry(b->baseWidth, b->topWidth, b->length, 10, 2);
 	b->jointModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
-	//b->jointModel->setPosition(b->position);
 	b->branchModel->setMaterial(vec4(0.2, 0.2, 0.2, 1.0), vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, vec4(0.0, 0.0, 0.0, 1.0));
-	//b->branchModel->setPosition(b->position);
 
 	b->branchFuzzySystem = new FuzzyObject(b->branchModel);
 
@@ -479,10 +477,11 @@ void Tree::renderStick(branch *b, int depth){
 	this prevents a tree breaking visual issue when rotating branches.
 */
 void Tree::drawJoint(branch* b, bool wireframe){
-	glPushMatrix();
-		//cgraSphere(b->baseWidth);
-		b->jointModel->renderGeometry(wireframe);
-	glPopMatrix();
+	if (!wireframe) {
+		glPushMatrix();
+			b->jointModel->renderGeometry(wireframe);
+		glPopMatrix();
+	}
 }
 
 /* draws the branch to the screen
@@ -496,7 +495,6 @@ void Tree::drawBranch(branch* b, bool wireframe){
 
 	glPushMatrix();
 		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
-		//cgraCylinder(b->baseWidth, b->topWidth, b->length);
 		b->branchModel->renderGeometry(wireframe);
 		b->branchFuzzySystem->renderSystem();
 	glPopMatrix();
