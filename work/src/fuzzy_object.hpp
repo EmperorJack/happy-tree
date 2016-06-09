@@ -18,7 +18,7 @@
 #include "opengl.hpp"
 #include "geometry.hpp"
 
-struct particle {
+struct fuzzyParticle {
 	cgra::vec3 pos;
 	cgra::vec3 vel;
 	cgra::vec3 acc;
@@ -42,10 +42,6 @@ class FuzzyObject {
 		void buildSystemIncrement();
 		void buildSystem(bool);
 
-		// Methods for animating and rendering the system
-		void updateSystem();
-		void renderSystem();
-
 		// Misc methods
 		int getParticleCount();
 		void toggleParticleViewMode();
@@ -53,14 +49,16 @@ class FuzzyObject {
 		// Methods for utilizing the built system
 		bool finishedBuilding();
 		std::vector<cgra::vec3> getSystem();
-		void explode();
+
+		// Methods rendering the system
+		void renderSystem();
 
 	private:
 		// The 3D object the particle system represents
 		Geometry* g_geometry;
 
 		// Particle system fields
-		std::vector<particle> particles;
+		std::vector<fuzzyParticle> particles;
 		int particleLimit = 3000;
 		int minParticleCount = 10;
 		std::vector<int> particlesForDeletion;
@@ -77,7 +75,7 @@ class FuzzyObject {
 		GLuint p_displayList = 0;
 		float p_velRange = 0.03f;
 		float p_radius = 0.2f;
-		float p_boundaryRadius = 0.25f;
+		float p_boundaryRadius = 0.15f;
 		float p_mass = 100.0f;
 
 		// LJ potential energy fields

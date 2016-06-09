@@ -17,6 +17,7 @@
 #include "geometry.hpp"
 #include "tree.hpp"
 #include "fuzzy_object.hpp"
+#include "particle_system.hpp"
 
 using namespace std;
 using namespace cgra;
@@ -60,7 +61,8 @@ float tree_mW = 0.08;
 
 // Particle system fields
 FuzzyObject* g_fuzzy_system = nullptr;
-//vector<FuzzyObject*> g_tree_fuzzy_systems;
+ParticleSystem* treeParticleSystem = nullptr;
+
 float spawnPointShiftAmount = 0.1f;
 bool explodingSystem = false;
 
@@ -91,14 +93,17 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 		g_rightMouseDown = (action == GLFW_PRESS);
 		if (g_rightMouseDown) {
-			g_fuzzy_system->buildSystemIncrement();
+			//g_fuzzy_system->buildSystemIncrement();
 			g_tree->buildFuzzySystems(true);
 		}
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
 		if (action == GLFW_PRESS) {
-			for (int i = 0; i < 100; i++) g_fuzzy_system->buildSystemIncrement();
+			for (int i = 0; i < 100; i++) {
+				//g_fuzzy_system->buildSystemIncrement();
+				g_tree->buildFuzzySystems(true);
+			}
 		}
 	}
 }
@@ -215,9 +220,14 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 		// 'space' key pressed
 		if (key == 32 && action == 1) {
-			if (g_fuzzy_system->finishedBuilding()) {
-				g_fuzzy_system->explode();
-				explodingSystem = true;
+			explodingSystem = !explodingSystem;
+
+			// if (g_fuzzy_system->finishedBuilding()) {
+			// 	g_fuzzy_system->explode();
+			// }
+
+			if (g_tree->finishedBuildingFuzzySystems()) {
+				treeParticleSystem = new ParticleSystem(g_tree->getFuzzySystemPoints());
 			}
 		}
 
@@ -270,9 +280,9 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	g_model = new Geometry("./work/res/assets/sphere.obj");
+	//g_model = new Geometry("./work/res/assets/sphere.obj");
 	//g_model = generateSphereGeometry(3.0f, 6, 6);
-	//g_model = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
+	g_model = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
 	g_model->setPosition(vec3(5, 1, 5));
 
 	g_tree = new Tree();
@@ -439,16 +449,20 @@ void renderScene() {
 		g_tree->renderTree(wireframeMode);
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 
-		if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry(wireframeMode);
+		//if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry(wireframeMode);
 	}
 
 	// Update building particle systems
-	if (realtimeBuild && !g_fuzzy_system->finishedBuilding()) g_fuzzy_system->buildSystemIncrement();
+	//if (realtimeBuild && !g_fuzzy_system->finishedBuilding()) g_fuzzy_system->buildSystemIncrement();
 
-	if (explodingSystem && g_fuzzy_system->finishedBuilding()) g_fuzzy_system->updateSystem();
+	if (explodingSystem && treeParticleSystem != nullptr) {
+		treeParticleSystem->update();
+		//if (g_fuzzy_system->finishedBuilding()) g_fuzzy_system->updateSystem();
+	}
 
-	// Render particle system
-	g_fuzzy_system->renderSystem();
+	// Render complete fuzzy particle system
+	//g_fuzzy_system->renderSystem();
+	if (treeParticleSystem != nullptr) treeParticleSystem->render();
 }
 
 // Draw the scene

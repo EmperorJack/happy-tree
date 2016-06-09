@@ -107,7 +107,7 @@ void FuzzyObject::addParticle() {
 	// Do not add another particle if we reached the limit
 	if (particles.size() >= particleLimit) return;
 
-	particle p;
+	fuzzyParticle p;
 	p.pos = vec3(spawnPoint.x + math::random(-0.01f, 0.01f),
 							 spawnPoint.y + math::random(-0.01f, 0.01f),
 							 spawnPoint.z + math::random(-0.01f, 0.01f));
@@ -134,9 +134,9 @@ void FuzzyObject::updateBuildingSystem() {
 		particles[i].inCollision = false;
 
 		// Check if the particle left the mesh
-		if (!g_geometry->pointInsideMesh(particles[i].pos)) {
-		//float d = dot(particles[i].pos - particles[i].triangleIntersectionPos, -g_geometry->getSurfaceNormal(particles[i].triangleIndex));
-		//if (d < 0.0f || d == maxFloatVector.x) {
+		//if (!g_geometry->pointInsideMesh(particles[i].pos)) {
+		float d = dot(particles[i].pos - particles[i].triangleIntersectionPos, -g_geometry->getSurfaceNormal(particles[i].triangleIndex));
+		if (d < 0.0f || d >= maxFloatVector.x) {
 
 			// Mark it for deletion
 			particles[i].col = vec3(0.0f, 1.0f, 0.0f);
@@ -152,7 +152,7 @@ void FuzzyObject::updateBuildingSystem() {
 
 	// Delete any particles marked for deletion
 	if (particlesForDeletion.size() > 0) {
-		vector<particle> newParticles;
+		vector<fuzzyParticle> newParticles;
 
 		for (int i = 0; i < particles.size(); i++) {
 			if (find(particlesForDeletion.begin(), particlesForDeletion.end(), i) == particlesForDeletion.end()) {
@@ -268,24 +268,10 @@ void FuzzyObject::updateFacingTriangle(int index) {
 	particles[index].inCollision = true;
 }
 
-void FuzzyObject::updateSystem() {
-	// For each particle
-	for (int i = 0; i < particles.size(); i++) {
-		particles[i].vel = particles[i].vel + particles[i].acc;
-		particles[i].pos += particles[i].vel;
-
-		vec3 actualPos = particles[i].pos + g_geometry->getPosition();
-		if (actualPos.y - p_radius < 0.0f) {
-			particles[i].vel.y *= -1;
-			particles[i].vel *= 0.9f;
-			particles[i].pos.y += p_radius;
-		}
-	}
-}
-
 void FuzzyObject::renderSystem() {
-	// Translate to the geometry position
 	glPushMatrix();
+
+	// Translate to the geometry position
 	vec3 geometry_pos = g_geometry->getPosition();
 	glTranslatef(geometry_pos.x, geometry_pos.y, geometry_pos.z);
 
@@ -307,7 +293,7 @@ void FuzzyObject::renderSystem() {
 	glLineWidth(1);
 
 	for (int i = 0; i < particles.size(); i++) {
-		particle p = particles[i];
+		fuzzyParticle p = particles[i];
 
 		glPushMatrix();
 		glTranslatef(p.pos.x, p.pos.y, p.pos.z);
@@ -357,16 +343,4 @@ vector<vec3> FuzzyObject::getSystem() {
 	}
 
 	return points;
-}
-
-void FuzzyObject::explode() {
-	for (int i = 0; i < particles.size(); i++) {
-		particles[i].acc = vec3(0.0f, -0.00981f, 0.0f);
-		//particles[i].vel = vec3(math::random(-1.0f, 1.0f) * p_velRange / 2.0f,
-		//	                      math::random(-0.01f, 0.0f),
-		//	                      math::random(-1.0f, 1.0f) * p_velRange / 2.0f);
-		particles[i].vel = vec3(math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
-			                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f,
-			                      math::random(-1.0f, 1.0f) * p_velRange * 10.0f);
-	}
 }

@@ -14,6 +14,7 @@ SET(headers
 	"geometry.hpp"
 	"tree.hpp"
 	"fuzzy_object.hpp"
+	"particle_system.hpp"
 )
 
 
@@ -24,6 +25,7 @@ SET(sources
 	"geometry.cpp"
 	"tree.cpp"
 	"fuzzy_object.cpp"
+	"particle_system.cpp"
 )
 
 # Add executable target and link libraries
