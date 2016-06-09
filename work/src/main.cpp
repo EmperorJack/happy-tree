@@ -62,7 +62,6 @@ float tree_mW = 0.08;
 FuzzyObject* g_fuzzy_system = nullptr;
 ParticleSystem* g_treeParticleSystem = nullptr;
 bool treeFuzzySystemFinishedBuilding = false;
-
 float spawnPointShiftAmount = 0.1f;
 bool explodingSystem = false;
 
@@ -72,6 +71,10 @@ bool treeMode = false;
 bool wireframeMode = false;
 bool realtimeBuild = false;
 bool partyMode = false;
+
+// Texture bindings
+GLuint t_bark = 0;
+GLuint t_skybox[6];
 
 // Mouse Position callback
 void cursorPosCallback(GLFWwindow* win, double xpos, double ypos) {
@@ -242,11 +245,6 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 		if (key == 'Q' && action == 1) {
 			realtimeBuild = !realtimeBuild;
 		}
-
-		// 'v' key pressed
-		if (key == 'L' && action == 1) {
-			g_fuzzy_system->toggleParticleViewMode();
-		}
 	}
 }
 
@@ -376,15 +374,7 @@ void renderGlobalAxes() {
 	glEnable(GL_LIGHTING);
 }
 
-// Render a square plane with the given length
-void renderPlane(float length) {
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(0.75f, 0.75f, 0.75f, 1.0f).dataPointer());
-	glMaterialfv(GL_FRONT, GL_SPECULAR, vec4(0.5f, 0.5f, 0.5f, 1.0f).dataPointer());
-	float shininess = 128.0f;
-	glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
-
-	float l = length / 2.0f;
-
+void drawQuad(float l) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glBegin(GL_QUADS);
@@ -398,6 +388,37 @@ void renderPlane(float length) {
 		glTexCoord2f(1, -1);
 		glVertex3f(l, 0, -l);
 	glEnd();
+}
+
+void renderSkybox(float dist) {
+	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
+
+	glPushMatrix();
+	glTranslatef(0, -dist, 0);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[5]);
+	drawQuad(dist);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0, dist, 0);
+	glRotatef(180, 1, 0, 0);
+	glBindTexture(GL_TEXTURE_2D, t_skybox[2]);
+	drawQuad(dist);
+	glPopMatrix();
+
+	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
+}
+
+// Render a square plane with the given length
+void renderPlane(float length) {
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(0.75f, 0.75f, 0.75f, 1.0f).dataPointer());
+	glMaterialfv(GL_FRONT, GL_SPECULAR, vec4(0.5f, 0.5f, 0.5f, 1.0f).dataPointer());
+	float shininess = 128.0f;
+	glMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
+
+	float l = length / 2.0f;
+
+	drawQuad(l);
 }
 
 void update() {
@@ -416,8 +437,11 @@ void update() {
 void renderScene() {
 	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
 
+	// Render skybox
+	renderSkybox(50);
+
 	// Render plane
-	renderPlane(20);
+	//renderPlane(20);
 
 	if (treeMode){
 		glDisable(GL_LIGHTING);
@@ -428,8 +452,9 @@ void renderScene() {
 		glEnable(GL_LIGHTING);
 	} else {
 
-		// Render geometry
+		// Render Tree
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
+		glBindTexture(GL_TEXTURE_2D, t_bark);
 		g_tree->renderTree(wireframeMode);
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 	}
@@ -568,9 +593,12 @@ int main(int argc, char **argv) {
 	initMaterials();
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
-	initTexture("./work/res/textures/bark.png");
+	t_bark = initTexture("./work/res/textures/bark.png");
 
-	g_fuzzy_system = new FuzzyObject(g_model);
+	// Initialize the skybox textures
+	for (int i = 0; i < 6; i++) {
+		t_skybox[i] = initTexture("./work/res/textures/sky_0" + to_string(i + 1) + ".png");
+	}
 
 	double lastTime = glfwGetTime();
 	int framesThisSecond = 0;
