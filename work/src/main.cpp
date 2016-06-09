@@ -47,6 +47,7 @@ GLuint g_shader = 0;
 
 // Geometry draw lists
 Geometry* g_model = nullptr;
+Geometry* g_terrain = nullptr;
 
 // Tree to animate
 Tree* g_tree = nullptr;
@@ -262,6 +263,8 @@ void initGeometry() {
 	g_model = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
 	g_model->setPosition(vec3(5, 1, 5));
 
+	g_terrain = new Geometry("./work/res/assets/plane.obj");
+
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
 }
@@ -271,6 +274,8 @@ void initMaterials() {
 	vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4 grey = vec4(0.2, 0.2, 0.2, 1.0);
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
+	
+	g_terrain->setMaterial(vec4(0.5,0.5,0.5,1.0), vec4(0.5,0.5,0.5,1.0), vec4(0.1,0.1,0.1,1.0), 20.0f,black);
 
 	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 
@@ -438,8 +443,8 @@ void update() {
 void renderScene() {
 	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
 
-	// Render plane
-	renderPlane(20);
+	// Render terrain
+	g_terrain->renderGeometry(false);
 
 	if (treeMode){
 		glDisable(GL_LIGHTING);
@@ -515,7 +520,7 @@ void renderGUI() {
 				 ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 
 	ImGui::Text(string(fpsString).c_str());
-	ImGui::Text(("Particle Count: " + to_string(g_fuzzy_system->getParticleCount())).c_str());
+	ImGui::Text(("Particle Count: " + to_string(g_tree->getFuzzySystemParticleCount())).c_str());
 
 	ImGui::End();
 

@@ -771,22 +771,6 @@ void Tree::adjustWind(int axis, int dir){
 	}
 }
 
-vector<Geometry*> Tree::getGeometries() {
-	vector<Geometry*> geometries;
-
-	getBranchGeometry(root, &geometries);
-
-	return geometries;
-}
-
-void Tree::getBranchGeometry(branch* b, vector<Geometry*>* geometries) {
-	geometries->push_back(b->branchModel);
-
-	for (branch* c : b->children) {
-		getBranchGeometry(c, geometries);
-	}
-}
-
 void Tree::buildFuzzySystems(bool increment) {
 	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
 		fuzzySystem->buildSystem(increment);
@@ -816,6 +800,16 @@ vector<vec3> Tree::getFuzzySystemPoints() {
 	}
 
 	return points;
+}
+
+int Tree::getFuzzySystemParticleCount() {
+	int total = 0;
+
+	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
+		total += fuzzySystem->getParticleCount();
+	}
+
+	return total;
 }
 
 void Tree::getBranchFuzzySystemPoints(branch* b, vector<vec3>* points) {
