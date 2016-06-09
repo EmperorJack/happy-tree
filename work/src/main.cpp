@@ -244,9 +244,9 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	//g_model = new Geometry("./work/res/assets/bunny-reduced.obj");
+	g_model = new Geometry("./work/res/assets/sphere.obj");
 	//g_model = generateSphereGeometry(3.0f, 6, 6);
-	g_model = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
+	//g_model = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
 	g_model->setPosition(vec3(5, 1, 5));
 
 	g_tree = new Tree();
@@ -414,7 +414,7 @@ void renderScene() {
 	}
 
 	// Update building particle systems
-	//if (realtimeBuild && !g_fuzzy_system->finishedBuilding()) g_fuzzy_system->buildSystemIncrement();
+	if (realtimeBuild && !g_fuzzy_system->finishedBuilding()) g_fuzzy_system->buildSystemIncrement();
 
 	if (explodingSystem && g_fuzzy_system->finishedBuilding()) g_fuzzy_system->updateSystem();
 
