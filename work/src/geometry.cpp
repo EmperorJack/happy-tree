@@ -27,8 +27,9 @@
 using namespace std;
 using namespace cgra;
 
-Geometry::Geometry(string filename) {
+Geometry::Geometry(string filename, float texScale) {
 	m_filename = filename;
+	m_textureScale = texScale;
 	readOBJ(filename);
 	if (m_triangles.size() > 0) {
 		createDisplayListPoly();
@@ -250,7 +251,7 @@ void Geometry::displayTriangles() {
 			vec3 n = m_normals[m_triangles[i].v[j].n];
 
 			glNormal3f(n.x, n.y, n.z);
-			glTexCoord2f(t.x, t.y);
+			glTexCoord2f(t.x * m_textureScale, t.y * m_textureScale);
 			glVertex3f(p.x, p.y, p.z);
 		}
 	}
