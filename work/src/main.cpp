@@ -32,7 +32,7 @@ double frameRate = 0.0;
 // Projection values
 float g_fovy = 20.0;
 float g_znear = 0.1;
-float g_zfar = 1000.0;
+float g_zfar = 2000.0;
 
 // Mouse controlled values
 bool g_leftMouseDown = false;
@@ -67,7 +67,7 @@ float spawnPointShiftAmount = 0.1f;
 bool explodingSystem = false;
 
 // Toggle fields
-bool drawAxes = true;
+bool drawAxes = false;
 bool treeMode = false;
 bool wireframeMode = false;
 bool realtimeBuild = false;
@@ -517,11 +517,12 @@ void update() {
 void renderScene() {
 	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
 
+	glPushMatrix();
+	//glScalef(2, 2, 2);
+	glTranslatef(0, -tree_h / 2, 0);
+
 	// Render skybox
 	renderSkybox(500);
-
-	// Render plane
-	//renderPlane(20);
 
 	// Render terrain
 	glBindTexture(GL_TEXTURE_2D, t_grass);
@@ -549,6 +550,8 @@ void renderScene() {
 	if (treeFuzzySystemFinishedBuilding) {
 		g_treeParticleSystem->render();
 	}
+
+	glPopMatrix();
 }
 
 // Draw the scene
