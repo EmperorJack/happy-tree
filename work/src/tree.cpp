@@ -524,10 +524,6 @@ void Tree::updateWorldWindDirection(branch* b, vec3 previousVector){
 */
 float Tree::calculatePressure(branch* b, float force, int dir){
 	float a = windCoefficent; //change to a small number derived from the current angle of the branch
-<<<<<<< HEAD
-=======
-	
->>>>>>> wind
 
 	//attempt at making the small value use the current angle of the branch
 	// if (dir == 'x'){ //x axis
