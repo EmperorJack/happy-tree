@@ -362,6 +362,7 @@ void Tree::renderTree(bool wireframe) {
 	glTranslatef(m_position.x, m_position.y, m_position.z);
 
 	//Actually draw the tree
+	updateWorldWindDirection(root, vec3(0,0,0));	
 	renderBranch(root, wireframe);
 
 	//increment wind "time"
@@ -384,6 +385,7 @@ void Tree::renderBranch(branch *b, bool wireframe, int depth) {
 	}
 
 	static int i_k =0;
+
 	glPushMatrix();
 		//only draw branch info if it has a length
 		if(b->length > 0){
@@ -500,13 +502,32 @@ void Tree::drawBranch(branch* b, bool wireframe){
 	glPopMatrix();
 }
 
+void Tree::updateWorldWindDirection(branch* b, vec3 previousVector){	
+	if(b == NULL){
+		return;
+	}
+
+	vec3 currentVector = b->direction * b->length;
+	vec3 total = currentVector + previousVector;
+
+	b->worldDir = total;
+
+	for(branch* c : b->children){
+		updateWorldWindDirection(c, total);
+	}
+}
+
 /*
 	Calculates the pressure the wind will apply to a given branch
 	force is the float value of the wind in the windforce vector for a given axis (x or z)
 	dir is an int to let us know which axis to calculate the force for (0 == x, 2 == z)
 */
-float Tree::calculatePressure(branch* branch, float force, int dir){
+float Tree::calculatePressure(branch* b, float force, int dir){
 	float a = windCoefficent; //change to a small number derived from the current angle of the branch
+<<<<<<< HEAD
+=======
+	
+>>>>>>> wind
 
 	//attempt at making the small value use the current angle of the branch
 	// if (dir == 'x'){ //x axis
@@ -514,11 +535,15 @@ float Tree::calculatePressure(branch* branch, float force, int dir){
 	// } else if (dir == 'z'){ //z axis
 	// 	a = sin(branch->rotation.x);
 	// }
+	float dotProd = dot(b->worldDir, desiredWindForce); 
+	float angle = acos(dotProd); // the angle to rotate by
+
+	//force = sin(diffVec);
 
 	//oscillation is plugged into a sine function.
 	//time is increased steadily to make the effect follow an oscilation pattern - global scope
 	//branch offset is a random value assigned to each branch so they are at a different point in the oscillation
-	float oscillation = (time + branch->offset);
+	float oscillation = (time + b->offset);
 	//oscillation = (oscillation - floor(oscillation)) - 0.5f;
 
 	//mulitply a radians value by degrees variable to convert it from radians to degrees
@@ -526,8 +551,10 @@ float Tree::calculatePressure(branch* branch, float force, int dir){
 	float degrees = 180.0f / ((float)math::pi()) ;
 
 	//pressure is the final return value
-	float pressure = force * (1 + a * sin(oscillation) );
-	//float pressure = sin(oscillation);
+	float pressure = force * (1 + angle * sin(oscillation) );
+	// float pressure = force + ((force*angle) * (force*sin(oscillation)));
+	// float pressure = angle  + sin(oscillation);
+	// float pressure = sin(oscillation);
 
 	return pressure;
 }
@@ -561,6 +588,9 @@ void Tree::applyWind(branch* b){
 	//calculates the pressure value for each axis
 	float pressureX = calculatePressure(b, desiredWindForce.x, 'x');
 	float pressureZ = calculatePressure(b, desiredWindForce.z, 'z');
+
+	// float dotProd = dot(normalize(b->worldDir), normalize(desiredWindForce)); 
+	// float angle = acos(dotProd); // the angle to rotate by
 
 	//debug info
 	// cout << "Name: " << b->name << endl;
@@ -624,19 +654,20 @@ void Tree::applyWind(branch* b){
 	//not sure if this is needed...
 	float degrees = 180.0f / ((float)math::pi()) ;
 
-	b->rotation.z = motionAngleX * degrees;
-	b->rotation.x = motionAngleZ * degrees;
+	b->rotation.x = motionAngleX * degrees;
+	b->rotation.z = motionAngleZ * degrees;
 
-	if (b->rotation.z > 20){
-		b->rotation.z = 20.0f;
-	} else if (b->rotation.z < -20){
-		b->rotation.z = -20.0f;
+	float clampAngle = 10.0f;
+	if (b->rotation.z > clampAngle){
+		b->rotation.z = clampAngle;
+	} else if (b->rotation.z < -clampAngle){
+		b->rotation.z = -clampAngle;
 	}
 
-	if (b->rotation.x > 20){
-		b->rotation.x = 20.0f;
-	} else if (b->rotation.x < -20){
-		b->rotation.x = -20.0f;
+	if (b->rotation.x > clampAngle){
+		b->rotation.x = clampAngle;
+	} else if (b->rotation.x < -clampAngle){
+		b->rotation.x = -clampAngle;
 	}
 	//temporarily just rotating by displacement value because motionAngle is NaN
 	//attempt to restrict the rotation by converting it to degrees, and then limit it to 20degrees
