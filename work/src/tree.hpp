@@ -105,9 +105,9 @@ class Tree{
 		branch* makeDummyTree(int);
 
 		//Drawing Methods
-		void renderBranch(branch *b, int depth=0);
-		void drawBranch(branch*);
-		void drawJoint(branch*);
+		void renderBranch(branch *b, bool, int depth=0);
+		void drawBranch(branch*, bool);
+		void drawJoint(branch*, bool);
 		void drawAxis(branch*);
 		void renderStick(branch *b, int depth=0);
 
