@@ -29,6 +29,7 @@ Tree::Tree(float height, float trunk, float branchLength, float influenceRatio, 
 	generatedTreeRoot = generateTree();
 	generateGeometry(generatedTreeRoot);
 	dummyTreeRoot = makeDummyTree(4); // make dummy tree to work with
+	setNumParents(generatedTreeRoot, 0);
 
 	if(dummyTree){
 		root = dummyTreeRoot;
@@ -44,6 +45,14 @@ Tree::~Tree() {
 
 	for (FuzzyObject* fuzzySystem : fuzzyBranchSystems) {
 		delete(fuzzySystem);
+	}
+}
+
+void Tree::setNumParents(branch* b, int parents){
+	b->numParents = parents;
+
+	for (branch* c : b->children) {
+		setNumParents(c, parents+1);
 	}
 }
 
@@ -596,9 +605,6 @@ void Tree::applyWind(branch* b){
 	float pressureX = calculatePressure(b, desiredWindForce.x, 'x');
 	float pressureZ = calculatePressure(b, desiredWindForce.z, 'z');
 
-	// float dotProd = dot(normalize(b->worldDir), normalize(desiredWindForce));
-	// float angle = acos(dotProd); // the angle to rotate by
-
 	//debug info
 	// cout << "Name: " << b->name << endl;
 	// cout << "Pressure X: " << pressureX << endl;
@@ -641,6 +647,14 @@ void Tree::applyWind(branch* b){
 	float motionAngleX = asin(displacementX);
 	float motionAngleZ = asin(displacementZ);
 
+	// cout << "Motion Angle - x: " << motionAngleX << "  z: " << motionAngleZ << endl;
+
+	//mulitply a radians value by degrees variable to convert it from radians to degrees
+	float degrees = 180.0f / ((float)math::pi());
+	b->rotation.x = motionAngleX * degrees;
+	b->rotation.z = motionAngleZ * degrees;
+
+
 	if(motionAngleX > b->maxX){
 		b->maxX = motionAngleX;
 	} else if (motionAngleX < b->minX){
@@ -652,50 +666,26 @@ void Tree::applyWind(branch* b){
 		b->minZ = motionAngleZ;
 	}
 
-	// cout << "Min Angle - x: " << b->minX << "  z: " << b->minX << endl;
-	// cout << "Max Angle - x: " << b->maxZ << "  z: " << b->maxZ << endl;
+	float clampAngle = 20.0f;
+	// b->rotation.x = (b->rotation.x - b->minX) / (-clampAngle - b->minX) * (clampAngle - maxX) + maxX;
+	// b->rotation.z = (b->rotation.z - b->minZ) / (-clampAngle - b->minZ) * (clampAngle - maxZ) + maxZ;
+	
+	// cout << "Rotation Angle - x: " << b->rotation.x << "  z: " << b->rotation.z << endl;
 
-	// cout << "Motion Angle - x: " << motionAngleX << "  z: " << motionAngleZ << endl;
+	//public static float Remap (this float value, float from1, float to1, float from2, float to2) {
+    //return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
 
-	//mulitply a radians value by degrees variable to convert it from radians to degrees
-	//not sure if this is needed...
-	float degrees = 180.0f / ((float)math::pi()) ;
 
-	b->rotation.x = motionAngleX * degrees;
-	b->rotation.z = motionAngleZ * degrees;
-
-	float clampAngle = 10.0f;
 	if (b->rotation.z > clampAngle){
 		b->rotation.z = clampAngle;
 	} else if (b->rotation.z < -clampAngle){
 		b->rotation.z = -clampAngle;
 	}
-
 	if (b->rotation.x > clampAngle){
 		b->rotation.x = clampAngle;
 	} else if (b->rotation.x < -clampAngle){
 		b->rotation.x = -clampAngle;
 	}
-	//temporarily just rotating by displacement value because motionAngle is NaN
-	//attempt to restrict the rotation by converting it to degrees, and then limit it to 20degrees
-	//b->rotation.x = ((displacementX*degrees) / 180 ) * 20;
-	//b->rotation.z = ((displacementZ*degrees) / 180 ) * 20;
-
-	//debug info
-	// cout << "Final Angle - x: " << b->rotation.x << "  z: " << b->rotation.z << endl;
-	// cout << endl;
-
-	// if(b->rotation.x > 20){
-	// 	b->rotation.x = 20;
-	// } else if(b->rotation.x < -20){
-	// 	b->rotation.x = -20;
-	// }
-
-	// if(b->rotation.z > 20){
-	// 	b->rotation.z = 20;
-	// } else if(b->rotation.z < -20){
-	// 	b->rotation.z = -20;
-	// }
 
 }
 

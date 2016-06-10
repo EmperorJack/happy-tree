@@ -32,6 +32,7 @@ struct branch{
 
 	branch* parent;
 	std::vector<branch *> children = std::vector<branch*>();	// all child branches of this branch
+	int numParents;
 
 	cgra::vec3 worldDir = cgra::vec3(0,0,0);
 	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
@@ -115,11 +116,13 @@ class Tree{
 		void generateAttractionPointsVolumetric(int num);
 		void generateEnvelope(int steps);
 		float envelopeFunction(float u,float theta);
+		void setNumParents(branch*, int);
 
 		void getBranchFuzzySystemPoints(branch*, std::vector<cgra::vec3>*);
 
 		bool inEnvelope(cgra::vec3);
 		branch* makeDummyTree(int);
+
 
 		//Drawing Methods
 		void renderBranch(branch *b, bool, int depth=0);
