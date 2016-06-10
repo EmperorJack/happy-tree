@@ -47,7 +47,7 @@ class Tree{
 		~Tree();
 
 		void drawEnvelope();
-		void renderTree(bool);
+		void renderTree(GLuint, GLuint, bool);
 		void renderStick();
 		void renderAttractionPoints();
 
@@ -108,6 +108,7 @@ class Tree{
 		//Tree Generation Methods
 		branch* generateTree();
 		float setWidth(branch*);
+		void simplifyGeometry(branch *b);
 		void generateGeometry(branch*);
 		std::vector<std::vector<int>> getAssociatedPoints();
 		void cullAttractionPoints();
@@ -122,8 +123,9 @@ class Tree{
 		branch* makeDummyTree(int);
 
 		//Drawing Methods
-		void renderBranch(branch *b, bool, int depth=0);
-		void drawBranch(branch*, bool);
+		void renderBranch(branch *b, GLuint, GLuint, bool, int depth=0);
+		void drawBranch(branch*, GLuint, GLuint, bool);
+		void drawLeaves(branch*, GLuint);
 		void drawJoint(branch*, bool);
 		void drawAxis(branch*);
 		void renderStick(branch *b, int depth=0);

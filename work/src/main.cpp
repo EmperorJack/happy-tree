@@ -51,8 +51,8 @@ Geometry* g_terrain = nullptr;
 
 // Tree to animate
 Tree* g_tree = nullptr;
-float tree_h = 20.0f;
-float tree_t = 1.0f;
+float tree_h = 30.0f;
+float tree_t = 8.0f;
 float tree_bL = 2.0f;
 float tree_inf = 8.0f;
 float tree_kill = 1.0f;
@@ -76,6 +76,7 @@ bool partyMode = false;
 // Texture bindings
 GLuint t_bark = 0;
 GLuint t_grass = 0;
+GLuint t_leaves = 0;
 GLuint t_skybox[6];
 
 // Mouse Position callback
@@ -542,7 +543,7 @@ void renderScene() {
 		// Render Tree
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 		glBindTexture(GL_TEXTURE_2D, t_bark);
-		g_tree->renderTree(wireframeMode);
+		g_tree->renderTree(t_bark, t_leaves, wireframeMode);
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 	}
 
@@ -684,6 +685,7 @@ int main(int argc, char **argv) {
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 	t_bark = initTexture("./work/res/textures/bark.png");
 	t_grass = initTexture("./work/res/textures/grass.png");
+	t_leaves = initTexture("./work/res/textures/leaves.tga");
 
 	// Initialize the skybox textures
 	for (int i = 0; i < 6; i++) {

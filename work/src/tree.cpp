@@ -123,6 +123,20 @@ float Tree::setWidth(branch *b){
 	return width;
 }
 
+void Tree::simplifyGeometry(branch *b){
+	for(int i=0; i< b->children.size(); i++){
+		branch *c1 = b->children[i];
+		for(int j=0; j< b->children.size(); j++){
+			if(i != j){
+				branch *c2 = b->children[j];
+				if(dot(c1->direction, c2->direction) < 5.0f){
+
+				}
+			}
+		}
+	}
+}
+
 void Tree::generateGeometry(branch *b) {
 	b->jointModel = generateSphereGeometry(b->baseWidth);
 
@@ -328,7 +342,8 @@ float Tree::envelopeFunction(float u, float theta){
 	float uN = u/(treeHeight-trunkHeight);
 	// return 6*(pow(3,2*uN) - (8*uN*uN*uN));
 	// return (1.0f - uN) * 8;
-	return -100 * (uN * uN * (uN - 1));
+	// return -100 * (uN * uN * (uN - 1));
+	return 6;
 }
 
 //------------------------------------------------//
@@ -361,7 +376,7 @@ void Tree::renderAttractionPoints(){
 /* public method for drawing the tree to the screen.
 	draws the tree by calling renderbranch() on the root node.
 */
-void Tree::renderTree(bool wireframe) {
+void Tree::renderTree(GLuint bark, GLuint leaves, bool wireframe) {
 	//glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
@@ -370,7 +385,7 @@ void Tree::renderTree(bool wireframe) {
 
 	//Actually draw the tree
 	updateWorldWindDirection(root, vec3(0,0,0));	
-	renderBranch(root, wireframe);
+	renderBranch(root, bark, leaves, wireframe);
 
 	//increment wind "time"
 	time += timeIncrement;
@@ -382,7 +397,7 @@ void Tree::renderTree(bool wireframe) {
 /* performs the logic for drawing any given branch at its position and rotation.
 	then recursively calls renderBranch() on all of its child branches.
 */
-void Tree::renderBranch(branch *b, bool wireframe, int depth) {
+void Tree::renderBranch(branch *b, GLuint bark, GLuint leaves, bool wireframe, int depth) {
 	if(b == NULL){
 		return;
 	}
@@ -419,7 +434,7 @@ void Tree::renderBranch(branch *b, bool wireframe, int depth) {
 			//draw the joint of this branch
 			drawJoint(b, wireframe);
 
-			drawBranch(b, wireframe);
+			drawBranch(b, bark, leaves, wireframe);
 
 			//translate to the end of the branch based off length and direction
 			vec3 offset = b->direction * b->length;
@@ -434,10 +449,70 @@ void Tree::renderBranch(branch *b, bool wireframe, int depth) {
 		//loop through all child branches and render them too
 
 		for(branch* c : b->children){
-			renderBranch(c, wireframe, depth+1);
+			renderBranch(c, bark, leaves, wireframe, depth+1);
 		}
 
 	glPopMatrix();
+}
+
+
+/* draws a joint at the base of every branch the size of the width at the base of the branch
+	this prevents a tree breaking visual issue when rotating branches.
+*/
+void Tree::drawJoint(branch* b, bool wireframe){
+	if (!wireframe && !fuzzySystemFinishedBuilding) {
+		glPushMatrix();
+			b->jointModel->renderGeometry(wireframe);
+		glPopMatrix();
+	}
+}
+
+/* draws the branch to the screen
+*/
+void Tree::drawBranch(branch* b, GLuint bark, GLuint leaves, bool wireframe){
+	vec3 norm = normalize(b->direction);
+	float dotProd = dot(norm, vec3(0,0,1));
+
+	float angle = acos(dotProd); // the angle to rotate by
+	vec3 crossProd = cross(b->direction, vec3(0,0,1));
+
+	glPushMatrix();
+		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
+		if (!fuzzySystemFinishedBuilding){
+			b->branchModel->renderGeometry(wireframe);
+			if((b->baseWidth < 2 * prm_branchMinWidth) && !wireframe){
+				drawLeaves(b,leaves);
+			}
+		}
+		glBindTexture(GL_TEXTURE_2D, bark);
+		b->branchFuzzySystem->renderSystem();
+	glPopMatrix();
+}
+
+void Tree::drawLeaves(branch* b, GLuint leaves){
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindTexture(GL_TEXTURE_2D, leaves);
+	glBegin(GL_QUADS);
+	
+	float l = ((b->children.size() < 1) ? 2.0 : 1.0) * b->length;
+	float w = 0.17f * l;
+
+	glNormal3f(0,1,0);
+
+	glTexCoord2f(0,1);
+	glVertex3f(-w,0,0);
+
+	glTexCoord2f(1,1);
+	glVertex3f(w,0,0);
+
+	glTexCoord2f(1,0);
+	glVertex3f(w,0,l);
+
+	glTexCoord2f(0,0);
+	glVertex3f(-w,0,l);
+	
+	glEnd();
 }
 
 void Tree::renderStick(){
@@ -480,33 +555,6 @@ void Tree::renderStick(branch *b, int depth){
 			renderStick(child, depth+1);
 		}
 	}glPopMatrix();
-}
-
-/* draws a joint at the base of every branch the size of the width at the base of the branch
-	this prevents a tree breaking visual issue when rotating branches.
-*/
-void Tree::drawJoint(branch* b, bool wireframe){
-	if (!wireframe && !fuzzySystemFinishedBuilding) {
-		glPushMatrix();
-			b->jointModel->renderGeometry(wireframe);
-		glPopMatrix();
-	}
-}
-
-/* draws the branch to the screen
-*/
-void Tree::drawBranch(branch* b, bool wireframe){
-	vec3 norm = normalize(b->direction);
-	float dotProd = dot(norm, vec3(0,0,1));
-
-	float angle = acos(dotProd); // the angle to rotate by
-	vec3 crossProd = cross(b->direction, vec3(0,0,1));
-
-	glPushMatrix();
-		glRotatef(-degrees(angle), crossProd.x, crossProd.y, crossProd.z);
-		if (!fuzzySystemFinishedBuilding) b->branchModel->renderGeometry(wireframe);
-		b->branchFuzzySystem->renderSystem();
-	glPopMatrix();
 }
 
 void Tree::updateWorldWindDirection(branch* b, vec3 previousVector){	
