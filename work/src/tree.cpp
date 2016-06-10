@@ -29,7 +29,7 @@ Tree::Tree(float height, float trunk, float branchLength, float influenceRatio, 
 	generatedTreeRoot = generateTree();
 	generateGeometry(generatedTreeRoot);
 	dummyTreeRoot = makeDummyTree(4); // make dummy tree to work with
-	setNumParents(generatedTreeRoot, 0);
+	setAccumulativeValues(generatedTreeRoot, 0, vec3(0,0,0));
 
 	if(dummyTree){
 		root = dummyTreeRoot;
@@ -48,11 +48,12 @@ Tree::~Tree() {
 	}
 }
 
-void Tree::setNumParents(branch* b, int parents){
+void Tree::setAccumulativeValues(branch* b, int parents, vec3 totalRotation){
 	b->numParents = parents;
+	b->combinedRotation += totalRotation;
 
 	for (branch* c : b->children) {
-		setNumParents(c, parents+1);
+		setAccumulativeValues(c, parents+1, b->combinedRotation);
 	}
 }
 
@@ -382,6 +383,7 @@ void Tree::renderTree(bool wireframe) {
 	glTranslatef(m_position.x, m_position.y, m_position.z);
 
 	//Actually draw the tree
+	setAccumulativeValues(root, 0, vec3(0,0,0));
 	updateWorldWindDirection(root, vec3(0,0,0));
 	renderBranch(root, wireframe);
 
@@ -554,7 +556,7 @@ float Tree::calculatePressure(branch* b, float force, int dir){
 	float dotProd = dot(b->worldDir, desiredWindForce);
 	float angle = acos(dotProd); // the angle to rotate by
 
-	//force = sin(diffVec);
+	//force = sin(angle);
 
 	//oscillation is plugged into a sine function.
 	//time is increased steadily to make the effect follow an oscilation pattern - global scope
@@ -567,7 +569,7 @@ float Tree::calculatePressure(branch* b, float force, int dir){
 	float degrees = 180.0f / ((float)math::pi()) ;
 
 	//pressure is the final return value
-	float pressure = force * (1 + angle * sin(oscillation) );
+	float pressure = force * (1 + (angle*2) * sin(oscillation) );
 	// float pressure = force + ((force*angle) * (force*sin(oscillation)));
 	// float pressure = angle  + sin(oscillation);
 	// float pressure = sin(oscillation);
@@ -583,7 +585,7 @@ float Tree::calculatePressure(branch* b, float force, int dir){
 float Tree::springConstant(branch* branch){
 	float thickness = (branch->baseWidth+branch->topWidth)/2.0f;
 
-	float k = (elasticity * branch->baseWidth *	pow(thickness, 3));
+	float k = (elasticity * branch->baseWidth *	pow(thickness, 2));
 
 	// cout << "Spring top: " << k << endl;
 	// cout << "Spring bot: " << (4 * pow( branch->length, 3)) << endl;
@@ -666,7 +668,9 @@ void Tree::applyWind(branch* b){
 		b->minZ = motionAngleZ;
 	}
 
-	float clampAngle = 20.0f;
+
+
+	float clampAngle = 10.0f;
 	// b->rotation.x = (b->rotation.x - b->minX) / (-clampAngle - b->minX) * (clampAngle - maxX) + maxX;
 	// b->rotation.z = (b->rotation.z - b->minZ) / (-clampAngle - b->minZ) * (clampAngle - maxZ) + maxZ;
 	
@@ -676,16 +680,28 @@ void Tree::applyWind(branch* b){
     //return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
 
 
-	if (b->rotation.z > clampAngle){
-		b->rotation.z = clampAngle;
-	} else if (b->rotation.z < -clampAngle){
-		b->rotation.z = -clampAngle;
-	}
-	if (b->rotation.x > clampAngle){
-		b->rotation.x = clampAngle;
-	} else if (b->rotation.x < -clampAngle){
-		b->rotation.x = -clampAngle;
-	}
+	// if (b->rotation.z > clampAngle){
+	// 	b->rotation.z = clampAngle;
+	// } else if (b->rotation.z < -clampAngle){
+	// 	b->rotation.z = -clampAngle;
+	// }
+	// if (b->rotation.x > clampAngle){
+	// 	b->rotation.x = clampAngle;
+	// } else if (b->rotation.x < -clampAngle){
+	// 	b->rotation.x = -clampAngle;
+	// }
+
+	if (b->combinedRotation.x > clampAngle){
+		b->rotation.x = -b->rotation.x;
+	} else if (b->combinedRotation.x < -clampAngle){
+		b->rotation.x = -b->rotation.x;
+	} 
+
+	if (b->combinedRotation.z > clampAngle){
+		b->rotation.z = -b->rotation.z;
+	} else if (b->combinedRotation.z < -clampAngle){
+		b->rotation.z = -b->rotation.z;
+	} 
 
 }
 

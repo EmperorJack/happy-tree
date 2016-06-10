@@ -36,6 +36,7 @@ struct branch{
 
 	cgra::vec3 worldDir = cgra::vec3(0,0,0);
 	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
+	cgra::vec3 combinedRotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
 
 	Geometry* jointModel = nullptr;
 	Geometry* branchModel = nullptr;
@@ -116,7 +117,6 @@ class Tree{
 		void generateAttractionPointsVolumetric(int num);
 		void generateEnvelope(int steps);
 		float envelopeFunction(float u,float theta);
-		void setNumParents(branch*, int);
 
 		void getBranchFuzzySystemPoints(branch*, std::vector<cgra::vec3>*);
 
@@ -145,6 +145,7 @@ class Tree{
 		//the wind acting upon this tree
 		cgra::vec3 desiredWindForce = cgra::vec3(0.0f, 0.0f, 0.0f);
 		void setWindForce(cgra::vec3);
+		void setAccumulativeValues(branch*, int, cgra::vec3);
 
 		float calculatePressure(branch*, float, int);
 		float springConstant(branch*);
