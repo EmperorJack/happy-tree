@@ -98,7 +98,7 @@ void ParticleSystem::setupDisplayList() {
 	glNewList(p_displayList, GL_COMPILE);
 
 	// Draw the geometry
-	cgraSphere(p_radius, 8, 8);
+	cgraSphere(p_radius, 6, 6);
 
 	glEndList();
 }

@@ -65,6 +65,7 @@ std::vector<Tree*> g_treeList;
 // Particle system fields
 FuzzyObject* g_fuzzy_system = nullptr;
 ParticleSystem* g_particle_system = nullptr;
+bool exampleSystemFinishedBuilding = false;
 bool exampleParticlesAnimating = false;
 
 ParticleSystem* g_treeParticleSystem = nullptr;
@@ -288,6 +289,7 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 				// Check if the example fuzzy system finished building
 				if (g_fuzzy_system->finishedBuilding()) {
 					g_particle_system = new ParticleSystem(g_fuzzy_system->getSystem());
+					exampleSystemFinishedBuilding = true;
 					exampleParticlesAnimating = true;
 					g_particle_system->explode();
 				}
@@ -321,8 +323,6 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 void initGeometry() {
 	g_model = new Geometry("./work/res/assets/bunny-reduced.obj");
 	g_model->setPosition(vec3(0, 1.2f, 0));
-
-	g_fuzzy_system = new FuzzyObject(g_model);
 
 	g_terrain = new Geometry("./work/res/assets/plane.obj", 30.0f);
 
@@ -646,6 +646,9 @@ void renderScene() {
 		// Render example model and fuzzy system
 		if (!g_fuzzy_system->finishedBuilding()) {
 			g_model->renderGeometry(wireframeMode);
+		}
+
+		if (!exampleParticlesAnimating) {
 			g_fuzzy_system->renderSystem();
 		}
 
@@ -664,14 +667,17 @@ void renderScene() {
 
 	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), false);
 
-	// Render tree particle system
-	if (treeFuzzySystemFinishedBuilding) {
-		g_treeParticleSystem->render();
-	}
+	if (!exampleFuzzyObjectMode) {
 
-	// Render example particle system
-	if (g_fuzzy_system->finishedBuilding()) {
-		g_particle_system->render();
+		// Render tree particle system
+		if (treeFuzzySystemFinishedBuilding) {
+			g_treeParticleSystem->render();
+		}
+	} else {
+		// Render example particle system
+		if (exampleSystemFinishedBuilding) {
+			g_particle_system->render();
+		}
 	}
 
 	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), true);
@@ -732,7 +738,7 @@ void renderGUI() {
 				 ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 
 	ImGui::Text(string(fpsString).c_str());
-	ImGui::Text(("Particle Count: " + to_string(g_tree->getFuzzySystemParticleCount())).c_str());
+	ImGui::Text(("Particle Count: " + to_string(exampleFuzzyObjectMode ? g_fuzzy_system->getParticleCount() : g_tree->getFuzzySystemParticleCount())).c_str());
 
 	ImGui::End();
 
@@ -809,6 +815,9 @@ int main(int argc, char **argv) {
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 	t_bark = initTexture("./work/res/textures/bark.png");
 	t_grass = initTexture("./work/res/textures/grass.png");
+
+	g_fuzzy_system = new FuzzyObject(g_model);
+	g_fuzzy_system->setExampleSystemAttributes();
 
 	// Initialize the skybox textures
 	for (int i = 0; i < 6; i++) {

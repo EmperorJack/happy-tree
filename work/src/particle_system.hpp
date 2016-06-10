@@ -53,7 +53,7 @@ class ParticleSystem {
 		// Particle fields
 		float p_radius = 0.2f;
 		float p_velRange = 0.03f;
-		float p_maxVel = 0.15f;
+		float p_maxVel = 0.5f;
 
 		// Drawing properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
