@@ -44,7 +44,7 @@ void FuzzyObject::setupDisplayList() {
 	glNewList(p_displayList, GL_COMPILE);
 
 	// Draw the geometry
-	cgraSphere(p_radius, 8, 8);
+	cgraSphere(p_radius, 6, 6);
 
 	glEndList();
 }
@@ -113,6 +113,8 @@ void FuzzyObject::addParticle() {
 
 	p.col = vec3(1.0f, 1.0f, 1.0f);
 
+	p.id = nextUniqueId++;
+
 	particles.push_back(p);
 
 	updateFacingTriangle(particles.size() - 1);
@@ -136,12 +138,6 @@ void FuzzyObject::updateBuildingSystem() {
 		}
 	}
 
-	// Apply LJ physics based forces to the particle system
-	applyParticleForces();
-
-	// Apply forces to particles that collide with the geometry
-	applyBoundaryForces();
-
 	// Delete any particles marked for deletion
 	if (particlesForDeletion.size() > 0) {
 		vector<fuzzyParticle> newParticles;
@@ -155,6 +151,12 @@ void FuzzyObject::updateBuildingSystem() {
 		particlesForDeletion.clear();
 		particles = newParticles;
 	}
+
+	// Apply LJ physics based forces to the particle system
+	applyParticleForces();
+
+	// Apply forces to particles that collide with the geometry
+	applyBoundaryForces();
 
 	// Update the particle positions and velocities
 	for (int i = 0; i < particles.size(); i++) {
@@ -195,6 +197,9 @@ void FuzzyObject::applyParticleForces() {
 				// Apply friction to the particle
 				particles[i].vel *= particleCollisionFriction;
 				particles[j].vel *= particleCollisionFriction;
+
+				particles[i].inCollision = true;
+				particles[j].inCollision = true;
 			}
 		}
 	}
@@ -328,6 +333,21 @@ void FuzzyObject::scaleDensity(float amount) {
 	p_radius *= amount;
 	p_boundaryRadius *= amount;
 	p_spawnOffset *= amount;
+	e_lengthScale = min(e_lengthScale, e_lengthScale * max(amount * 1.5f, 1.0f));
+	e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
+
+	setupDisplayList();
+}
+
+void FuzzyObject::setExampleSystemAttributes() {
+	stabilityUpdates = 10;
+	p_velRange = 0.03f;
+	p_radius = 0.2f;
+	p_boundaryRadius = 0.23f;
+	p_spawnOffset = 0.05f;
+	e_strength = 0.005f;
+	e_lengthScale = 0.32f;
+	e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
 	setupDisplayList();
 }

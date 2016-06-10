@@ -26,6 +26,8 @@ struct fuzzyParticle {
 	cgra::vec3 triangleIntersectionPos;
 	int triangleIndex;
 	bool inCollision;
+	int id;
+	std::vector<int> neighbours;
 };
 
 class FuzzyObject {
@@ -44,6 +46,7 @@ class FuzzyObject {
 
 		// Misc methods
 		int getParticleCount();
+		void setExampleSystemAttributes();
 
 		// Methods for utilizing the built system
 		bool finishedBuilding();
@@ -63,6 +66,7 @@ class FuzzyObject {
 		int particleLimit = 3000;
 		int minParticleCount = 10;
 		std::vector<int> particlesForDeletion;
+		int nextUniqueId = 0;
 
 		// State fields
 		bool buildFinished = false;
@@ -74,15 +78,15 @@ class FuzzyObject {
 
 		// Particle attributes
 		GLuint p_displayList = 0;
-		float p_velRange = 0.032f;
+		float p_velRange = 0.033f;
 		float p_radius = 0.2f;
-		float p_boundaryRadius = 0.15f;
+		float p_boundaryRadius = 0.16f;
 		float p_mass = 100.0f;
 		float p_spawnOffset = 0.018f;
 
 		// LJ potential energy fields
 		float e_strength = 0.01f;
-		float e_lengthScale = 0.26f;
+		float e_lengthScale = 0.27f;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
 		// Physics fields
