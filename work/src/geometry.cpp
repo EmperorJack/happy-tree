@@ -282,6 +282,8 @@ void Geometry::setMaterial(vec4 ambient, vec4 diffuse, vec4 specular, float shin
 	m_material.emission = emission;
 }
 
+// Performs a ray cast from the given point in the given direction targetting the given triangle
+// Returns the intersection point or the special 'no intersection vector' if one did not occur
 vec3 Geometry::rayIntersectsTriangle(vec3 p, vec3 d, int triIndex) {
 	// https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 
@@ -323,6 +325,7 @@ vec3 Geometry::rayIntersectsTriangle(vec3 p, vec3 d, int triIndex) {
 	return noIntersectionVector;
 }
 
+// Determines if a given point lies within the mesh geometry
 bool Geometry::pointInsideMesh(vec3 point) {
 	int intersectionCount = 0;
 
@@ -361,7 +364,7 @@ void Geometry::renderGeometry(bool wireframe) {
 		glCallList(m_displayListPoly);
 	}
 
-	//Debug code for drawing the surface normals
+	// Debug code for drawing the surface normals
 	// for (int i = 0; i < m_surfaceNormals.size(); i++) {
 	// 	glPushMatrix();
 	// 	vec3 triPos = (m_points[m_triangles[i].v[0].p] + m_points[m_triangles[i].v[1].p] + m_points[m_triangles[i].v[2].p]) / 3.0f;

@@ -1,5 +1,9 @@
 //---------------------------------------------------------------------------
 // COMP308 Final Project
+//
+// Procedural tree generation: Robbie Iversen
+// Wind based physics: Kieran Mckay
+// Mesh to particle system conversion: Jack Purvis
 //---------------------------------------------------------------------------
 
 #include <cmath>
@@ -62,12 +66,13 @@ float tree_mW = 0.08;
 int numTrees = 3;
 std::vector<Tree*> g_treeList;
 
-// Particle system fields
+// Example fuzzy particle system fields
 FuzzyObject* g_fuzzy_system = nullptr;
 ParticleSystem* g_particle_system = nullptr;
 bool exampleSystemFinishedBuilding = false;
 bool exampleParticlesAnimating = false;
 
+// Tree fuzzy particle system fields
 ParticleSystem* g_treeParticleSystem = nullptr;
 bool treeFuzzySystemFinishedBuilding = false;
 bool treeParticlesAnimating = false;
@@ -415,7 +420,6 @@ void initLight() {
 	// glLightfv(GL_LIGHT1, GL_DIFFUSE, vec4(1.0, 0.75, 0.75, 1.0).dataPointer());
 	// glLightfv(GL_LIGHT1, GL_SPECULAR, white.dataPointer());
 
-
 	// weak directional light
 	GLfloat diffintensity[] = { 0.7f, 0.7f, 0.7f, 1.0f };
 	GLfloat specular[] = { 0.2f, 0.2f, 0.2f, 1.0f };
@@ -491,6 +495,7 @@ void renderGlobalAxes() {
 	glEnable(GL_LIGHTING);
 }
 
+// Draw a quad of the given length
 void drawQuad(float l) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -511,6 +516,7 @@ void drawQuad(float l) {
 	glEnd();
 }
 
+// Render the skybox textures at the given distance away from the origin
 void renderSkybox(float dist) {
 	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), false);
@@ -816,6 +822,7 @@ int main(int argc, char **argv) {
 	t_bark = initTexture("./work/res/textures/bark.png");
 	t_grass = initTexture("./work/res/textures/grass.png");
 
+	// Initialize example fuzzy system
 	g_fuzzy_system = new FuzzyObject(g_model);
 	g_fuzzy_system->setExampleSystemAttributes();
 
@@ -824,6 +831,7 @@ int main(int argc, char **argv) {
 		t_skybox[i] = initTexture("./work/res/textures/sky_0" + to_string(i + 1) + ".png");
 	}
 
+	// FPS counter init
 	double lastTime = glfwGetTime();
 	int framesThisSecond = 0;
 

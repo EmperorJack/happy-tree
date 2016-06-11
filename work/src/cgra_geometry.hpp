@@ -185,6 +185,7 @@ namespace cgra {
 		cgraCylinder(base_radius, 0, height, slices, stacks, wire);
 	}
 
+	// Pushes a new triangle into the given vector based on the given indices
 	inline void createTriangle(std::vector<triangle>* triangles, int index0, int index1, int index2) {
 		triangle tri;
 
@@ -208,6 +209,7 @@ namespace cgra {
 		triangles->push_back(tri);
 	}
 
+	// Generates a geometry object that contains mesh data for a cgra sphere
 	inline Geometry* generateSphereGeometry(float radius, int slices = 10, int stacks = 10) {
 		assert(slices > 0 && stacks > 0 && radius > 0);
 
@@ -298,6 +300,7 @@ namespace cgra {
 		return new Geometry(points, normals, uvs, triangles, false);
 	}
 
+	// Generates a geometry object that contains mesh data for a cgra cylinder
 	inline Geometry* generateCylinderGeometry(float base_radius, float top_radius, float height, int slices = 10, int stacks = 10) {
 		assert(slices > 0 && stacks > 0 && (base_radius > 0 || base_radius > 0) && height > 0);
 
