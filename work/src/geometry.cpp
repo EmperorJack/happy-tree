@@ -351,22 +351,22 @@ void Geometry::renderGeometry() {
 	}
 
 	// Debug code for drawing the surface normals
-	for (int i = 0; i < m_surfaceNormals.size(); i++) {
-		glPushMatrix();
-		vec3 triPos = (m_points[m_triangles[i].v[0].p] + m_points[m_triangles[i].v[1].p] + m_points[m_triangles[i].v[2].p]) / 3.0f;
-		glTranslatef(triPos.x, triPos.y, triPos.z);
+	// for (int i = 0; i < m_surfaceNormals.size(); i++) {
+	// 	glPushMatrix();
+	// 	vec3 triPos = (m_points[m_triangles[i].v[0].p] + m_points[m_triangles[i].v[1].p] + m_points[m_triangles[i].v[2].p]) / 3.0f;
+	// 	glTranslatef(triPos.x, triPos.y, triPos.z);
 
-		glBegin(GL_LINES);
-		glVertex3f(0.0f, 0.0f, 0.0f);
-		glVertex3f(m_surfaceNormals[i].x * 0.5f, m_surfaceNormals[i].y * 0.5f, m_surfaceNormals[i].z * 0.5f);
-		glEnd();
+	// 	glBegin(GL_LINES);
+	// 	glVertex3f(0.0f, 0.0f, 0.0f);
+	// 	glVertex3f(m_surfaceNormals[i].x * 0.5f, m_surfaceNormals[i].y * 0.5f, m_surfaceNormals[i].z * 0.5f);
+	// 	glEnd();
 
-		glBegin(GL_POINTS);
-		glVertex3f(m_surfaceNormals[i].x * 0.5f, m_surfaceNormals[i].y * 0.5f, m_surfaceNormals[i].z * 0.5f);
-		glEnd();
+	// 	glBegin(GL_POINTS);
+	// 	glVertex3f(m_surfaceNormals[i].x * 0.5f, m_surfaceNormals[i].y * 0.5f, m_surfaceNormals[i].z * 0.5f);
+	// 	glEnd();
 
-		glPopMatrix();
-	}
+	// 	glPopMatrix();
+	// }
 
 	glPopMatrix();
 }

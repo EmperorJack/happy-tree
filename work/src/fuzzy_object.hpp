@@ -81,7 +81,7 @@ class FuzzyObject {
 
 		// LJ potential energy fields
 		float e_strength = 0.005f;
-		float e_lengthScale = 0.35f;
+		float e_lengthScale = 0.28f;
 		float e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
 
 		// Physics fields

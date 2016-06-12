@@ -187,8 +187,8 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	g_model = new Geometry("./work/res/assets/bunny-reduced.obj");
-	g_model->setPosition(vec3(0, 3, 0));
+	g_model = new Geometry("./work/res/assets/ignored/bunny-reduced.obj");
+	g_model->setPosition(vec3(0, 0, 0));
 
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
@@ -342,7 +342,7 @@ void renderScene() {
 	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
 
 	// Render plane
-	renderPlane(20);
+	//renderPlane(20);
 
 	if (treeMode){
 		//Render Tree
@@ -351,7 +351,7 @@ void renderScene() {
 		glEnable(GL_LIGHTING);
 	} else {
 		// Render geometry
-		//if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry();
+		if (!g_fuzzy_system->finishedBuilding()) g_model->renderGeometry();
 	}
 
 	// Update building particle system
@@ -363,7 +363,7 @@ void renderScene() {
 	g_fuzzy_system->renderSystem();
 
 	//cylinder->renderGeometry();
-	sphere->renderGeometry();
+	//sphere->renderGeometry();
 }
 
 // Draw the scene
@@ -491,7 +491,7 @@ int main(int argc, char **argv) {
 	initLight();
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 
-	g_fuzzy_system = new FuzzyObject(sphere);
+	g_fuzzy_system = new FuzzyObject(g_model);
 
 	double lastTime = glfwGetTime();
 	int framesThisSecond = 0;
