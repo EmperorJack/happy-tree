@@ -45,11 +45,11 @@ struct branch{
 
 class Tree{
 	public:
-		Tree(float height = 20.0f , float trunk = 0.0f, float branchLength = 2.0f ,float influenceRatio = 8.0f, float killRatio = 1.0f, float prm_branchTipWidth = 0.06f,float prm_branchMinWidth = 0.08f);
+		Tree(float height = 20.0f , float trunk = 0.0f, float branchLength = 2.0f ,float influenceRatio = 8.0f, float killRatio = 1.0f, float branchTipWidth = 0.06f,float branchMinWidth = 0.08f);
 		~Tree();
 
 		void drawEnvelope();
-		void renderTree(GLuint, GLuint, bool);
+		void renderTree(bool);
 		void renderStick();
 		void renderAttractionPoints();
 
@@ -126,9 +126,9 @@ class Tree{
 
 
 		//Drawing Methods
-		void renderBranch(branch *b, GLuint, GLuint, bool, int depth=0);
-		void drawBranch(branch*, GLuint, GLuint, bool);
-		void drawLeaves(branch*, GLuint);
+		void renderBranch(branch *b, bool, int depth=0);
+		void drawBranch(branch*, bool);
+		void drawLeaves(branch*);
 		void drawJoint(branch*, bool);
 		void drawAxis(branch*);
 		void renderStick(branch *b, int depth=0);

@@ -626,27 +626,27 @@ void renderScene() {
 	glPushMatrix();
 	glTranslatef(0, -tree_h / 2, 0);
 
-	// Render skybox
-	renderSkybox(500);
+	if (!treeMode) {
+		// Render skybox
+		renderSkybox(500);
 
-	// Render terrain
-	glPushMatrix();
-	glScalef(1, 0.75f, 1);
+		// Render terrain
+		glPushMatrix();
+		glScalef(1, 0.75f, 1);
 
-	glBindTexture(GL_TEXTURE_2D, t_grass);
-	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
-	g_terrain->renderGeometry(false);
-	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
+		glBindTexture(GL_TEXTURE_2D, t_grass);
+		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
+		g_terrain->renderGeometry(false);
+		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 
-	glPopMatrix();
-
+		glPopMatrix();
+	}
 	if (treeMode){
-		glDisable(GL_LIGHTING);
+		glUniform1i(glGetUniformLocation(g_shader, "useLighting"), false);
 		//Render Tree
-		g_tree->renderStick();
+		//g_tree->renderStick();
 		g_tree->drawEnvelope();
-		// g_tree->renderAttractionPoints();
-		glEnable(GL_LIGHTING);
+		glUniform1i(glGetUniformLocation(g_shader, "useLighting"), true);
 
 	} else if (exampleFuzzyObjectMode) {
 
@@ -664,7 +664,7 @@ void renderScene() {
 		// Render Tree
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 		glBindTexture(GL_TEXTURE_2D, t_bark);
-		g_tree->renderTree(t_bark, t_leaves, wireframeMode);
+		g_tree->renderTree(wireframeMode);
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 	}
 
@@ -818,7 +818,7 @@ int main(int argc, char **argv) {
 	initShader("./work/res/shaders/phongShader.vert", "./work/res/shaders/phongShader.frag");
 	t_bark = initTexture("./work/res/textures/bark.png");
 	t_grass = initTexture("./work/res/textures/grass.png");
-	t_leaves = initTexture("./work/res/textures/leaves.tga");
+	//t_leaves = initTexture("./work/res/textures/leaves.tga");
 
 	// Initialize example fuzzy system
 	g_fuzzy_system = new FuzzyObject(g_model);
@@ -852,7 +852,7 @@ int main(int argc, char **argv) {
 		render(width, height);
 
 		// Render GUI on top
-		renderGUI();
+		//renderGUI();
 
 		glfwSwapBuffers(g_window);
 		glfwPollEvents();

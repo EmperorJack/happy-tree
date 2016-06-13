@@ -48,15 +48,6 @@ Tree::~Tree() {
 	}
 }
 
-void Tree::setAccumulativeValues(branch* b, int parents, vec3 totalRotation){
-	b->numParents = parents;
-	b->combinedRotation += totalRotation;
-
-	for (branch* c : b->children) {
-		setAccumulativeValues(c, parents+1, b->combinedRotation);
-	}
-}
-
 branch* Tree::generateTree(){
 
 	float d = prm_branchLength;
@@ -105,7 +96,8 @@ branch* Tree::generateTree(){
 		cullAttractionPoints();
 		// prevSize = attractionPoints.size();
 	}
-
+	
+	simplifyGeometry(root);
 	setWidth(root);
 	root->baseWidth = root->topWidth;
 	return root;
@@ -128,13 +120,16 @@ float Tree::setWidth(branch *b){
 	b->topWidth = maxW;
 	b->baseWidth = width;
 
-
-
-	// for(int i=0; i<b->children.size(); i++){
-	// 	(b->children[i])->baseWidth = width;
-	// }
-
 	return width;
+}
+
+void Tree::setAccumulativeValues(branch* b, int parents, vec3 totalRotation) {
+	b->numParents = parents;
+	b->combinedRotation += totalRotation;
+
+	for (branch* c : b->children) {
+		setAccumulativeValues(c, parents + 1, b->combinedRotation);
+	}
 }
 
 void Tree::simplifyGeometry(branch *b){
@@ -143,11 +138,26 @@ void Tree::simplifyGeometry(branch *b){
 		for(int j=0; j< b->children.size(); j++){
 			if(i != j){
 				branch *c2 = b->children[j];
-				if(dot(c1->direction, c2->direction) < 5.0f){
-
+				float angle = degrees(acos(dot(c1->direction, c2->direction)));
+				if(angle < 5.0f && angle > -5.0f){
+					//branches are very similar so combine them
+					for (branch *cc : c2->children) {
+						cc->parent = c1;
+					}
+					//Add children to the other branch
+					c1->children.insert(c1->children.end(), c2->children.begin(), c2->children.end());
+					//Remove child from parent
+					branch* temp = b->children[b->children.size() - 1];
+					b->children[b->children.size() - 1] = b->children[j];
+					b->children[j] = temp;
+					b->children.pop_back();
+					j--;
 				}
 			}
 		}
+	}
+	for (branch * c : b->children) {
+		simplifyGeometry(c);
 	}
 }
 
@@ -176,6 +186,10 @@ void Tree::generateGeometry(branch *b) {
 		generateGeometry(c);
 	}
 }
+
+//------------------------------------------------//
+//   Attraction Point Functions                   //
+//------------------------------------------------//
 
 vector<vector<int>> Tree::getAssociatedPoints(){
 	vector<vector<int>> closestNodes;
@@ -356,8 +370,8 @@ float Tree::envelopeFunction(float u, float theta){
 	float uN = u/(treeHeight-trunkHeight);
 	// return 6*(pow(3,2*uN) - (8*uN*uN*uN));
 	// return (1.0f - uN) * 8;
-	// return -100 * (uN * uN * (uN - 1));
-	return 6;
+	 return -100 * (uN * uN * (uN - 1));
+	// return 6;
 }
 
 //------------------------------------------------//
@@ -367,13 +381,23 @@ float Tree::envelopeFunction(float u, float theta){
 void Tree::drawEnvelope(){
 	for(int i=0; i<envelope.size(); i++){
 		vector<vec3> layer = envelope[i];
-
-		glBegin(GL_LINE_STRIP);
-		for(int j=0; j<layer.size(); j++){
+		
+		for(int j=0; j<layer.size()-1; j++){
 			vec3 p = layer[j];
+			vec3 p1 = layer[j+1];
+			vec3 q = (i < envelope.size() - 1) ? envelope[i+1][j] : layer[j+1];
+
+
+			glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(i / float(envelope.size()), 0.5f, 0.0f, 1.0f).dataPointer());
+
+			glBegin(GL_LINES);
 			glVertex3f(p.x, p.y, p.z);
+			glVertex3f(p1.x, p1.y, p1.z);
+
+			glVertex3f(p.x, p.y, p.z);
+			glVertex3f(q.x, q.y, q.z);
+			glEnd();
 		}
-		glEnd();
 	}
 }
 
@@ -390,7 +414,7 @@ void Tree::renderAttractionPoints(){
 /* public method for drawing the tree to the screen.
 	draws the tree by calling renderbranch() on the root node.
 */
-void Tree::renderTree(GLuint bark, GLuint leaves, bool wireframe) {
+void Tree::renderTree(bool wireframe) {
 	//glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
@@ -401,7 +425,7 @@ void Tree::renderTree(GLuint bark, GLuint leaves, bool wireframe) {
 
 	setAccumulativeValues(root, 0, vec3(0,0,0));
 	updateWorldWindDirection(root, vec3(0,0,0));
-	renderBranch(root, bark, leaves, wireframe);
+	renderBranch(root, wireframe);
 
 	//increment wind "time"
 	time += timeIncrement;
@@ -413,7 +437,7 @@ void Tree::renderTree(GLuint bark, GLuint leaves, bool wireframe) {
 /* performs the logic for drawing any given branch at its position and rotation.
 	then recursively calls renderBranch() on all of its child branches.
 */
-void Tree::renderBranch(branch *b, GLuint bark, GLuint leaves, bool wireframe, int depth) {
+void Tree::renderBranch(branch *b, bool wireframe, int depth) {
 	if(b == NULL){
 		return;
 	}
@@ -427,45 +451,23 @@ void Tree::renderBranch(branch *b, GLuint bark, GLuint leaves, bool wireframe, i
 	glPushMatrix();
 		//only draw branch info if it has a length
 		if(b->length > 0){
-
-			//vec3 rot = b->basisRot;
-			// glRotatef(rot.z, 0, 0, 1);
-			// glRotatef(rot.y, 0, 1, 0);
-			// glRotatef(rot.x, 1, 0, 0);
-
-			//debug info
-			// cout << b->name << endl;
-			// cout << "Branch Rotation X: " <<  b->rotation.x << endl;
-			// cout << "Branch Rotation Z: " <<  b->rotation.z << endl;
-			// cout << endl;
-
 			//perform rotation as updated by wind
 			glRotatef(b->rotation.z, 0, 0, 1);
 			glRotatef(b->rotation.x, 1, 0, 0);
 
-			// glRotatef(-rot.x, 1, 0, 0);
-			// glRotatef(-rot.y, 0, 1, 0);
-			// glRotatef(-rot.z, 0, 0, 1);
-
 			//draw the joint of this branch
 			drawJoint(b, wireframe);
 
-			drawBranch(b, bark, leaves, wireframe);
+			drawBranch(b, wireframe);
 
 			//translate to the end of the branch based off length and direction
 			vec3 offset = b->direction * b->length;
 			glTranslatef(offset.x,offset.y,offset.z);
 		}
 
-		// if (depth < 20 && i_k < 1000) {
-		// 	i_k++;
-		// 	for (int i = 0; i < depth; ++i) cout << " ";
-		// 	cout << "branch :: pos " << b->position << " : post " << pos << " : offset " << offset << endl;
-		// }
 		//loop through all child branches and render them too
-
 		for(branch* c : b->children){
-			renderBranch(c, bark, leaves, wireframe, depth+1);
+			renderBranch(c, wireframe, depth+1);
 		}
 
 	glPopMatrix();
@@ -485,7 +487,7 @@ void Tree::drawJoint(branch* b, bool wireframe){
 
 /* draws the branch to the screen
 */
-void Tree::drawBranch(branch* b, GLuint bark, GLuint leaves, bool wireframe){
+void Tree::drawBranch(branch* b, bool wireframe){
 	vec3 norm = normalize(b->direction);
 	float dotProd = dot(norm, vec3(0,0,1));
 
@@ -497,18 +499,16 @@ void Tree::drawBranch(branch* b, GLuint bark, GLuint leaves, bool wireframe){
 		if (!fuzzySystemFinishedBuilding){
 			b->branchModel->renderGeometry(wireframe);
 			if((b->baseWidth < 2 * prm_branchMinWidth) && !wireframe){
-				drawLeaves(b,leaves);
+				//drawLeaves(b,leaves);
 			}
 		}
-		glBindTexture(GL_TEXTURE_2D, bark);
 		b->branchFuzzySystem->renderSystem();
 	glPopMatrix();
 }
 
-void Tree::drawLeaves(branch* b, GLuint leaves){
+void Tree::drawLeaves(branch* b){
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBindTexture(GL_TEXTURE_2D, leaves);
 	glBegin(GL_QUADS);
 	
 	float l = ((b->children.size() < 1) ? 2.0 : 1.0) * b->length;
@@ -546,15 +546,10 @@ void Tree::renderStick(){
 
 void Tree::renderStick(branch *b, int depth){
 	glPushMatrix();{
-		int n = depth * 15;
-		int cR = (n > 255) ? 255 : n;
-		int cB = (n >= 255) ? ( n > 510 ? 255 : (n - 255) ) : 0;
-		int cG = (n >= 510) ? n - 510 : 0;
-
-		glColor3f(cR / 255.0f,cB / 255.0f,cG / 255.0f);
 		glBegin(GL_LINES);
 		vec3 p1 = b->position;
 		vec3 p2 = b->position + (b->direction * b->length);
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec4(p1, 1.0f).dataPointer());
 		glVertex3f(p1.x,p1.y,p1.z);
 		glVertex3f(p2.x,p2.y,p2.z);
 		glEnd();
