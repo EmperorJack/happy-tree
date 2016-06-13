@@ -6,16 +6,30 @@
 - Wind based physics: Kieran Mckay
 - Mesh to particle system conversion: Jack Purvis
 
+## Build Instructions
 
-# Controls
+- After building the work directory with cmake
+- Run `./build/bin/project` from the project directory
+
+## Controls
 
 **To adjust tree generation values**
 
-Tree generation
+All tree controls are accessed by holding: ctrl
 
-- To generate a new tree: 'ctrl' + 'r'
+- Increase Tree Height: 'W'
+- Decrease Tree Height: 'S'
+	
+- Increase Branch Length: 'D'
+- Decrease Branch Length: 'A'
 
-** To adjust wind values**
+- Increase Branch Thickness: 'E'
+- Decrease Branch Thickness: 'Q'
+	
+- Re-generate tree: 'R'
+- Toggle Line view: 'T'
+
+**To adjust wind values**
 
 Wind enabled by default, but inital X-axis and Z-axis values are 0
 
