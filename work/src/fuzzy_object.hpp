@@ -19,13 +19,19 @@
 #include "geometry.hpp"
 
 struct fuzzyParticle {
+
+	// Basic properties
 	cgra::vec3 pos;
 	cgra::vec3 vel;
 	cgra::vec3 acc;
-	cgra::vec3 col;
+	cgra::vec3 col; // Colour
+
+	// Collision properties
 	cgra::vec3 triangleIntersectionPos;
 	int triangleIndex;
 	bool inCollision;
+
+	// Neighbour relation properties
 	int id;
 	std::vector<int> neighbours;
 };

@@ -18,7 +18,7 @@ using namespace std;
 using namespace cgra;
 
 ParticleSystem::ParticleSystem(vector<vec3> points) {
-	// Create a particle system out of given points
+	// Create a particle system out of the given points
 	for (int i = 0; i < points.size(); i++) {
 		particle p;
 		p.original_pos = vec3(points[i]);
@@ -34,13 +34,15 @@ ParticleSystem::ParticleSystem(vector<vec3> points) {
 
 ParticleSystem::~ParticleSystem() {}
 
-
 void ParticleSystem::update() {
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
+
+		// Update the particle velocity and position
 		particles[i].vel = clamp(particles[i].vel + particles[i].acc, -p_maxVel, p_maxVel);
 		particles[i].pos += particles[i].vel;
 
+		// Perform simple bouncing off of the floor plane
 		vec3 actualPos = particles[i].pos;
 		if (actualPos.y - p_radius < 0.0f) {
 			particles[i].vel.y *= -1;
@@ -49,9 +51,9 @@ void ParticleSystem::update() {
 		}
 	}
 
+	// Interpolate the current colour based on the animation state
 	float lerp = animationStep / float(animationLength);
 	currentColour = mix(startColour, endColour, lerp);
-
 	animationStep = min(animationStep + 1, animationLength);
 }
 
@@ -103,6 +105,7 @@ void ParticleSystem::setupDisplayList() {
 	glEndList();
 }
 
+// Make each particle fall from it's current position
 void ParticleSystem::drop() {
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].acc = vec3(0.0f, -0.00981f, 0.0f);
@@ -112,6 +115,7 @@ void ParticleSystem::drop() {
 	}
 }
 
+// Explode each particle in all directions
 void ParticleSystem::explode() {
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].acc = vec3(0.0f, -0.00981f, 0.0f);
@@ -121,6 +125,7 @@ void ParticleSystem::explode() {
 	}
 }
 
+// Attempt to blow the particle system away in the direction of a given wind vector
 void ParticleSystem::blowAway(vec3 direction) {
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].acc = vec3(0.0f, -0.000981f, 0.0f);
@@ -129,6 +134,7 @@ void ParticleSystem::blowAway(vec3 direction) {
 	}
 }
 
+// Reset the particle system to it's initial state
 void ParticleSystem::resetParticles() {
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].pos = particles[i].original_pos;

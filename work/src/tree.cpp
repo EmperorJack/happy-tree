@@ -164,7 +164,7 @@ void Tree::generateGeometry(branch *b) {
 	float maxWidth = generatedTreeRoot->baseWidth;
 	float minWidth = prm_branchTipWidth;
 
-	float maxDensity = 1.0f;
+	float maxDensity = 1.2f;
 	float minDensity = 0.5f;
 
 	float amount = (b->baseWidth - minWidth) / (maxWidth - minWidth) * (maxDensity - minDensity) + minDensity;

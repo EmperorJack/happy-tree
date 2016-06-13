@@ -29,6 +29,7 @@ FuzzyObject::FuzzyObject(Geometry *geometry) {
 
 	spawnPoint = geometry->getOrigin();
 
+	// Use this to build the complete system upon object instantiation
 	//buildSystem(false);
 }
 
@@ -36,6 +37,7 @@ FuzzyObject::~FuzzyObject() {}
 
 // Setup the particle instance geometry
 void FuzzyObject::setupDisplayList() {
+
 	// Delete the old list if there is one
 	if (p_displayList) glDeleteLists(p_displayList, 1);
 
@@ -49,16 +51,19 @@ void FuzzyObject::setupDisplayList() {
 	glEndList();
 }
 
+// Iterate one step through the system building algorithm
 void FuzzyObject::buildSystemIncrement() {
 	buildSystem(true);
 }
 
+// Build the particle system
 void FuzzyObject::buildSystem(bool incremental) {
 	// First pass
 	while (!firstPassFinished && !stoppingCriteria()) {
 		addParticle();
 		updateBuildingSystem();
 
+		// Return now if we only wanted to build one step
 		if (incremental) return;
 	}
 
@@ -66,21 +71,26 @@ void FuzzyObject::buildSystem(bool incremental) {
 	while (!systemAtRest()) {
 		updateBuildingSystem();
 
+		// Return now if we only wanted to build one step
 		if (incremental) return;
 	}
 
 	buildFinished = true;
 }
 
+// Determines when the particle system has been fully generated
 bool FuzzyObject::stoppingCriteria() {
 	if (particles.size() >= particleLimit) return true;
 
+	// If all the particles are in collision
 	if (collisionCount == particles.size() && particles.size() > minParticleCount) {
 
+		// Perform a number of stability updates
 		for (int i = 0; i < stabilityUpdates; i++) {
 			updateBuildingSystem();
 		}
 
+		// If the system is still unstable then the build process is complete
 		if (collisionCount == particles.size() && particles.size() > minParticleCount) {
 			firstPassFinished = true;
 			return true;
@@ -90,12 +100,16 @@ bool FuzzyObject::stoppingCriteria() {
 	return false;
 }
 
+// Determines when the system has gained stability after all the particles have been added
 bool FuzzyObject::systemAtRest() {
+
 	// Not currently checking this yet
 	return true;
 }
 
+// Add a new particle to the system
 void FuzzyObject::addParticle() {
+
 	// Do not add another particle if we reached the limit
 	if (particles.size() >= particleLimit) return;
 
@@ -120,6 +134,7 @@ void FuzzyObject::addParticle() {
 	updateFacingTriangle(particles.size() - 1);
 }
 
+// Perform one update step in the system building process
 void FuzzyObject::updateBuildingSystem() {
 	collisionCount = 0;
 
@@ -155,7 +170,7 @@ void FuzzyObject::updateBuildingSystem() {
 	// Apply LJ physics based forces to the particle system
 	applyParticleForces();
 
-	// Apply forces to particles that collide with the geometry
+	// Apply forces to particles that collide with the mesh geometry
 	applyBoundaryForces();
 
 	// Update the particle positions and velocities
@@ -175,7 +190,9 @@ void FuzzyObject::updateBuildingSystem() {
 	}
 }
 
+// Apply forces between particles
 void FuzzyObject::applyParticleForces() {
+
 	// For each pair of particles
 	for (int i = 0; i < particles.size(); i++) {
 		for (int j = i + 1; j < particles.size(); j++) {
@@ -205,6 +222,7 @@ void FuzzyObject::applyParticleForces() {
 	}
 }
 
+// Apply forces to particles if they are colliding with the mesh geometry
 void FuzzyObject::applyBoundaryForces() {
 	// For each particle
 	for (int i = 0; i < particles.size(); i++) {
@@ -221,6 +239,8 @@ void FuzzyObject::applyBoundaryForces() {
 	}
 }
 
+// Returns the force that should be applied to two particles at a given distance
+//  between each other, based on the Lennard Jones potentials model
 vec3 FuzzyObject::forceAtDistance(float dist, vec3 distVector) {
 	float a = (48 * e_strength / pow(e_lengthScale, 2));
 	float b = pow(e_lengthScale / dist, 14);
@@ -234,6 +254,7 @@ bool FuzzyObject::withinRange(vec3 p1, vec3 p2, float range) {
 	return (d.x * d.x + d.y * d.y + d.z * d.z) < (range * range);
 }
 
+// Recompute the triangle the given particle is facing so collisions can be checked against it
 void FuzzyObject::updateFacingTriangle(int index) {
 	vec3 newIntersectionPoint = vec3(maxFloatVector);
 	float shortestLength = maxFloatVector.x;
@@ -315,6 +336,7 @@ bool FuzzyObject::finishedBuilding() {
 	return buildFinished;
 }
 
+// Return the complete particle system as a collection of point vectors
 vector<vec3> FuzzyObject::getSystem() {
 	vector<vec3> points;
 
@@ -329,6 +351,8 @@ void FuzzyObject::clearParticles() {
 	particles.clear();
 }
 
+// Scales the algorithm paramaters to adjust the density of the resulting
+// particle system in a linear fashion
 void FuzzyObject::scaleDensity(float amount) {
 	p_radius *= amount;
 	p_boundaryRadius *= amount;
@@ -339,6 +363,7 @@ void FuzzyObject::scaleDensity(float amount) {
 	setupDisplayList();
 }
 
+// Used to hard code in some nice values for converting models quickly and fairly accurately
 void FuzzyObject::setExampleSystemAttributes() {
 	stabilityUpdates = 10;
 	p_velRange = 0.03f;
