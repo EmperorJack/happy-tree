@@ -44,7 +44,7 @@ void FuzzyObject::setupDisplayList() {
 	glNewList(p_displayList, GL_COMPILE);
 
 	// Draw the geometry
-	cgraSphere(p_radius, 8, 8);
+	cgraSphere(p_radius, 6, 6);
 
 	glEndList();
 }
@@ -81,7 +81,7 @@ bool FuzzyObject::stoppingCriteria() {
 			updateBuildingSystem();
 		}
 
-		if (collisionCount == particles.size()) {
+		if (collisionCount == particles.size() && particles.size() > minParticleCount) {
 			firstPassFinished = true;
 			return true;
 		}
@@ -111,6 +111,10 @@ void FuzzyObject::addParticle() {
 							 math::random(-1.0f, 1.0f) * p_velRange,
 							 math::random(-1.0f, 1.0f) * p_velRange);
 
+	p.col = vec3(1.0f, 1.0f, 1.0f);
+
+	p.id = nextUniqueId++;
+
 	particles.push_back(p);
 
 	updateFacingTriangle(particles.size() - 1);
@@ -122,7 +126,6 @@ void FuzzyObject::updateBuildingSystem() {
 	// Reset required fields on each particle for the next update
 	for (int i = 0; i < particles.size(); i++) {
 		particles[i].acc = vec3(0.0f, 0.0f, 0.0f);
-		particles[i].col = vec3(0.0f, 0.0f, 1.0f);
 		particles[i].inCollision = false;
 
 		// Check if the particle left the mesh
@@ -131,16 +134,9 @@ void FuzzyObject::updateBuildingSystem() {
 		if (d < 0.0f || d >= maxFloatVector.x) {
 
 			// Mark it for deletion
-			particles[i].col = vec3(0.0f, 1.0f, 0.0f);
 			particlesForDeletion.push_back(i);
 		}
 	}
-
-	// Apply LJ physics based forces to the particle system
-	applyParticleForces();
-
-	// Apply forces to particles that collide with the geometry
-	applyBoundaryForces();
 
 	// Delete any particles marked for deletion
 	if (particlesForDeletion.size() > 0) {
@@ -155,6 +151,12 @@ void FuzzyObject::updateBuildingSystem() {
 		particlesForDeletion.clear();
 		particles = newParticles;
 	}
+
+	// Apply LJ physics based forces to the particle system
+	applyParticleForces();
+
+	// Apply forces to particles that collide with the geometry
+	applyBoundaryForces();
 
 	// Update the particle positions and velocities
 	for (int i = 0; i < particles.size(); i++) {
@@ -195,6 +197,9 @@ void FuzzyObject::applyParticleForces() {
 				// Apply friction to the particle
 				particles[i].vel *= particleCollisionFriction;
 				particles[j].vel *= particleCollisionFriction;
+
+				particles[i].inCollision = true;
+				particles[j].inCollision = true;
 			}
 		}
 	}
@@ -256,7 +261,6 @@ void FuzzyObject::updateFacingTriangle(int index) {
 	particles[index].triangleIntersectionPos = newIntersectionPoint;
 	particles[index].triangleIndex = triangleIndex;
 
-	particles[index].col = vec3(1.0f, 0.0f, 0.0f);
 	particles[index].inCollision = true;
 }
 
@@ -293,19 +297,7 @@ void FuzzyObject::renderSystem() {
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, p.col.dataPointer());
 
 		// Draw the particle
-		if (particleViewMode) {
-			glCallList(p_displayList);
-		} else {
-			glBegin(GL_POINTS);
-			glVertex3f(0, 0, 0);
-			glEnd();
-
-			// Draw the particle velocity as a line
-			glBegin(GL_LINES);
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(p.vel.x * 3, p.vel.y * 3, p.vel.z * 3);
-			glEnd();
-		}
+		glCallList(p_displayList);
 
 		glPopMatrix();
 	}
@@ -317,10 +309,6 @@ void FuzzyObject::renderSystem() {
 
 int FuzzyObject::getParticleCount() {
 	return particles.size();
-}
-
-void FuzzyObject::toggleParticleViewMode() {
-	particleViewMode = !particleViewMode;
 }
 
 bool FuzzyObject::finishedBuilding() {
@@ -344,4 +332,22 @@ void FuzzyObject::clearParticles() {
 void FuzzyObject::scaleDensity(float amount) {
 	p_radius *= amount;
 	p_boundaryRadius *= amount;
+	p_spawnOffset *= amount;
+	e_lengthScale = min(e_lengthScale, e_lengthScale * max(amount * 1.5f, 1.0f));
+	e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
+
+	setupDisplayList();
+}
+
+void FuzzyObject::setExampleSystemAttributes() {
+	stabilityUpdates = 10;
+	p_velRange = 0.03f;
+	p_radius = 0.2f;
+	p_boundaryRadius = 0.23f;
+	p_spawnOffset = 0.05f;
+	e_strength = 0.005f;
+	e_lengthScale = 0.32f;
+	e_effectRange = pow(2.0f, 1.0f / 6.0f) * e_lengthScale;
+
+	setupDisplayList();
 }

@@ -32,9 +32,11 @@ struct branch{
 
 	branch* parent;
 	std::vector<branch *> children = std::vector<branch*>();	// all child branches of this branch
+	int numParents;
 
 	cgra::vec3 worldDir = cgra::vec3(0,0,0);
 	cgra::vec3 rotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
+	cgra::vec3 combinedRotation = cgra::vec3(0,0,0);          // Rotation of joint in the basis (degrees)
 
 	Geometry* jointModel = nullptr;
 	Geometry* branchModel = nullptr;
@@ -56,7 +58,7 @@ class Tree{
 		void toggleTreeType();
 		void adjustWind(int, int);
 
-		std::vector<Geometry*> getGeometries();
+		cgra::vec3 getWindForce();
 
 		void setMaterial(cgra::vec4, cgra::vec4, cgra::vec4, float, cgra::vec4);
 
@@ -122,6 +124,7 @@ class Tree{
 		bool inEnvelope(cgra::vec3);
 		branch* makeDummyTree(int);
 
+
 		//Drawing Methods
 		void renderBranch(branch *b, GLuint, GLuint, bool, int depth=0);
 		void drawBranch(branch*, GLuint, GLuint, bool);
@@ -144,6 +147,7 @@ class Tree{
 		//the wind acting upon this tree
 		cgra::vec3 desiredWindForce = cgra::vec3(0.0f, 0.0f, 0.0f);
 		void setWindForce(cgra::vec3);
+		void setAccumulativeValues(branch*, int, cgra::vec3);
 
 		float calculatePressure(branch*, float, int);
 		float springConstant(branch*);

@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-// General Particle System
+// General Animated Particle System
 //
 // By Jack Purvis
 //
@@ -31,6 +31,7 @@ class ParticleSystem {
 
 		// Constructors
 		ParticleSystem(std::vector<cgra::vec3>);
+		~ParticleSystem();
 
 		// Methods
 		void update();
@@ -39,11 +40,12 @@ class ParticleSystem {
 		// Animation triggers
 		void drop();
 		void explode();
+		void blowAway(cgra::vec3 direction);
 
 		void resetParticles();
 
 	private:
-		
+
 		// System fields
 		std::vector<particle> particles;
 		GLuint p_displayList = 0;
@@ -51,11 +53,19 @@ class ParticleSystem {
 		// Particle fields
 		float p_radius = 0.2f;
 		float p_velRange = 0.03f;
+		float p_maxVel = 0.5f;
 
 		// Drawing properties
 		cgra::vec4 diffuse = cgra::vec4(0.8, 0.8, 0.8, 1.0);
 		cgra::vec4 specular = cgra::vec4(0.8, 0.8, 0.8, 1.0);
-		float shininess = 128.0f;
+		float shininess = 64.0f;
+
+		// Animation fields
+		int animationStep = 0;
+		int animationLength = 100;
+		cgra::vec4 currentColour = cgra::vec4(0.0, 0.0, 0.0, 1.0);
+		cgra::vec4 startColour = cgra::vec4(1.0, 1.0, 1.0, 1.0);
+		cgra::vec4 endColour = cgra::vec4(1.0, 0.2, 0.0, 0.0);
 
 		void setupDisplayList();
 };

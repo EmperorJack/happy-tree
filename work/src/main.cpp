@@ -59,18 +59,25 @@ float tree_kill = 1.0f;
 float tree_tW = 0.04;
 float tree_mW = 0.08;
 
+int numTrees = 3;
+std::vector<Tree*> g_treeList;
+
 // Particle system fields
 FuzzyObject* g_fuzzy_system = nullptr;
+ParticleSystem* g_particle_system = nullptr;
+bool exampleSystemFinishedBuilding = false;
+bool exampleParticlesAnimating = false;
+
 ParticleSystem* g_treeParticleSystem = nullptr;
 bool treeFuzzySystemFinishedBuilding = false;
-float spawnPointShiftAmount = 0.1f;
-bool explodingSystem = false;
+bool treeParticlesAnimating = false;
 
 // Toggle fields
 bool drawAxes = false;
 bool treeMode = false;
 bool wireframeMode = false;
 bool realtimeBuild = false;
+bool exampleFuzzyObjectMode = false;
 bool partyMode = false;
 
 // Texture bindings
@@ -99,14 +106,22 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 		g_rightMouseDown = (action == GLFW_PRESS);
 		if (g_rightMouseDown) {
-			g_tree->buildFuzzySystems(true);
+			if (!exampleFuzzyObjectMode) {
+				g_tree->buildFuzzySystems(true);
+			} else {
+				g_fuzzy_system->buildSystemIncrement();
+			}
 		}
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
 		if (action == GLFW_PRESS) {
 			for (int i = 0; i < 100; i++) {
-				g_tree->buildFuzzySystems(true);
+				if (!exampleFuzzyObjectMode) {
+					g_tree->buildFuzzySystems(true);
+				} else {
+					g_fuzzy_system->buildSystemIncrement();
+				}
 			}
 		}
 	}
@@ -129,9 +144,9 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 			delete(g_tree);
 			g_tree = new Tree(tree_h, tree_t, tree_bL, tree_inf, tree_kill, tree_tW, tree_mW);
 
-			delete(g_treeParticleSystem);
 			treeFuzzySystemFinishedBuilding = false;
 			realtimeBuild = false;
+			treeParticlesAnimating = false;
 		}
 		if (key == 'T' && action == 1) {
 			treeMode = !treeMode;
@@ -167,50 +182,80 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 		if (key == 'F' && action == 1) {
 			g_tree->toggleWind();
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->toggleWind();
+			}
 		}
 
 		if (key == 'C' && action == 1) {
 			g_tree->toggleTreeType();
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->toggleTreeType();
+			}
 		}
 
 		// increase wind on X axis
 		if (key == 'J' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('x', 1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('x', 1);
+			}
 		}
 
 		// decrease wind on X axis
 		if (key == 'N' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('x', -1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('x', -1);
+			}
 		}
 
 		// increase wind on Z axis
 		if (key == 'K' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('z', 1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('z', 1);
+			}
 		}
 
 		// decrease wind on Z axis
 		if (key == 'M' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('z', -1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('z', -1);
+			}
 		}
 
 		// increase a coefficient in wind calculation
 		if (key == 'H' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('a', 1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('a', 1);
+			}
 		}
 
 		// decrease a coefficient in wind calculation
 		if (key == 'B' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('a', -1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('a', -1);
+			}
 		}
 
 		// increase a coefficient in wind calculation
 		if (key == 'G' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('t', 1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('t', 1);
+			}
 		}
 
 		// decrease a coefficient in wind calculation
 		if (key == 'V' && (action == 1 || action == 2)) {
 			g_tree->adjustWind('t', -1);
+			for (int i = 0; i < g_treeList.size(); i++){
+				g_treeList.at(i)->adjustWind('t', -1);
+			}
 		}
 
 		// 'p' key pressed
@@ -228,25 +273,44 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 
 		// 'space' key pressed
 		if (key == 32 && action == 1) {
-			explodingSystem = !explodingSystem;
 
-			// Check if the tree finished building it's particle systems
-			if (g_tree->finishedBuildingFuzzySystems()) {
-				g_treeParticleSystem = new ParticleSystem(g_tree->getFuzzySystemPoints());
-				treeFuzzySystemFinishedBuilding = true;
-			 	g_treeParticleSystem->explode();
+			if (!exampleFuzzyObjectMode) {
+
+				// Check if the tree finished building it's particle systems
+				if (g_tree->finishedBuildingFuzzySystems()) {
+					delete(g_treeParticleSystem);
+					g_treeParticleSystem = new ParticleSystem(g_tree->getFuzzySystemPoints());
+					treeFuzzySystemFinishedBuilding = true;
+
+					treeParticlesAnimating = true;
+				 	g_treeParticleSystem->explode();
+				}
+			} else {
+
+				// Check if the example fuzzy system finished building
+				if (g_fuzzy_system->finishedBuilding()) {
+					g_particle_system = new ParticleSystem(g_fuzzy_system->getSystem());
+					exampleSystemFinishedBuilding = true;
+					exampleParticlesAnimating = true;
+					g_particle_system->explode();
+				}
 			}
 		}
 
 		// 'r' key pressed
 		if (key == 'R' && (action == 1)) {
-			explodingSystem = false;
+			treeParticlesAnimating = false;
 			if (treeFuzzySystemFinishedBuilding) g_treeParticleSystem->resetParticles();
 		}
 
 		// 'q' key pressed
 		if (key == 'Q' && action == 1) {
 			realtimeBuild = !realtimeBuild;
+		}
+
+		// 'e' key pressed
+		if (key == 'E' && action == 1) {
+			exampleFuzzyObjectMode = !exampleFuzzyObjectMode;
 		}
 	}
 }
@@ -258,15 +322,36 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 
 // Load and setup the 3D geometry models
 void initGeometry() {
-	//g_model = new Geometry("./work/res/assets/sphere.obj");
-	//g_model = generateSphereGeometry(3.0f, 6, 6);
-	g_model = generateCylinderGeometry(1.0f, 1.0f, 5.0f, 4, 4);
-	g_model->setPosition(vec3(5, 1, 5));
+	g_model = new Geometry("./work/res/assets/bunny-reduced.obj");
+	g_model->setPosition(vec3(0, 1.2f, 0));
 
 	g_terrain = new Geometry("./work/res/assets/plane.obj", 30.0f);
 
 	g_tree = new Tree();
 	g_tree->setPosition(vec3(0, 0, 0));
+
+	// for (int i = 1; i != numTrees; i++){
+	// 	for (int j = 1; j != numTrees; j++){
+	// 		Tree* tree = new Tree();
+	// 		tree->setPosition(vec3(i*20, 0, j*20));
+	// 		g_treeList.push_back(tree);
+
+
+	// 		Tree* tree2 = new Tree();
+	// 		tree2->setPosition(vec3(i*-20, 0, j*20));
+	// 		g_treeList.push_back(tree2);
+
+
+	// 		Tree* tree3 = new Tree();
+	// 		tree3->setPosition(vec3(i*20, 0, j*-20));
+	// 		g_treeList.push_back(tree3);
+
+
+	// 		Tree* tree4 = new Tree();
+	// 		tree4->setPosition(vec3(i*-20, 0, j*-20));
+	// 		g_treeList.push_back(tree4);
+	// 	}
+	// }
 }
 
 // Setup the materials per geometric object
@@ -274,10 +359,8 @@ void initMaterials() {
 	vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4 grey = vec4(0.2, 0.2, 0.2, 1.0);
 	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
-	
-	
-	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 
+	g_model->setMaterial(grey, vec4(0.8, 0.8, 0.8, 1.0), vec4(0.8, 0.8, 0.8, 1.0), 128.0f, black);
 
 	vec4 ambient = vec4(0.1,0.1,0.1,1);
 	vec4 diffuse = vec4(1,1,1,1);
@@ -285,11 +368,14 @@ void initMaterials() {
 	float shininess = 64.0f;
 	vec4 emission = vec4(0,0,0,1);
 
+	for (int i = 0; i < g_treeList.size(); i++){
+		g_treeList.at(i)->setMaterial(ambient, diffuse, specular, shininess, emission);
+	}
+
 	g_tree->setMaterial(ambient, diffuse, specular, shininess, emission);
 	g_terrain->setMaterial(ambient, diffuse, specular, shininess, emission);
 
 	//g_terrain->setMaterial(vec4(0.5,0.5,0.5,1.0), vec4(0.5,0.5,0.5,1.0), vec4(0.1,0.1,0.1,1.0), 20.0f,black);
-
 }
 
 // Loads in a texture from the given location
@@ -302,8 +388,8 @@ GLuint initTexture(string path) {
 	glBindTexture(GL_TEXTURE_2D, g_texture); // Bind it as a 2D texture
 
 	// Setup sampling strategies
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// Enable repeating of the texture
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -429,6 +515,7 @@ void drawQuad(float l) {
 void renderSkybox(float dist) {
 	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), false);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, vec3(1.0, 1.0, 1.0).dataPointer());
 
 	glPushMatrix();
 	glTranslatef(0, 50, 0);
@@ -474,7 +561,7 @@ void renderSkybox(float dist) {
 	glBindTexture(GL_TEXTURE_2D, t_skybox[1]);
 	drawQuad(dist);
 	glPopMatrix();
-	
+
 	// Back plane (-Z axis)
 	glPushMatrix();
 	glTranslatef(-dist, 0, 0);
@@ -503,33 +590,49 @@ void renderPlane(float length) {
 }
 
 void update() {
-	if (!treeFuzzySystemFinishedBuilding) {
+	if (exampleFuzzyObjectMode) {
 
-		// Update tree particle system building
-		if (!g_tree->finishedBuildingFuzzySystems() && realtimeBuild) {
-			g_tree->buildFuzzySystems(true);
+		// Update example system building
+		if (!g_fuzzy_system->finishedBuilding() && realtimeBuild) {
+			g_fuzzy_system->buildSystemIncrement();
+		} else if (exampleParticlesAnimating) {
+			g_particle_system->update();
 		}
 	} else {
-		g_treeParticleSystem->update();
+
+		// Tree system animation / building
+		if (!treeFuzzySystemFinishedBuilding) {
+
+			// Update tree particle system building
+			if (!g_tree->finishedBuildingFuzzySystems() && realtimeBuild) {
+				g_tree->buildFuzzySystems(true);
+			}
+		} else if (treeParticlesAnimating) {
+			g_treeParticleSystem->update();
+		}
 	}
 }
 
 // Render the geometry of the scene
 void renderScene() {
-	if (partyMode) glRotatef(frameCount * -1.5f, 0, 1, 0);
+	if (partyMode) glRotatef(frameCount * -1.0f, 0, 1, 0);
 
 	glPushMatrix();
-	//glScalef(2, 2, 2);
 	glTranslatef(0, -tree_h / 2, 0);
 
 	// Render skybox
 	renderSkybox(500);
 
 	// Render terrain
+	glPushMatrix();
+	glScalef(1, 0.75f, 1);
+
 	glBindTexture(GL_TEXTURE_2D, t_grass);
 	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
 	g_terrain->renderGeometry(false);
-	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), true);
+	glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
+
+	glPopMatrix();
 
 	if (treeMode){
 		glDisable(GL_LIGHTING);
@@ -538,6 +641,18 @@ void renderScene() {
 		g_tree->drawEnvelope();
 		// g_tree->renderAttractionPoints();
 		glEnable(GL_LIGHTING);
+
+	} else if (exampleFuzzyObjectMode) {
+
+		// Render example model and fuzzy system
+		if (!g_fuzzy_system->finishedBuilding()) {
+			g_model->renderGeometry(wireframeMode);
+		}
+
+		if (!exampleParticlesAnimating) {
+			g_fuzzy_system->renderSystem();
+		}
+
 	} else {
 
 		// Render Tree
@@ -547,10 +662,22 @@ void renderScene() {
 		glUniform1i(glGetUniformLocation(g_shader, "useTexture"), false);
 	}
 
-	// Render complete fuzzy particle system
-	if (treeFuzzySystemFinishedBuilding) {
-		g_treeParticleSystem->render();
+	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), false);
+
+	if (!exampleFuzzyObjectMode) {
+
+		// Render tree particle system
+		if (treeFuzzySystemFinishedBuilding) {
+			g_treeParticleSystem->render();
+		}
+	} else {
+		// Render example particle system
+		if (exampleSystemFinishedBuilding) {
+			g_particle_system->render();
+		}
 	}
+
+	glUniform1i(glGetUniformLocation(g_shader, "useLighting"), true);
 
 	glPopMatrix();
 }
@@ -608,7 +735,7 @@ void renderGUI() {
 				 ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 
 	ImGui::Text(string(fpsString).c_str());
-	ImGui::Text(("Particle Count: " + to_string(g_tree->getFuzzySystemParticleCount())).c_str());
+	ImGui::Text(("Particle Count: " + to_string(exampleFuzzyObjectMode ? g_fuzzy_system->getParticleCount() : g_tree->getFuzzySystemParticleCount())).c_str());
 
 	ImGui::End();
 
@@ -686,6 +813,9 @@ int main(int argc, char **argv) {
 	t_bark = initTexture("./work/res/textures/bark.png");
 	t_grass = initTexture("./work/res/textures/grass.png");
 	t_leaves = initTexture("./work/res/textures/leaves.tga");
+
+	g_fuzzy_system = new FuzzyObject(g_model);
+	g_fuzzy_system->setExampleSystemAttributes();
 
 	// Initialize the skybox textures
 	for (int i = 0; i < 6; i++) {

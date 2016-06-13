@@ -14,7 +14,7 @@ varying vec3 v;
 bool withinSpotlight(int, vec3, float);
 
 void main() {
-	vec3 finalColor = vec3(0, 0, 0);
+	vec4 finalColor = vec4(0, 0, 0, 0);
 
   if(useLighting){
 
@@ -32,19 +32,19 @@ void main() {
 
       // Ambient
       vec3 ambient = gl_LightSource[lightIndex].ambient.rgb *
-                    gl_FrontMaterial.ambient.rgb;
+                     gl_FrontMaterial.ambient.rgb;
 
       // Diffuse
       vec3 diffuse = gl_LightSource[lightIndex].diffuse.rgb *
-                    gl_FrontMaterial.diffuse.rgb *
-                    s_dot_n;
+                     gl_FrontMaterial.diffuse.rgb *
+                     s_dot_n;
 
       // Specular
       vec3 specular = vec3(0.0, 0.0, 0.0);
       if (s_dot_n > 0.0) {
         specular = gl_LightSource[lightIndex].specular.rgb *
-                  gl_FrontMaterial.specular.rgb *
-                  pow(max(dot(r, normalize(-v)), 0.0), gl_FrontMaterial.shininess);
+                   gl_FrontMaterial.specular.rgb *
+                   pow(max(dot(r, normalize(-v)), 0.0), gl_FrontMaterial.shininess);
       }
 
       if (lightIndex == spotlightIndex) {
@@ -55,17 +55,17 @@ void main() {
         color = ambient + diffuse + specular;
       }
 
-      finalColor += color;
+      finalColor += vec4(color, 1);
     }
-  }else{
-    finalColor = vec3(1.0,1.0,1.0);
+  } else{
+    finalColor = gl_FrontMaterial.ambient.rgba * gl_FrontMaterial.diffuse.rgba;
   }
 
   if (useTexture) {
-    finalColor *= texture2D(texture0, vTextureCoord0).rgb;
+    finalColor *= texture2D(texture0, vTextureCoord0).rgba;
   }
 
-  gl_FragColor = vec4(finalColor, 1);
+  gl_FragColor = finalColor;
 }
 
 bool withinSpotlight(int lightIndex, vec3 l, float s_dot_n) {
